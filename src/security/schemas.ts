@@ -126,7 +126,14 @@ export const ReportSubmissionSchema = z.object({
       'Descrição contém caracteres inválidos ou scripts (<, >, javascript:)'
     ),
   isConfidential: z.boolean().default(true),
-  photoThumbnailUrl: z.string().max(250000).optional(),
+  photoThumbnailUrl: z
+    .string()
+    .regex(
+      /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/,
+      'Formato de miniatura inválido (permitido apenas JPEG, PNG ou WebP).'
+    )
+    .max(250000)
+    .optional(),
 });
 
 export const ChatMessageSchema = z.object({

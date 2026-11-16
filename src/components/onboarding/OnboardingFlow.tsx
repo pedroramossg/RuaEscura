@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -74,9 +74,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     };
   }, []);
 
+  const shouldReduceMotion = useReducedMotion();
   const prefersReducedMotion =
-    typeof window !== 'undefined' &&
-    window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    Boolean(shouldReduceMotion) ||
+    (typeof window !== 'undefined' &&
+      Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches));
 
   // Toggle building in Step 2
   const toggleBuilding = (id: string) => {
@@ -180,22 +182,25 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     timersRef.current.push(t1, t2, t3);
   };
 
-  const springTransition = {
-    type: 'spring' as const,
-    bounce: 0,
-    duration: 0.35,
-  };
+  const springTransition = prefersReducedMotion
+    ? { duration: 0.01 }
+    : {
+        type: 'spring' as const,
+        bounce: 0,
+        duration: 0.28,
+      };
+
+  const stepInitial = { opacity: 0, y: prefersReducedMotion ? 0 : 12 };
 
   return (
     <div className="min-h-screen w-full flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-300">
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {/* STEP 1: DARK STAGE + LUMINOUS LIME ARC + ANIMATED CORRIDOR */}
         {step === 1 && (
           <motion.div
             key="step-1"
-            initial={{ opacity: 0, y: 16 }}
+            initial={stepInitial}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
             transition={springTransition}
             className="w-full max-w-md bg-[#131314] text-white rounded-[32px] p-6 sm:p-8 relative overflow-hidden shadow-2xl border border-white/10"
           >
@@ -294,9 +299,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
         {step === 2 && (
           <motion.div
             key="step-2"
-            initial={{ opacity: 0, y: 16 }}
+            initial={stepInitial}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
             transition={springTransition}
             className="w-full max-w-md bg-[#ffffff] text-[#131314] rounded-[32px] p-6 sm:p-8 shadow-xl border border-[#dfe3e6]"
           >
@@ -412,10 +416,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             <div className="mt-8 flex items-center space-x-3">
               <button
                 type="button"
+                aria-label="Voltar"
                 onClick={() => setStep(1)}
-                className="min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#46444a] hover:bg-[#f3f3f4] transition-colors cursor-pointer"
+                className="min-w-[44px] min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#46444a] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer inline-flex items-center justify-center"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-4 h-4" aria-hidden="true" />
               </button>
 
               <PillButton
@@ -434,9 +439,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
         {step === 3 && (
           <motion.div
             key="step-3"
-            initial={{ opacity: 0, y: 16 }}
+            initial={stepInitial}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
             transition={springTransition}
             className="w-full max-w-md bg-[#ffffff] text-[#131314] rounded-[32px] p-6 sm:p-8 shadow-xl border border-[#dfe3e6]"
           >
@@ -476,7 +480,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                     <span>Iluminação</span>
                   </div>
                   <div className="text-2xl font-semibold text-[#131314] mt-1">
-                    {previewRoute.illuminationPercentage}% <span className="text-sm font-normal text-[#66646d]">% iluminado</span>
+                    {previewRoute.illuminationPercentage}
+                    <span className="text-sm font-normal text-[#66646d]">% iluminado</span>
                   </div>
                 </div>
 
@@ -493,10 +498,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
               </div>
 
               {/* Verified Peers Counter Card */}
-              <div className="p-3 bg-white rounded-xl border border-[#dfe3e6] flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-[#15803d]" />
-                  <div>
+              <div className="p-3 bg-white rounded-xl border border-[#dfe3e6] flex items-center justify-between gap-3">
+                <div className="flex items-center space-x-2 min-w-0">
+                  <Users className="w-4 h-4 text-[#15803d] shrink-0" />
+                  <div className="min-w-0">
                     <div className="text-sm font-medium text-[#131314]">
                       {verifiedPeersCount} estudantes verificados
                     </div>
@@ -505,7 +510,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                     </div>
                   </div>
                 </div>
-                <div className="flex -space-x-1.5 overflow-hidden">
+                <div className="flex -space-x-1.5 overflow-hidden shrink-0">
                   <span className="inline-block h-6 w-6 rounded-full bg-[#131314] text-[#befc65] text-[10px] font-bold text-center leading-6 ring-2 ring-white">
                     MS
                   </span>
@@ -529,7 +534,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#46444a] hover:bg-[#f3f3f4] transition-colors cursor-pointer"
+                className="min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#46444a] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer shrink-0"
               >
                 Voltar
               </button>
@@ -537,10 +542,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
               <PillButton
                 variant="lime"
                 size="compact"
-                className="flex-1 font-semibold"
+                className="flex-1 font-semibold !text-sm !px-4 whitespace-nowrap"
                 onClick={() => setStep(4)}
               >
-                Continuar para validação segura →
+                Validar acesso Gov.br →
               </PillButton>
             </div>
           </motion.div>
@@ -550,9 +555,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
         {step === 4 && (
           <motion.div
             key="step-4"
-            initial={{ opacity: 0, y: 16 }}
+            initial={stepInitial}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
             transition={springTransition}
             className="w-full max-w-md bg-[#ffffff] text-[#131314] rounded-[32px] p-6 sm:p-8 shadow-xl border border-[#dfe3e6]"
           >

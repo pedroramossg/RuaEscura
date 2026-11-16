@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Building2,
   Clock,
@@ -17,6 +17,7 @@ import { BottomSheet, SheetDetent } from '../ui/BottomSheet';
 export interface ProfileSheetProps {
   isOpen: boolean;
   onClose: () => void;
+  returnFocusRef?: React.RefObject<HTMLButtonElement | null>;
   onNotify?: (message: string) => void;
 }
 
@@ -37,6 +38,7 @@ function toSafeMaskedCpf(raw?: string | null): string {
 export const ProfileSheet: React.FC<ProfileSheetProps> = ({
   isOpen,
   onClose,
+  returnFocusRef,
   onNotify,
 }) => {
   const {
@@ -52,6 +54,24 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
   } = useCampusStore();
 
   const [detent, setDetent] = useState<SheetDetent>('expanded');
+
+  const handleClose = useCallback(() => {
+    onClose();
+    window.requestAnimationFrame(() => {
+      returnFocusRef?.current?.focus();
+    });
+  }, [onClose, returnFocusRef]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleClose]);
 
   const buildingLabels = useMemo(() => {
     const landmarkMap = new Map(UFSC_LANDMARKS.map((n) => [n.id, n.shortName]));
@@ -81,7 +101,8 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
       detent={detent}
       onDetentChange={setDetent}
       dark={false}
-      grabberLabel="Alternar painel de perfil e privacidade"
+      isModal={true}
+      grabberLabel="Perfil e Privacidade"
     >
       <div className="space-y-5 pb-4">
         {/* Header */}
@@ -98,9 +119,9 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Fechar perfil"
-            className="min-w-[44px] min-h-[44px] rounded-full inline-flex items-center justify-center border border-[#dfe3e6] text-[#131314] hover:bg-[#f3f3f4] cursor-pointer shrink-0"
+            className="min-w-[44px] min-h-[44px] rounded-full inline-flex items-center justify-center border border-[#dfe3e6] text-[#131314] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -218,7 +239,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
           <button
             type="button"
             onClick={handleResetSessionOnly}
-            className="w-full min-h-[44px] px-4 rounded-full border border-[#dfe3e6] bg-white hover:bg-[#f3f3f4] text-sm font-medium text-[#131314] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full min-h-[44px] px-4 rounded-full border border-[#dfe3e6] bg-white hover:bg-[#f3f3f4] active:scale-[0.97] text-sm font-medium text-[#131314] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <LogOut className="w-4 h-4" aria-hidden="true" />
             <span>Encerrar sessão Gov.br</span>
@@ -227,7 +248,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
           <button
             type="button"
             onClick={handleResetAllDemo}
-            className="w-full min-h-[44px] px-4 rounded-full border border-[#D70015]/30 bg-[#D70015]/5 hover:bg-[#D70015]/10 text-sm font-medium text-[#D70015] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full min-h-[44px] px-4 rounded-full border border-[#D70015]/30 bg-[#D70015]/5 hover:bg-[#D70015]/10 active:scale-[0.97] text-sm font-medium text-[#D70015] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
             <span>Resetar dados demo</span>

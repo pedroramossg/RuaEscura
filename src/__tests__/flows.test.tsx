@@ -281,6 +281,16 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       await waitFor(() => {
         expect(screen.getByText(/Metadados EXIF removidos com segurança/i)).toBeInTheDocument();
       });
+
+      // Submit the validated report with attached EXIF-stripped JPEG thumbnail
+      const submitBtn = screen.getByRole('button', { name: /Enviar denúncia segura/i });
+      fireEvent.click(submitBtn);
+
+      await waitFor(() => {
+        const thumbImg = screen.getByAltText(/Evidência em Entrada RU/i) as HTMLImageElement;
+        expect(thumbImg).toBeInTheDocument();
+        expect(thumbImg.getAttribute('src')).toMatch(/^data:image\/jpeg;base64,/);
+      });
     });
   });
 

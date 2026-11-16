@@ -79,9 +79,7 @@ export const MapTab: React.FC<MapTabProps> = ({ onOpenReportsShortcut }) => {
   const handleOpenChat = (companionId: string) => {
     trigger('selection');
     setActiveChatCompanionId(companionId);
-    if (detent === 'peek') {
-      setDetent('medium');
-    }
+    setDetent('expanded');
   };
 
   const handleCloseChat = () => {

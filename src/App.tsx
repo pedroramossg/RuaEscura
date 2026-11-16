@@ -31,6 +31,7 @@ export function AppShell() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<number | null>(null);
+  const profileTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     return () => {
@@ -93,11 +94,11 @@ export function AppShell() {
           : 'bg-[#f3f3f4] text-[#131314]'
       }`}
     >
-      {/* Global Polite Toast Announcer */}
+      {/* Global Polite Toast Announcer positioned above FloatingTabBar so top headings are never obscured */}
       <div
         aria-live="polite"
         aria-atomic="true"
-        className="fixed top-4 inset-x-4 z-[55] pointer-events-none flex justify-center"
+        className="fixed bottom-24 inset-x-4 z-[55] pointer-events-none flex justify-center"
       >
         {toastMessage && (
           <div
@@ -117,6 +118,7 @@ export function AppShell() {
             onOpenLights={() => handleTabChange('postes')}
             onOpenReports={() => handleTabChange('denuncias')}
             onOpenProfile={() => setIsProfileOpen(true)}
+            profileTriggerRef={profileTriggerRef}
             onNotify={notify}
           />
         )}
@@ -139,6 +141,7 @@ export function AppShell() {
       <ProfileSheet
         isOpen={isProfileOpen && !isMapTab}
         onClose={() => setIsProfileOpen(false)}
+        returnFocusRef={profileTriggerRef}
         onNotify={notify}
       />
 

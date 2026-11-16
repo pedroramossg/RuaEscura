@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, PanInfo, useDragControls } from 'motion/react';
+import { motion, PanInfo, useDragControls, useReducedMotion } from 'motion/react';
 
 export type SheetDetent = 'peek' | 'medium' | 'expanded';
 
@@ -7,6 +7,7 @@ export interface BottomSheetProps {
   detent?: SheetDetent;
   onDetentChange?: (detent: SheetDetent) => void;
   dark?: boolean;
+  isModal?: boolean;
   grabberLabel?: string;
   children: React.ReactNode;
   className?: string;
@@ -22,6 +23,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   detent: controlledDetent,
   onDetentChange,
   dark = false,
+  isModal = false,
   grabberLabel = 'Alternar tamanho do painel',
   children,
   className = '',
@@ -30,6 +32,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const isControlled = controlledDetent !== undefined;
   const currentDetent = isControlled ? controlledDetent : internalDetent;
   const dragControls = useDragControls();
+  const shouldReduceMotion = useReducedMotion();
 
   const updateDetent = (nextDetent: SheetDetent) => {
     if (!isControlled) {
@@ -74,7 +77,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     <motion.aside
       data-testid="bottom-sheet"
       data-detent={currentDetent}
-      aria-label="Painel de detalhes"
+      role={isModal ? 'dialog' : undefined}
+      aria-modal={isModal ? 'true' : undefined}
+      aria-label={isModal ? grabberLabel : 'Painel de detalhes'}
       drag="y"
       dragControls={dragControls}
       dragListener={false}
@@ -82,7 +87,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       dragElastic={0.2}
       onDragEnd={handleDragEnd}
       animate={{ height: currentDetent === 'peek' ? 140 : currentDetent === 'medium' ? '48vh' : '88vh' }}
-      transition={{ type: 'spring', bounce: 0.16, duration: 0.4 }}
+      transition={shouldReduceMotion ? { duration: 0.01 } : { type: 'spring', bounce: 0.16, duration: 0.4 }}
       className={`fixed inset-x-0 bottom-0 z-40 rounded-t-[32px] shadow-2xl flex flex-col will-change-[height] ${sheetThemeClasses} ${DETENT_HEIGHTS[currentDetent]} ${className}`}
     >
       {/* Clickable grabber hit target >= 44px with dedicated drag initiation */}

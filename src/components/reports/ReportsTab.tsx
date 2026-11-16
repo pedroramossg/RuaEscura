@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   Camera,
@@ -132,17 +132,25 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
   const [feedFilter, setFeedFilter] = useState<FeedFilter>('all');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const emergencyTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const handleCloseEmergencyDialog = useCallback(() => {
+    setIsEmergencyDialogOpen(false);
+    window.requestAnimationFrame(() => {
+      emergencyTriggerRef.current?.focus();
+    });
+  }, []);
 
   useEffect(() => {
     if (!isEmergencyDialogOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setIsEmergencyDialogOpen(false);
+        handleCloseEmergencyDialog();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isEmergencyDialogOpen]);
+  }, [isEmergencyDialogOpen, handleCloseEmergencyDialog]);
 
   const sortedFilteredReports = useMemo(() => {
     return [...reports]
@@ -161,7 +169,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
       minute: '2-digit',
     });
     setEmergencyConfirmedAt(nowLabel);
-    setIsEmergencyDialogOpen(false);
+    handleCloseEmergencyDialog();
     onNotify?.('Alerta simulado enviado à Segurança UFSC (48) 3721-9555.');
   };
 
@@ -273,7 +281,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
           aria-labelledby="reports-emergency-heading"
           className="bg-white border border-[#D70015]/35 rounded-[24px] p-5 space-y-4"
         >
-          <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-start gap-3.5 min-w-0 flex-1">
               <div className="w-10 h-10 rounded-full bg-[#D70015]/12 text-[#D70015] flex items-center justify-center shrink-0">
                 <ShieldAlert className="w-5 h-5" aria-hidden="true" />
@@ -285,16 +293,17 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 >
                   Ajuda imediata no campus
                 </h2>
-                <p className="text-sm text-[#46444a] mt-0.5">
+                <p className="text-sm text-[#46444a] mt-0.5 leading-relaxed">
                   Segurança Institucional UFSC (Trindade 24h) ou Polícia Militar 190. Requer confirmação explícita antes de acionar.
                 </p>
               </div>
             </div>
 
             <button
+              ref={emergencyTriggerRef}
               type="button"
               onClick={() => setIsEmergencyDialogOpen(true)}
-              className="min-h-[44px] px-5 rounded-full bg-[#D70015] text-white text-sm font-medium inline-flex items-center justify-center gap-2 hover:bg-[#b50012] active:scale-[0.97] transition-all cursor-pointer shrink-0"
+              className="w-full sm:w-auto min-h-[44px] px-5 rounded-full bg-[#D70015] text-white text-sm font-medium inline-flex items-center justify-center gap-2 hover:bg-[#b50012] active:scale-[0.97] transition-all cursor-pointer shrink-0"
             >
               <PhoneCall className="w-4 h-4" aria-hidden="true" />
               <span>Emergência UFSC / 190</span>
@@ -461,15 +470,16 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 Anexar foto de evidência (opcional • JPEG, PNG ou WebP até 5 MB)
               </label>
               <div className="flex items-center gap-2 flex-wrap">
-                <label
-                  htmlFor="report-evidence-file"
-                  className="min-h-[44px] px-4 rounded-full border border-[#dfe3e6] bg-[#f3f3f4] hover:bg-[#e7e7e8] text-xs sm:text-sm font-medium text-[#131314] inline-flex items-center gap-2 cursor-pointer"
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="min-h-[44px] px-4 rounded-full border border-[#dfe3e6] bg-[#f3f3f4] hover:bg-[#e7e7e8] active:scale-[0.97] text-xs sm:text-sm font-medium text-[#131314] inline-flex items-center gap-2 transition-all cursor-pointer"
                 >
                   <Camera className="w-4 h-4" aria-hidden="true" />
                   <span>
                     {isValidatingPhoto ? 'Processando imagem...' : 'Selecionar imagem'}
                   </span>
-                </label>
+                </button>
                 <input
                   ref={fileInputRef}
                   id="report-evidence-file"
@@ -477,6 +487,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                   accept="image/jpeg,image/png,image/webp"
                   aria-label="Anexar foto de evidência"
                   onChange={handlePhotoChange}
+                  tabIndex={-1}
                   className="sr-only"
                 />
 
@@ -559,7 +570,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               type="button"
               onClick={() => setFeedFilter('all')}
               aria-pressed={feedFilter === 'all'}
-              className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+              className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97] cursor-pointer ${
                 feedFilter === 'all'
                   ? 'bg-[#131314] text-white border-[#131314]'
                   : 'bg-white text-[#46444a] border-[#dfe3e6] hover:text-[#131314]'
@@ -575,7 +586,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                   type="button"
                   onClick={() => setFeedFilter(cat)}
                   aria-pressed={active}
-                  className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                  className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97] cursor-pointer ${
                     active
                       ? 'bg-[#131314] text-white border-[#131314]'
                       : 'bg-white text-[#46444a] border-[#dfe3e6] hover:text-[#131314]'
@@ -600,7 +611,9 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 const StatusIcon = stMeta.Icon;
                 const hasSafeThumb =
                   typeof report.photoThumbnailUrl === 'string' &&
-                  report.photoThumbnailUrl.startsWith('data:image/');
+                  /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(
+                    report.photoThumbnailUrl
+                  );
 
                 return (
                   <li
@@ -689,8 +702,8 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               <button
                 type="button"
                 aria-label="Fechar diálogo de emergência"
-                onClick={() => setIsEmergencyDialogOpen(false)}
-                className="min-w-[44px] min-h-[44px] -mt-1 -mr-1 rounded-full inline-flex items-center justify-center text-[#46444a] hover:bg-[#f3f3f4] cursor-pointer"
+                onClick={handleCloseEmergencyDialog}
+                className="min-w-[44px] min-h-[44px] -mt-1 -mr-1 rounded-full inline-flex items-center justify-center text-[#46444a] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" aria-hidden="true" />
               </button>
@@ -714,15 +727,15 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
             <div className="flex flex-col sm:flex-row gap-2.5">
               <button
                 type="button"
-                onClick={() => setIsEmergencyDialogOpen(false)}
-                className="flex-1 min-h-[44px] px-4 rounded-full border border-[#dfe3e6] bg-white text-sm font-medium text-[#131314] hover:bg-[#f3f3f4] cursor-pointer"
+                onClick={handleCloseEmergencyDialog}
+                className="flex-1 min-h-[44px] px-4 rounded-full border border-[#dfe3e6] bg-white text-sm font-medium text-[#131314] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleConfirmEmergency}
-                className="flex-1 min-h-[44px] px-4 rounded-full bg-[#D70015] text-white text-sm font-medium hover:bg-[#b50012] cursor-pointer"
+                className="flex-1 min-h-[44px] px-4 rounded-full bg-[#D70015] text-white text-sm font-medium hover:bg-[#b50012] active:scale-[0.97] transition-all cursor-pointer"
               >
                 Confirmar alerta simulado
               </button>

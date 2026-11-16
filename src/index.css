@@ -96,3 +96,23 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Hide scrollbars cleanly in horizontal chip trays */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Editorial daylight vs dark nocturnal treatment on OpenStreetMap tiles */
+.rua-escura-day-tiles .leaflet-tile-pane {
+  filter: grayscale(40%) brightness(1.04) contrast(0.92);
+  opacity: 0.72;
+}
+
+.rua-escura-night-tiles .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.42) contrast(1.18) saturate(0.22);
+  opacity: 0.88;
+}

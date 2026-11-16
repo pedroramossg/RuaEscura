@@ -39,7 +39,7 @@ export function loadCampusState(storage: Storage | undefined = getDefaultStorage
 
   try {
     const raw = storage.getItem(CAMPUS_STORAGE_KEY);
-    if (!raw) {
+    if (!raw || raw.length > 2 * 1024 * 1024) {
       return getSeedCampusState();
     }
 

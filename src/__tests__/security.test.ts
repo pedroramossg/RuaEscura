@@ -317,18 +317,19 @@ describe('Security & DevSecOps Validation Layer', () => {
       const reloaded = loadCampusState(mockStorage);
       expect(reloaded.chatMessages['comp-1'][0].text).toContain('prototype');
 
-      // 2. Prototype pollution attack in object key
-      mockStorage.setItem(
-        'rua_escura_campus_state_v1',
-        JSON.stringify({
-          __proto__: { isAdmin: true },
-          version: 1,
-        })
-      );
+      // 2. Real serialized prototype pollution payload even inside otherwise-valid campus state
+      const fullValidJson = JSON.stringify(getSeedCampusState());
+      const pollutedJson = fullValidJson.replace('{', '{"__proto__": {"isAdmin": true}, ');
+      mockStorage.setItem('rua_escura_campus_state_v1', pollutedJson);
       const pollutedState = loadCampusState(mockStorage);
       expect(pollutedState).toBeDefined();
       expect((Object.prototype as Record<string, unknown>).isAdmin).toBeUndefined();
-      expect(pollutedState.posts.length).toBe(8); // Falls back safely to seed
+      expect(pollutedState.posts.length).toBe(8); // Rejected by reviver and falls back safely to seed
+
+      // 3. Oversized (> 2 MB) localStorage payload fallback
+      mockStorage.setItem('rua_escura_campus_state_v1', 'x'.repeat(2 * 1024 * 1024 + 10));
+      const oversizedFallback = loadCampusState(mockStorage);
+      expect(oversizedFallback.posts.length).toBe(8);
     });
 
     it('rejects tampered localStorage containing XSS vectors in reports or chat messages (Hydration XSS Defense)', () => {
@@ -384,6 +385,26 @@ describe('Security & DevSecOps Validation Layer', () => {
       const seed = getSeedCampusState();
       const saveSuccess = saveCampusState(seed, quotaStorage);
       expect(saveSuccess).toBe(false); // Does not throw, returns false
+    });
+
+    it('rejects non-JPEG/PNG/WebP thumbnail URIs such as SVG in ReportSubmissionSchema', () => {
+      const svgResult = ReportSubmissionSchema.safeParse({
+        category: 'iluminacao',
+        location: 'Bosque UFSC',
+        description: 'Poste apagado perto da entrada do Bosque.',
+        isConfidential: true,
+        photoThumbnailUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+      });
+      expect(svgResult.success).toBe(false);
+
+      const jpegResult = ReportSubmissionSchema.safeParse({
+        category: 'iluminacao',
+        location: 'Bosque UFSC',
+        description: 'Poste apagado perto da entrada do Bosque.',
+        isConfidential: true,
+        photoThumbnailUrl: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
+      });
+      expect(jpegResult.success).toBe(true);
     });
   });
 });

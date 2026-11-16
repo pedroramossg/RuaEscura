@@ -229,24 +229,15 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     };
   }, []);
 
-  // Update raster TileLayer when Night Mode toggles
+  // Initialize OpenStreetMap tile layer once (CSS filters adapt instantly between Day & Night Mode)
   useEffect(() => {
     const map = leafletMapRef.current;
-    if (!map) return;
+    if (!map || tileLayerRef.current) return;
 
     try {
-      if (tileLayerRef.current) {
-        tileLayerRef.current.remove();
-        tileLayerRef.current = null;
-      }
-
-      const tileUrl = isNightMap
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-
-      const layer = L.tileLayer(tileUrl, {
+      const layer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        subdomains: 'abcd',
+        crossOrigin: 'anonymous',
       });
 
       layer.on('tileerror', () => setTilesOffline(true));
@@ -256,7 +247,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     } catch {
       setTilesOffline(true);
     }
-  }, [isNightMap]);
+  }, []);
 
   // Sync local GeoJSON footprint, walkways, routes, dark zones, and active pole halos inside Leaflet
   useEffect(() => {
@@ -460,7 +451,9 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       <div
         ref={mapContainerRef}
         aria-label="Mapa interativo do Campus Trindade da UFSC"
-        className={`absolute inset-0 z-0 ${isNightMap ? 'bg-[#131314]' : 'bg-[#f3f3f4]'}`}
+        className={`absolute inset-0 z-0 ${
+          isNightMap ? 'bg-[#131314] rua-escura-night-tiles' : 'bg-[#f3f3f4] rua-escura-day-tiles'
+        }`}
       />
 
       {/* Resilient Local Vector Campus Footprint Fallback (always present for offline/JSDOM/zero-tile rendering) */}

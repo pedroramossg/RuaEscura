@@ -22,6 +22,7 @@ export interface ExploreTabProps {
   onOpenLights: () => void;
   onOpenReports: () => void;
   onOpenProfile: () => void;
+  profileTriggerRef?: React.RefObject<HTMLButtonElement | null>;
   onNotify?: (message: string) => void;
 }
 
@@ -87,6 +88,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
   onOpenLights,
   onOpenReports,
   onOpenProfile,
+  profileTriggerRef,
   onNotify,
 }) => {
   const {
@@ -243,6 +245,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
           </div>
 
           <button
+            ref={profileTriggerRef}
             type="button"
             onClick={onOpenProfile}
             aria-label="Abrir perfil e privacidade"
@@ -272,7 +275,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             />
             <button
               type="submit"
-              className="min-h-[44px] px-4 rounded-full bg-[#f3f3f4] hover:bg-[#e5e5e7] text-sm font-medium text-[#131314] shrink-0 transition-colors cursor-pointer"
+              className="min-h-[44px] px-4 rounded-full bg-[#f3f3f4] hover:bg-[#e5e5e7] active:scale-[0.97] text-sm font-medium text-[#131314] shrink-0 transition-all cursor-pointer"
             >
               Ir ao Mapa
             </button>
@@ -525,7 +528,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                   <button
                     type="button"
                     onClick={onOpenLights}
-                    className="min-h-[44px] px-3 rounded-full text-xs font-medium border border-[#dfe3e6] text-[#131314] hover:bg-[#f3f3f4] transition-colors cursor-pointer"
+                    className="min-h-[44px] px-3 rounded-full text-xs font-medium border border-[#dfe3e6] text-[#131314] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer"
                   >
                     Ver postes
                   </button>
@@ -554,7 +557,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                   <button
                     type="button"
                     onClick={onOpenReports}
-                    className="min-h-[44px] px-3 rounded-full text-xs font-medium border border-[#dfe3e6] text-[#131314] hover:bg-[#f3f3f4] transition-colors cursor-pointer"
+                    className="min-h-[44px] px-3 rounded-full text-xs font-medium border border-[#dfe3e6] text-[#131314] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer"
                   >
                     Ver denúncias
                   </button>
@@ -584,7 +587,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                   <button
                     type="button"
                     onClick={onOpenMap}
-                    className="min-h-[44px] px-3 rounded-full text-xs font-medium border border-[#dfe3e6] text-[#131314] hover:bg-[#f3f3f4] transition-colors cursor-pointer"
+                    className="min-h-[44px] px-3 rounded-full text-xs font-medium border border-[#dfe3e6] text-[#131314] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer"
                   >
                     Ver colegas
                   </button>

@@ -79,9 +79,10 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
     [companionMatches, activeChatCompanionId]
   );
 
+  const pathSet = useMemo(() => new Set(activeRoute.path), [activeRoute.path]);
+
   // Prioritize companions on or intersecting the active route corridor
   const sortedCompanions = useMemo(() => {
-    const pathSet = new Set(activeRoute.path);
     return [...companionMatches].sort((a, b) => {
       const aMatch =
         pathSet.has(a.originId) || pathSet.has(a.destinationId) ? 1 : 0;
@@ -89,7 +90,7 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
         pathSet.has(b.originId) || pathSet.has(b.destinationId) ? 1 : 0;
       return bMatch - aMatch;
     });
-  }, [companionMatches, activeRoute.path]);
+  }, [companionMatches, pathSet]);
 
   const routeBreadcrumb = useMemo(() => {
     return activeRoute.path
@@ -326,7 +327,6 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
 
             <ul className="space-y-2.5">
               {sortedCompanions.map((comp) => {
-                const pathSet = new Set(activeRoute.path);
                 const onCorridor =
                   pathSet.has(comp.originId) || pathSet.has(comp.destinationId);
                 const compOrigin = landmarkShortMap.get(comp.originId) ?? comp.originId;

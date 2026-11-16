@@ -327,7 +327,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
 
       // Proceed to Step 4
       const step3Next = screen.getByRole('button', {
-        name: /Continuar para validação segura/i,
+        name: /Validar acesso Gov\.br/i,
       });
       fireEvent.click(step3Next);
 

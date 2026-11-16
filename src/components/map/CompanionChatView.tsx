@@ -85,7 +85,7 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
   const subtleBgClass = dark ? 'bg-[#262629]' : 'bg-[#f3f3f4]';
 
   return (
-    <div className="flex flex-col gap-3" data-testid="companion-chat-view">
+    <div className="flex flex-col gap-3 pt-1 pb-24" data-testid="companion-chat-view">
       {/* Header with >= 44px Voltar button */}
       <div className={`flex items-center justify-between gap-2 pb-3 border-b ${borderClass}`}>
         <div className="flex items-center gap-2 min-w-0">

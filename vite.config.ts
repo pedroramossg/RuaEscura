@@ -7,6 +7,15 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          leaflet: ['leaflet'],
+          motion: ['motion'],
+          zod: ['zod'],
+        },
+      },
+    },
   },
   test: {
     globals: true,

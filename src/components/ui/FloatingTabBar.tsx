@@ -56,7 +56,7 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
               aria-selected={isActive}
               aria-current={isActive ? 'page' : undefined}
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex items-center gap-1.5 min-h-[44px] min-w-[44px] h-11 px-3.5 sm:px-4 rounded-full text-sm font-medium transition-all duration-150 ease-out select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 ${
+              className={`relative flex items-center gap-1.5 min-h-[44px] min-w-[44px] h-11 px-3.5 sm:px-4 rounded-full text-sm font-medium transition-all duration-150 ease-out active:scale-[0.97] select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 ${
                 isActive
                   ? dark
                     ? 'bg-[#befc65] text-[#131314] shadow-sm'

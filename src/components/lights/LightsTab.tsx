@@ -231,7 +231,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
             <span className="block text-xs font-medium text-[#66646d]">
               Simular leitura rápida no campus
             </span>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
               {posts.map((post) => {
                 const isSelected = selectedPost?.id === post.id;
                 const StatusIcon = STATUS_META[post.status].Icon;
@@ -241,7 +241,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     type="button"
                     onClick={() => handleSelectQuickQr(post.id)}
                     aria-pressed={isSelected}
-                    className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border inline-flex items-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
+                    className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border inline-flex items-center gap-1.5 shrink-0 transition-all active:scale-[0.97] cursor-pointer ${
                       isSelected
                         ? 'bg-[#131314] text-[#befc65] border-[#131314]'
                         : 'bg-[#f3f3f4] text-[#131314] border-[#dfe3e6] hover:border-[#131314]'
@@ -416,7 +416,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     type="button"
                     onClick={() => setDirectoryFilter(chip.id)}
                     aria-pressed={active}
-                    className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                    className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97] cursor-pointer ${
                       active
                         ? 'bg-[#131314] text-white border-[#131314]'
                         : 'bg-[#f3f3f4] text-[#46444a] border-[#dfe3e6] hover:text-[#131314]'
@@ -447,7 +447,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                       type="button"
                       onClick={() => handleSelectQuickQr(post.id)}
                       aria-label={`Selecionar ${post.id} — ${post.name} (${meta.label})`}
-                      className={`w-full min-h-[44px] px-3 py-2.5 rounded-2xl text-left flex items-center justify-between gap-3 transition-colors cursor-pointer ${
+                      className={`w-full min-h-[44px] px-3 py-2.5 rounded-2xl text-left flex items-center justify-between gap-3 transition-all active:scale-[0.98] cursor-pointer ${
                         isSelected ? 'bg-[#f3f3f4]' : 'hover:bg-[#f3f3f4]/70'
                       }`}
                     >
