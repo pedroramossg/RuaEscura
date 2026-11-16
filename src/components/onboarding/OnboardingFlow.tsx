@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ShieldCheck,
@@ -22,16 +22,16 @@ export interface OnboardingFlowProps {
 }
 
 const UFSC_OPTIONS = [
-  { id: 'bu', label: 'BU', desc: 'Biblioteca Central' },
-  { id: 'ru', label: 'RU', desc: 'Restaurante Univ.' },
-  { id: 'cce', label: 'CCE', desc: 'Comunicação e Artes' },
-  { id: 'cse', label: 'CSE', desc: 'Socioeconômico' },
-  { id: 'ccj', label: 'CCJ', desc: 'Direito' },
-  { id: 'cfh', label: 'CFH', desc: 'Humanas' },
-  { id: 'reitoria', label: 'Reitoria', desc: 'Praça da Cidadania' },
-  { id: 'bosque', label: 'Bosque', desc: 'Planetário' },
-  { id: 'hu', label: 'HU', desc: 'Hospital Universitário' },
-  { id: 'aplicacao', label: 'Aplicação', desc: 'Colégio' },
+  { id: 'bu', label: 'BU', shortName: 'BU', name: 'Biblioteca Central', desc: 'Biblioteca Central' },
+  { id: 'ru', label: 'RU', shortName: 'RU', name: 'Restaurante Universitário', desc: 'Restaurante Univ.' },
+  { id: 'cce', label: 'CCE', shortName: 'CCE', name: 'Centro de Comunicação e Expressão', desc: 'Comunicação e Artes' },
+  { id: 'cse', label: 'CSE', shortName: 'CSE', name: 'Centro Socioeconômico', desc: 'Socioeconômico' },
+  { id: 'ccj', label: 'CCJ', shortName: 'CCJ', name: 'Centro de Ciências Jurídicas', desc: 'Direito' },
+  { id: 'cfh', label: 'CFH', shortName: 'CFH', name: 'Centro de Filosofia e Ciências Humanas', desc: 'Humanas' },
+  { id: 'reitoria', label: 'Reitoria', shortName: 'Reitoria', name: 'Gabinete da Reitoria', desc: 'Praça da Cidadania' },
+  { id: 'bosque', label: 'Bosque', shortName: 'Bosque', name: 'Bosque e Planetário', desc: 'Planetário' },
+  { id: 'hu', label: 'HU', shortName: 'HU', name: 'Hospital Universitário', desc: 'Hospital Universitário' },
+  { id: 'aplicacao', label: 'Aplicação', shortName: 'Aplicação', name: 'Colégio de Aplicação', desc: 'Colégio' },
 ];
 
 const TIME_SLOTS = ['17h–19h', '19h–21h', '21h–23h'];
@@ -60,6 +60,23 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
   const [gpsStatus, setGpsStatus] = useState<'prompt' | 'granted' | 'fallback'>('prompt');
   const [isVerifying, setIsVerifying] = useState(false);
   const [checklistStep, setChecklistStep] = useState(0);
+
+  const timersRef = useRef<number[]>([]);
+
+  const clearTimers = () => {
+    timersRef.current.forEach((id) => window.clearTimeout(id));
+    timersRef.current = [];
+  };
+
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((id) => window.clearTimeout(id));
+    };
+  }, []);
+
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
 
   // Toggle building in Step 2
   const toggleBuilding = (id: string) => {
@@ -133,18 +150,19 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
       return;
     }
 
+    clearTimers();
     setIsVerifying(true);
     setChecklistStep(1);
 
-    setTimeout(() => {
+    const t1 = window.setTimeout(() => {
       setChecklistStep(2);
     }, 100);
 
-    setTimeout(() => {
+    const t2 = window.setTimeout(() => {
       setChecklistStep(3);
     }, 200);
 
-    setTimeout(() => {
+    const t3 = window.setTimeout(() => {
       completeOnboarding({
         selectedBuildings,
         timeSlot,
@@ -158,6 +176,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
       });
       onComplete?.();
     }, 350);
+
+    timersRef.current.push(t1, t2, t3);
   };
 
   const springTransition = {
@@ -202,18 +222,24 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                     <feComposite in="SourceGraphic" in2="blur" operator="over" />
                   </filter>
                 </defs>
-                <path
+                <motion.path
                   d="M 25 65 Q 90 20 160 55 T 295 45"
                   stroke="#befc65"
                   strokeWidth="3.5"
                   strokeLinecap="round"
                   filter="url(#glow-lime)"
+                  initial={prefersReducedMotion ? false : { pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={prefersReducedMotion ? undefined : { duration: 0.9, ease: 'easeOut' }}
                 />
-                <path
+                <motion.path
                   d="M 25 65 Q 90 20 160 55 T 295 45"
                   stroke="#ffffff"
                   strokeWidth="2"
                   strokeLinecap="round"
+                  initial={prefersReducedMotion ? false : { pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={prefersReducedMotion ? undefined : { duration: 0.9, ease: 'easeOut' }}
                 />
                 <circle cx="25" cy="65" r="7" fill="#befc65" />
                 <circle cx="160" cy="55" r="6" fill="#befc65" />
@@ -303,6 +329,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                       key={item.id}
                       type="button"
                       aria-pressed={isSelected}
+                      aria-label={`${item.shortName} — ${item.name}`}
                       onClick={() => toggleBuilding(item.id)}
                       className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 cursor-pointer ${
                         isSelected
@@ -587,7 +614,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                 <button
                   type="button"
                   onClick={handleAutofillDemo}
-                  className="text-xs text-[#15803d] font-medium hover:underline cursor-pointer"
+                  className="min-h-[44px] inline-flex items-center px-2 text-xs text-[#15803d] font-medium hover:underline cursor-pointer"
                 >
                   Preencher demo Gov.br
                 </button>
