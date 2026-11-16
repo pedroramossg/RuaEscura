@@ -11,6 +11,23 @@ function getDefaultStorage(): Storage | undefined {
   return undefined;
 }
 
+function hasDangerousKey(key: string): boolean {
+  return key === '__proto__' || key === 'constructor' || key === 'prototype';
+}
+
+function hasPrototypePollutionKeys(obj: unknown): boolean {
+  if (!obj || typeof obj !== 'object') return false;
+  const keys = Object.getOwnPropertyNames(obj);
+  for (const k of keys) {
+    if (hasDangerousKey(k)) return true;
+    const val = (obj as Record<string, unknown>)[k];
+    if (val && typeof val === 'object') {
+      if (hasPrototypePollutionKeys(val)) return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Loads campus state from localStorage with fail-fast Zod validation and seed fallback.
  * Safely handles corrupted JSON, schema deviations, and prototype pollution attacks.
@@ -26,16 +43,18 @@ export function loadCampusState(storage: Storage | undefined = getDefaultStorage
       return getSeedCampusState();
     }
 
-    // Prototype pollution & malicious key check in raw JSON string
-    if (
-      raw.includes('"__proto__"') ||
-      raw.includes('"constructor"') ||
-      raw.includes('"prototype"')
-    ) {
+    let hasPollution = false;
+    const parsed: unknown = JSON.parse(raw, (key, value) => {
+      if (hasDangerousKey(key)) {
+        hasPollution = true;
+        return undefined;
+      }
+      return value;
+    });
+
+    if (hasPollution || hasPrototypePollutionKeys(parsed)) {
       return getSeedCampusState();
     }
-
-    const parsed: unknown = JSON.parse(raw);
 
     const validation = PersistedCampusStateSchema.safeParse(parsed);
     if (!validation.success) {

@@ -164,9 +164,9 @@ const EdgeRatingSummarySchema = z.object({
 const IncidentReportSchema = z.object({
   id: z.string(),
   category: z.enum(['iluminacao', 'assedio', 'suspeito', 'manutencao', 'outro']),
-  locationName: z.string(),
+  locationName: z.string().refine(isSafeText, 'Localização contém caracteres inválidos (<, >)'),
   locationNodeId: z.string().optional(),
-  description: z.string(),
+  description: z.string().refine(isSafeText, 'Descrição contém caracteres inválidos (<, >)'),
   isConfidential: z.boolean(),
   createdAt: z.string(),
   status: z.enum(['pendente', 'em_analise', 'resolvido']),
@@ -175,9 +175,9 @@ const IncidentReportSchema = z.object({
 
 const CompanionMatchSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  initials: z.string(),
-  ufscAffiliation: z.string(),
+  name: z.string().refine(isSafeText, 'Nome contém caracteres inválidos'),
+  initials: z.string().refine(isSafeText, 'Iniciais contêm caracteres inválidos'),
+  ufscAffiliation: z.string().refine(isSafeText, 'Vínculo contém caracteres inválidos'),
   isGovBrVerified: z.boolean(),
   originId: z.string(),
   destinationId: z.string(),
@@ -187,9 +187,9 @@ const CompanionMatchSchema = z.object({
 });
 
 const GovBrSessionSchema = z.object({
-  name: z.string(),
-  cpfMasked: z.string(),
-  affiliation: z.string(),
+  name: z.string().refine(isSafeText, 'Nome contém caracteres inválidos'),
+  cpfMasked: z.string().refine(isSafeText, 'CPF contém caracteres inválidos'),
+  affiliation: z.string().refine(isSafeText, 'Vínculo contém caracteres inválidos'),
   verifiedAt: z.string(),
 });
 
@@ -212,8 +212,8 @@ export const PersistedCampusStateSchema: z.ZodType<PersistedCampusState> = z
         z.object({
           id: z.string(),
           senderId: z.string(),
-          senderName: z.string(),
-          text: z.string(),
+          senderName: z.string().refine(isSafeText, 'Nome contém caracteres inválidos'),
+          text: z.string().refine(isSafeText, 'Mensagem contém caracteres inválidos ou scripts (<, >, javascript:)'),
           timestamp: z.string(),
           isSystem: z.boolean().optional(),
         })

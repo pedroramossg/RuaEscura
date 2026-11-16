@@ -17,6 +17,28 @@ interface EdgeCalculation {
   hasBurnedPost: boolean;
 }
 
+function matchesLandmark(locationName: string, nodeId: string): boolean {
+  const node = UFSC_LANDMARKS.find((n) => n.id === nodeId);
+  if (!node) {
+    const wordRegex = new RegExp(`\\b${nodeId}\\b`, 'i');
+    return wordRegex.test(locationName);
+  }
+
+  const loc = locationName.toLowerCase();
+  const fullName = node.name.toLowerCase();
+  if (loc.includes(fullName)) return true;
+
+  // Check word boundary for shortName (e.g. \bRU\b, \bBU\b, \bCCE\b, \bCFH\b)
+  const shortRegex = new RegExp(`\\b${node.shortName}\\b`, 'i');
+  if (shortRegex.test(locationName)) return true;
+
+  // Check word boundary for id (e.g. \breitoria\b, \bbosque\b)
+  const idRegex = new RegExp(`\\b${node.id}\\b`, 'i');
+  if (idRegex.test(locationName)) return true;
+
+  return false;
+}
+
 /**
  * Calculates effective illumination percentage and Dijkstra weight for an edge.
  */
@@ -54,8 +76,7 @@ function evaluateEdge(
     if (r.locationNodeId) {
       return edge.from === r.locationNodeId || edge.to === r.locationNodeId;
     }
-    const loc = r.locationName.toLowerCase();
-    return loc.includes(edge.from) || loc.includes(edge.to);
+    return matchesLandmark(r.locationName, edge.from) || matchesLandmark(r.locationName, edge.to);
   });
 
   if (relatedReports.length > 0) {

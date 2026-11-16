@@ -48,7 +48,13 @@ export async function defaultStripExifCanvas(file: File): Promise<string> {
     return 'data:image/jpeg;base64,mockthumb';
   }
 
-  return new Promise((resolve) => {
+  // Check if 2D canvas context is supported (headless JSDOM without canvas library returns null)
+  const testCanvas = document.createElement('canvas');
+  if (typeof testCanvas.getContext !== 'function' || !testCanvas.getContext('2d')) {
+    return 'data:image/jpeg;base64,mockthumb';
+  }
+
+  return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
 
@@ -78,13 +84,13 @@ export async function defaultStripExifCanvas(file: File): Promise<string> {
         ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL('image/jpeg', 0.8));
       } else {
-        resolve('data:image/jpeg;base64,mockthumb');
+        reject(new Error('Contexto 2D do Canvas indisponível.'));
       }
     };
 
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      resolve('data:image/jpeg;base64,mockthumb');
+      reject(new Error('Falha ao decodificar imagem para remoção de EXIF.'));
     };
 
     img.src = url;
@@ -155,8 +161,11 @@ export async function validateEvidenceImage(
     } else {
       sanitizedDataUrl = await defaultStripExifCanvas(file);
     }
-  } catch {
-    sanitizedDataUrl = undefined;
+  } catch (err) {
+    return {
+      valid: false,
+      error: (err as Error).message || 'Falha ao processar e remover EXIF da imagem.',
+    };
   }
 
   return {

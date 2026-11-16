@@ -202,6 +202,17 @@ describe('UFSC Trindade Routing Engine (Dijkstra Lighting Router)', () => {
     // Verify 8 QR lamp posts
     expect(INITIAL_LAMP_POSTS.length).toBe(8);
     expect(UFSC_EDGES.length).toBeGreaterThan(10);
+
+    // Verify all edge IDs are unique
+    const edgeIds = UFSC_EDGES.map((e) => e.id);
+    const uniqueEdgeIds = new Set(edgeIds);
+    expect(uniqueEdgeIds.size).toBe(edgeIds.length);
+
+    // Verify all keys in INITIAL_EDGE_RATINGS exist in UFSC_EDGES
+    for (const ratedEdgeId of Object.keys(INITIAL_EDGE_RATINGS)) {
+      expect(uniqueEdgeIds.has(ratedEdgeId)).toBe(true);
+    }
+
     const postIds = INITIAL_LAMP_POSTS.map((p) => p.id);
     expect(postIds).toEqual(
       expect.arrayContaining([
@@ -215,5 +226,42 @@ describe('UFSC Trindade Routing Engine (Dijkstra Lighting Router)', () => {
         'POSTE-CFH-02',
       ])
     );
+  });
+
+  it('does not penalize edge-reitoria-ru when an active report has locationName "Rua Des. Vítor Lima" without locationNodeId', () => {
+    const vitorLimaReport: IncidentReport = {
+      id: 'rep-vitor-lima',
+      category: 'iluminacao',
+      locationName: 'Rua Des. Vítor Lima perto da rótula',
+      description: 'Poste apagado no entorno da Trindade',
+      isConfidential: true,
+      createdAt: new Date().toISOString(),
+      status: 'pendente',
+    };
+
+    const routeWithoutReport = findRoute(
+      'reitoria',
+      'ru',
+      'brightest',
+      INITIAL_LAMP_POSTS,
+      INITIAL_EDGE_RATINGS,
+      []
+    );
+
+    const routeWithVitorLimaReport = findRoute(
+      'reitoria',
+      'ru',
+      'brightest',
+      INITIAL_LAMP_POSTS,
+      INITIAL_EDGE_RATINGS,
+      [vitorLimaReport]
+    );
+
+    // The report at "Rua Des. Vítor Lima" must not match RU or penalize edge-reitoria-ru
+    expect(routeWithVitorLimaReport.illuminationPercentage).toEqual(
+      routeWithoutReport.illuminationPercentage
+    );
+    expect(routeWithVitorLimaReport.distanceMeters).toEqual(routeWithoutReport.distanceMeters);
+    expect(routeWithVitorLimaReport.path).toEqual(routeWithoutReport.path);
   });
 });

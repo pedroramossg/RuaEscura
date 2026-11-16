@@ -288,14 +288,75 @@ describe('Security & DevSecOps Validation Layer', () => {
       expect(state.posts.length).toBe(8);
     });
 
-    it('safely rejects prototype pollution attempts in localStorage', () => {
+    it('handles image decoding failures cleanly in validateEvidenceImage', async () => {
+      const jpegBytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46]);
+      const jpegFile = new File([jpegBytes], 'corrupt.jpg', { type: 'image/jpeg' });
+      const failingStrip = async () => {
+        throw new Error('Falha ao decodificar imagem para remoção de EXIF.');
+      };
+
+      const result = await validateEvidenceImage(jpegFile, failingStrip);
+      expect(result.valid).toBe(false);
+      expect(result.error).toMatch(/falha ao decodificar/i);
+    });
+
+    it('safely rejects prototype pollution attempts in localStorage while allowing legitimate "prototype" values', () => {
+      // 1. Legitimate user message with "prototype" in text
+      const state = getSeedCampusState();
+      state.chatMessages['comp-1'] = [
+        {
+          id: 'msg-proto-1',
+          senderId: 'usr-1',
+          senderName: 'Pedro',
+          text: 'Estamos testando o prototype do projeto de engenharia',
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      expect(saveCampusState(state, mockStorage)).toBe(true);
+      const reloaded = loadCampusState(mockStorage);
+      expect(reloaded.chatMessages['comp-1'][0].text).toContain('prototype');
+
+      // 2. Prototype pollution attack in object key
       mockStorage.setItem(
         'rua_escura_campus_state_v1',
-        '{"__proto__": {"isAdmin": true}, "version": 1}'
+        JSON.stringify({
+          __proto__: { isAdmin: true },
+          version: 1,
+        })
       );
-      const state = loadCampusState(mockStorage);
-      expect(state).toBeDefined();
+      const pollutedState = loadCampusState(mockStorage);
+      expect(pollutedState).toBeDefined();
       expect((Object.prototype as Record<string, unknown>).isAdmin).toBeUndefined();
+      expect(pollutedState.posts.length).toBe(8); // Falls back safely to seed
+    });
+
+    it('rejects tampered localStorage containing XSS vectors in reports or chat messages (Hydration XSS Defense)', () => {
+      // State tampered with <script> inside report description
+      const tamperedReportState = getSeedCampusState();
+      tamperedReportState.reports[0].description = '<script>alert("storage-xss")</script>';
+
+      mockStorage.setItem('rua_escura_campus_state_v1', JSON.stringify(tamperedReportState));
+      const stateAfterReportTamper = loadCampusState(mockStorage);
+      // Fails hydration validation and safely returns clean seed
+      expect(stateAfterReportTamper.reports[0].description).not.toContain('<script>');
+      expect(stateAfterReportTamper.reports[0].id).toBe('rep-init-1');
+
+      // State tampered with XSS inside chat message
+      const tamperedChatState = getSeedCampusState();
+      tamperedChatState.chatMessages['comp-1'] = [
+        {
+          id: 'msg-xss-1',
+          senderId: 'attacker',
+          senderName: '<img src=x onerror=alert(1)>',
+          text: 'javascript:alert(1)',
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      mockStorage.setItem('rua_escura_campus_state_v1', JSON.stringify(tamperedChatState));
+      const stateAfterChatTamper = loadCampusState(mockStorage);
+      expect(stateAfterChatTamper.chatMessages['comp-1'][0].text).not.toContain('javascript:');
     });
 
     it('successfully saves and loads valid campus state', () => {

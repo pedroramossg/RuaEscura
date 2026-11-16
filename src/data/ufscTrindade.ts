@@ -357,14 +357,6 @@ export const UFSC_EDGES: CampusEdge[] = [
 
   // Reitoria, Cultura, CFH, Aplicação
   {
-    id: 'edge-reitoria-cultura',
-    from: 'reitoria',
-    to: 'cultura',
-    distance: 120,
-    baseIllumination: 92,
-    lampPostIds: [],
-  },
-  {
     id: 'edge-cultura-cfh',
     from: 'cultura',
     to: 'cfh',
@@ -405,7 +397,7 @@ export const INITIAL_EDGE_RATINGS: Record<string, EdgeRatingSummary> = {
   'edge-bosque-reitoria': { averageRating: 4.5, count: 21 },
   'edge-ccj-reitoria': { averageRating: 4.7, count: 30 },
   'edge-cce-bu': { averageRating: 4.6, count: 27 },
-  'edge-bu-cultura': { averageRating: 4.4, count: 18 },
+  'edge-reitoria-cultura': { averageRating: 4.7, count: 20 },
   'edge-cultura-ru': { averageRating: 4.5, count: 25 },
 };
 
@@ -491,7 +483,7 @@ export const INITIAL_COMPANIONS: CompanionMatch[] = [
 ];
 
 export function getSeedCampusState(): PersistedCampusState {
-  return {
+  return structuredClone({
     version: 1,
     onboardingCompleted: false,
     selectedBuildings: ['bu', 'ru', 'cce'],
@@ -517,5 +509,5 @@ export function getSeedCampusState(): PersistedCampusState {
     activeOriginId: 'bu',
     activeDestinationId: 'ru',
     routeMode: 'brightest',
-  };
+  });
 }
