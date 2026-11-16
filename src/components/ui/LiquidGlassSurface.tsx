@@ -10,7 +10,7 @@ export interface LiquidGlassSurfaceProps extends React.HTMLAttributes<HTMLDivEle
 }
 
 export const LiquidGlassSurface: React.FC<LiquidGlassSurfaceProps> = ({
-  variant = 'panel',
+  variant = 'control',
   dark = false,
   className = '',
   children,
@@ -24,11 +24,11 @@ export const LiquidGlassSurface: React.FC<LiquidGlassSurfaceProps> = ({
         return 'rounded-full';
       case 'nav':
         return 'rounded-full px-4 py-2';
-      case 'control':
-        return 'rounded-2xl p-3';
       case 'panel':
-      default:
         return 'rounded-[24px] p-4';
+      case 'control':
+      default:
+        return 'rounded-2xl p-3';
     }
   })();
 

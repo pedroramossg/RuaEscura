@@ -58,7 +58,7 @@ describe('FloatingTabBar UI Primitive', () => {
 });
 
 describe('BottomSheet UI Primitive', () => {
-  function InteractiveSheet() {
+  function ControlledSheet() {
     const [detent, setDetent] = useState<SheetDetent>('peek');
     return (
       <BottomSheet
@@ -71,8 +71,8 @@ describe('BottomSheet UI Primitive', () => {
     );
   }
 
-  it('exposes a clickable grabber cycling detents (peek -> medium -> expanded -> peek)', () => {
-    render(<InteractiveSheet />);
+  it('exposes a clickable grabber cycling detents in controlled mode (peek -> medium -> expanded -> peek)', () => {
+    render(<ControlledSheet />);
 
     expect(screen.getByText('Conteúdo do Sheet')).toBeInTheDocument();
 
@@ -91,6 +91,26 @@ describe('BottomSheet UI Primitive', () => {
     expect(screen.getByTestId('bottom-sheet')).toHaveAttribute('data-detent', 'expanded');
 
     // Third click: cycles back to peek
+    fireEvent.click(grabber);
+    expect(screen.getByTestId('bottom-sheet')).toHaveAttribute('data-detent', 'peek');
+  });
+
+  it('supports uncontrolled mode with internal detent state fallback', () => {
+    render(
+      <BottomSheet grabberLabel="Grabber Uncontrolled">
+        <p>Conteúdo Uncontrolled</p>
+      </BottomSheet>
+    );
+
+    const grabber = screen.getByRole('button', { name: /grabber uncontrolled/i });
+    expect(screen.getByTestId('bottom-sheet')).toHaveAttribute('data-detent', 'peek');
+
+    fireEvent.click(grabber);
+    expect(screen.getByTestId('bottom-sheet')).toHaveAttribute('data-detent', 'medium');
+
+    fireEvent.click(grabber);
+    expect(screen.getByTestId('bottom-sheet')).toHaveAttribute('data-detent', 'expanded');
+
     fireEvent.click(grabber);
     expect(screen.getByTestId('bottom-sheet')).toHaveAttribute('data-detent', 'peek');
   });
@@ -151,7 +171,7 @@ describe('PillButton UI Primitive', () => {
 });
 
 describe('LiquidGlassSurface UI Primitive', () => {
-  it('applies liquid-glass and liquid-glass-dark classes based on dark prop', () => {
+  it('defaults to control variant and applies liquid-glass or liquid-glass-dark based on dark prop', () => {
     const { container, rerender } = render(
       <LiquidGlassSurface dark={false}>
         <span>Floating Bar</span>
@@ -160,6 +180,7 @@ describe('LiquidGlassSurface UI Primitive', () => {
 
     const surface = container.firstChild as HTMLElement;
     expect(surface.className).toContain('liquid-glass');
+    expect(surface.className).toContain('rounded-2xl');
     expect(surface.className).not.toContain('liquid-glass-dark');
 
     rerender(
