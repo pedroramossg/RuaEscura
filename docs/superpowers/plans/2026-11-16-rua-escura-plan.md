@@ -229,3 +229,4 @@
   - Run Vite dev/preview server and inspect all 4 tabs + onboarding + `☾ Luz Noturna` at mobile `390×844` and desktop `1280×800`.
 - [ ] **Step 4: Final commit (if fixes applied)**
   - `git status` clean, all checks passing.
+
