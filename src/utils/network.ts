@@ -125,6 +125,10 @@ export function assertSafeFetchUrl(rawUrl: string): string {
     throw new Error('Credenciais embutidas na URL são proibidas.');
   }
 
+  if (parsed.port && parsed.port !== '443') {
+    throw new Error(`Porta não permitida (${parsed.port}): apenas HTTPS padrão (443).`);
+  }
+
   const hostname = parsed.hostname.toLowerCase();
   if (isPrivateOrLoopbackHost(hostname)) {
     throw new Error(`Host privado/loopback bloqueado (${hostname}).`);
@@ -306,6 +310,7 @@ export async function fetchWithDedupAndTimeout<T = unknown>(
         method,
         headers: options.headers,
         body: method === 'GET' || method === 'HEAD' ? undefined : options.body,
+        redirect: 'error',
         signal: controller.signal,
       });
       return parseResponse<T>(response, responseType, options.parse);

@@ -16,14 +16,16 @@ export const LiquidGlassSurface: React.FC<LiquidGlassSurfaceProps> = ({
   children,
   ...props
 }) => {
-  const baseGlassClass = dark ? 'liquid-glass-dark text-[#f3f3f4]' : 'liquid-glass text-[#131314]';
+  const baseGlassClass = dark
+    ? 'liquid-glass-dark text-[#FEF1CF]'
+    : 'liquid-glass text-[#0B1226]';
 
   const variantClass = (() => {
     switch (variant) {
       case 'pill':
         return 'rounded-full';
       case 'nav':
-        return 'rounded-full px-4 py-2';
+        return 'rounded-full px-2 py-1.5';
       case 'panel':
         return 'rounded-[24px] p-4';
       case 'control':
@@ -34,7 +36,7 @@ export const LiquidGlassSurface: React.FC<LiquidGlassSurfaceProps> = ({
 
   return (
     <div
-      className={`${baseGlassClass} ${variantClass} transition-colors duration-200 ${className}`}
+      className={`${baseGlassClass} ${variantClass} transition-colors duration-200 ${className}`.trim()}
       {...props}
     >
       {children}

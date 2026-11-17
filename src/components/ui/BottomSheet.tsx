@@ -68,10 +68,12 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   };
 
   const sheetThemeClasses = dark
-    ? 'bg-[#1c1c1e] text-[#f3f3f4] border-t border-[#2e2e32]'
-    : 'bg-white text-[#131314] border-t border-[#dfe3e6]';
+    ? 'bg-[#0B132B] text-[#FEF1CF] border-t border-[#0131CD]/40 shadow-[0_-12px_36px_rgba(1,49,205,0.24)]'
+    : 'bg-[#FFF9EA] text-[#0B1226] border-t border-[#E4D6B2] shadow-[0_-12px_32px_rgba(11,18,38,0.12)]';
 
-  const grabberPillClass = dark ? 'bg-[#46444a]' : 'bg-[#dfe3e6]';
+  const grabberPillClass = dark
+    ? 'bg-[#B9FC01]/70 group-hover:bg-[#B9FC01]'
+    : 'bg-[#0131CD]/30 group-hover:bg-[#0131CD]/60';
 
   return (
     <motion.aside
@@ -84,11 +86,11 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       dragControls={dragControls}
       dragListener={false}
       dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={0.2}
+      dragElastic={shouldReduceMotion ? 0 : 0.2}
       onDragEnd={handleDragEnd}
       animate={{ height: currentDetent === 'peek' ? 140 : currentDetent === 'medium' ? '48vh' : '88vh' }}
       transition={shouldReduceMotion ? { duration: 0.01 } : { type: 'spring', bounce: 0.16, duration: 0.4 }}
-      className={`fixed inset-x-0 bottom-0 z-40 rounded-t-[32px] shadow-2xl flex flex-col will-change-[height] ${sheetThemeClasses} ${DETENT_HEIGHTS[currentDetent]} ${className}`}
+      className={`fixed inset-x-0 bottom-0 z-40 rounded-t-[32px] flex flex-col will-change-[height] ${sheetThemeClasses} ${DETENT_HEIGHTS[currentDetent]} ${className}`.trim()}
     >
       {/* Clickable grabber hit target >= 44px with dedicated drag initiation */}
       <button
@@ -96,10 +98,12 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         aria-label={grabberLabel}
         onClick={handleCycle}
         onPointerDown={(e) => dragControls.start(e)}
-        className="w-full min-h-[44px] h-11 flex items-center justify-center cursor-grab active:cursor-grabbing focus:outline-none select-none py-3 touch-none"
+        className={`group w-full min-h-[44px] h-11 flex items-center justify-center cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-offset-[-4px] ${
+          dark ? 'focus-visible:outline-[#B9FC01]' : 'focus-visible:outline-[#0131CD]'
+        } select-none py-3 touch-none`}
       >
         <span
-          className={`w-9 h-1 rounded-full pointer-events-none transition-colors duration-150 ${grabberPillClass}`}
+          className={`w-10 h-1 rounded-full pointer-events-none transition-colors duration-150 ${grabberPillClass}`}
         />
       </button>
 

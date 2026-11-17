@@ -390,8 +390,8 @@ const LandmarkMarker = React.memo<LandmarkMarkerProps>(
               : isDest
                 ? 'bg-[#B9FC01] text-[#0B1226] border-[#0131CD]'
                 : isNightMap
-                  ? 'bg-[#0f172a] text-[#f3f3f4] border-[#2a3c6e] hover:border-[#B9FC01]'
-                  : 'bg-white text-[#0B1226] border-[#dfe3e6] hover:border-[#0131CD]'
+                  ? 'bg-[#0B132B] text-[#FEF1CF] border-[#1F2E5C] hover:border-[#B9FC01]'
+                  : 'bg-[#FFF9EA] text-[#0B1226] border-[#D8C89E] hover:border-[#0131CD]'
           }`}
         >
           {isOrigin && <span className="text-[10px] uppercase opacity-90">O</span>}
@@ -636,6 +636,18 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
     } catch {
       setTilesOffline(true);
     }
+
+    return () => {
+      if (tileLayerRef.current) {
+        try {
+          tileLayerRef.current.off();
+          tileLayerRef.current.remove();
+        } catch {
+          // ignore cleanup errors
+        }
+        tileLayerRef.current = null;
+      }
+    };
   }, [mapStyle]);
 
   // Sync local GeoJSON footprint, walkways, routes, dark zones, and active pole halos inside Leaflet
@@ -951,8 +963,8 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
           aria-live="polite"
           className={`absolute left-3 right-3 sm:left-auto sm:right-4 sm:w-80 top-[140px] z-20 rounded-2xl p-3.5 shadow-lg border flex items-start justify-between gap-3 ${
             isNightMap
-              ? 'bg-[#0f172a] text-[#f3f3f4] border-[#2a3c6e]'
-              : 'bg-white text-[#0B1226] border-[#dfe3e6]'
+              ? 'bg-[#0B132B] text-[#FEF1CF] border-[#1F2E5C]'
+              : 'bg-[#FFF9EA] text-[#0B1226] border-[#D8C89E]'
           }`}
         >
           <div className="min-w-0">

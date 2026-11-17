@@ -2,19 +2,27 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  /* Bejamas Design Tokens */
-  --color-lime: #befc65;
-  --color-ink: #131314;
-  --color-deep-gray: #333337;
-  --color-mid-ink: #46444a;
-  --color-muted: #66646d;
-  --color-editorial-rule: #e0dfdf;
-  --color-rule: #dfe3e6;
-  --color-canvas: #f3f3f4;
-  --color-white: #ffffff;
+  /* RuaEscura v2 Palette: Cobalt / Warm Cream / Volt Acid Lime */
+  --color-cobalt: #0131CD;
+  --color-cobalt-hover: #01259E;
+  --color-cream: #FEF1CF;
+  --color-cream-elevated: #FFF9EA;
+  --color-volt: #B9FC01;
+  --color-volt-hover: #A6E500;
+  --color-ink: #0B1226;
+  --color-navy: #080E21;
+  --color-surface-white: #FFFFFF;
+  --color-rule: #E4D6B2;
+  --color-muted: #334155;
 
-  /* Semantic State Tokens */
-  --color-safe: #befc65;
+  /* Compatibility & Semantic State Tokens */
+  --color-lime: #B9FC01;
+  --color-deep-gray: #1E293B;
+  --color-mid-ink: #24304D;
+  --color-editorial-rule: #E4D6B2;
+  --color-canvas: #FEF1CF;
+  --color-white: #FFFFFF;
+  --color-safe: #B9FC01;
   --color-safe-dark: #15803d;
   --color-warning: #D97706;
   --color-warning-dark: #FF9F0A;
@@ -28,7 +36,8 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: var(--color-canvas);
+  font-weight: 400;
+  background-color: var(--color-cream);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -40,48 +49,48 @@ body {
    ========================================================================== */
 
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 250, 236, 0.84);
   backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 8px 32px 0 rgba(19, 19, 20, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(1, 49, 205, 0.16);
+  box-shadow: 0 8px 32px 0 rgba(11, 18, 38, 0.1), inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .liquid-glass-dark {
-  background: rgba(28, 28, 30, 0.78);
+  background: rgba(8, 16, 46, 0.84);
   backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(185, 252, 1, 0.22);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.42), inset 0 1px 1px 0 rgba(185, 252, 1, 0.12);
 }
 
 /* Reduced transparency accessibility fallback */
 @media (prefers-reduced-transparency: reduce) {
   .liquid-glass {
-    background: #ffffff !important;
+    background: #FFF9EA !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    border-color: #dfe3e6 !important;
+    border-color: #E4D6B2 !important;
   }
   .liquid-glass-dark {
-    background: #1c1c1e !important;
+    background: #080E21 !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    border-color: #2e2e32 !important;
+    border-color: rgba(185, 252, 1, 0.38) !important;
   }
 }
 
 /* High contrast accessibility fallback */
 @media (prefers-contrast: more) {
   .liquid-glass {
-    background: #ffffff !important;
-    border: 2px solid #131314 !important;
+    background: #FFFFFF !important;
+    border: 2px solid #0B1226 !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
   .liquid-glass-dark {
-    background: #131314 !important;
-    border: 2px solid #ffffff !important;
+    background: #080E21 !important;
+    border: 2px solid #FEF1CF !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
@@ -106,13 +115,13 @@ body {
   display: none;
 }
 
-/* Editorial daylight vs dark nocturnal treatment on OpenStreetMap tiles */
+/* Crisp readable daylight vs nocturnal treatment on OpenStreetMap tiles */
 .rua-escura-day-tiles .leaflet-tile-pane {
-  filter: grayscale(40%) brightness(1.04) contrast(0.92);
-  opacity: 0.72;
+  opacity: 0.92;
+  filter: contrast(1.03) saturate(0.92);
 }
 
 .rua-escura-night-tiles .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(180deg) brightness(0.42) contrast(1.18) saturate(0.22);
-  opacity: 0.88;
+  filter: invert(1) hue-rotate(180deg) brightness(0.62) contrast(1.15) saturate(0.3);
+  opacity: 0.92;
 }

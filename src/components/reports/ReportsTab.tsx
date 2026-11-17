@@ -20,6 +20,10 @@ import { ReportSubmissionSchema } from '../../security/schemas';
 import { validateEvidenceImage } from '../../security/fileValidation';
 import type { ReportCategory, ReportStatus } from '../../types/campus';
 import { PillButton } from '../ui/PillButton';
+import { VirtualizedList } from '../ui/VirtualizedList';
+import { DropletMascot, DROPLET_ALL_STATES } from '../mascot/DropletMascot';
+
+type DropletState = (typeof DROPLET_ALL_STATES)[number];
 
 export interface ReportsTabProps {
   onNotify?: (message: string) => void;
@@ -89,7 +93,7 @@ const REPORT_STATUS_META: Record<
   resolvido: {
     label: 'Resolvido',
     Icon: CheckCircle2,
-    badgeClass: 'bg-[#befc65] text-[#131314] border-[#131314]/20',
+    badgeClass: 'bg-[#B9FC01] text-[#0B1226] border-[#0B1226]/20',
   },
 };
 
@@ -130,6 +134,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
   const [formError, setFormError] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [feedFilter, setFeedFilter] = useState<FeedFilter>('all');
+  const [mascotMood, setMascotMood] = useState<DropletState>('idle');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const emergencyTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -249,6 +254,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
     setDescription('');
     setPhotoThumbnailUrl(undefined);
     setFileError(null);
+    setMascotMood('notify');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -260,26 +266,35 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
   return (
     <section
       aria-label="Denúncias e emergência"
-      className="min-h-screen bg-[#f3f3f4] text-[#131314] px-4 pt-5 pb-28 sm:px-6"
+      className="min-h-screen bg-[#FEF1CF] text-[#0B1226] px-4 pt-5 pb-28 sm:px-6"
     >
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
-        <header className="space-y-1">
-          <p className="text-xs font-medium text-[#66646d]">
-            Canal seguro e anônimo UFSC
-          </p>
-          <h1 className="text-2xl sm:text-3xl font-normal tracking-tight text-[#131314]">
-            Denúncias & Emergência
-          </h1>
-          <p className="text-sm text-[#46444a]">
-            Registre ocorrências de iluminação ou risco no campus com remoção automática de EXIF.
-          </p>
+        <header className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-[#4D5775]">
+              Canal seguro e anônimo UFSC
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-normal tracking-tight text-[#0B1226]">
+              Denúncias & Emergência
+            </h1>
+            <p className="text-sm text-[#2E3856]">
+              Registre ocorrências de iluminação ou risco no campus com remoção automática de EXIF.
+            </p>
+          </div>
+          <DropletMascot
+            state={isEmergencyDialogOpen ? 'alert' : mascotMood}
+            size={48}
+            interactive
+            ariaLabel="Mascote de apoio a denúncias"
+            className="shrink-0"
+          />
         </header>
 
         {/* Emergency Safety Card (Explicit Dialog Confirmation Required — Zero Accidental Dialing) */}
         <section
           aria-labelledby="reports-emergency-heading"
-          className="bg-white border border-[#D70015]/35 rounded-[24px] p-5 space-y-4"
+          className="bg-[#FFF9EA] border border-[#D70015]/35 rounded-[24px] p-5 space-y-4"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-start gap-3.5 min-w-0 flex-1">
@@ -326,20 +341,20 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
         {/* Section 1: Validated Incident Report Form */}
         <section
           aria-labelledby="reports-form-heading"
-          className="bg-white border border-[#dfe3e6] rounded-[24px] p-5 space-y-5"
+          className="bg-[#FFF9EA] border border-[#D8C89E] rounded-[24px] p-5 space-y-5"
         >
           <div className="flex items-start gap-4">
             <div
               aria-hidden="true"
-              className="w-10 h-10 rounded-full bg-[#131314] text-white text-sm font-medium flex items-center justify-center shrink-0"
+              className="w-10 h-10 rounded-full bg-[#0131CD] text-[#FEF1CF] text-sm font-medium flex items-center justify-center shrink-0"
             >
               1
             </div>
             <div className="min-w-0 flex-1">
-              <h2 id="reports-form-heading" className="text-lg font-medium text-[#131314]">
+              <h2 id="reports-form-heading" className="text-lg font-medium text-[#0B1226]">
                 Registrar ocorrência
               </h2>
-              <p className="text-sm text-[#46444a] mt-0.5">
+              <p className="text-sm text-[#2E3856] mt-0.5">
                 Entradas validadas contra scripts; dados sensíveis nunca são expostos no feed.
               </p>
             </div>
@@ -350,7 +365,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
             <div>
               <label
                 htmlFor="report-category"
-                className="block text-xs font-medium text-[#66646d] mb-1.5"
+                className="block text-xs font-medium text-[#4D5775] mb-1.5"
               >
                 Categoria da ocorrência
               </label>
@@ -359,7 +374,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 aria-label="Categoria da denúncia"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ReportCategory)}
-                className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#dfe3e6] bg-[#f3f3f4] text-sm text-[#131314] focus:outline-2 focus:outline-[#131314] cursor-pointer"
+                className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#D8C89E] bg-[#FEF1CF] text-sm text-[#0B1226] focus:outline-2 focus:outline-[#0131CD] cursor-pointer"
               >
                 {(Object.keys(CATEGORY_META) as ReportCategory[]).map((key) => (
                   <option key={key} value={key}>
@@ -373,7 +388,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
             <div className="space-y-2">
               <label
                 htmlFor="report-location"
-                className="block text-xs font-medium text-[#66646d]"
+                className="block text-xs font-medium text-[#4D5775]"
               >
                 Local no campus
               </label>
@@ -387,7 +402,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                   if (formError) setFormError(null);
                 }}
                 placeholder="Ex: Trilha do Bosque, entrada da BU"
-                className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#dfe3e6] bg-[#f3f3f4] text-sm text-[#131314] placeholder:text-[#66646d] focus:outline-2 focus:outline-[#131314]"
+                className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#D8C89E] bg-[#FEF1CF] text-sm text-[#0B1226] placeholder:text-[#4D5775] focus:outline-2 focus:outline-[#0131CD]"
               />
               <div className="flex flex-wrap gap-1.5">
                 {QUICK_LOCATIONS.map((loc) => (
@@ -398,7 +413,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                       setLocation(loc);
                       if (formError) setFormError(null);
                     }}
-                    className="min-h-[44px] px-3 rounded-full bg-[#f3f3f4] hover:bg-[#e5e5e7] border border-[#dfe3e6] text-xs font-medium text-[#46444a] cursor-pointer"
+                    className="min-h-[44px] px-3 rounded-full bg-[#FEF1CF] hover:bg-[#E7D8B0] border border-[#D8C89E] text-xs font-medium text-[#2E3856] cursor-pointer"
                   >
                     {loc}
                   </button>
@@ -411,11 +426,11 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               <div className="flex items-center justify-between mb-1.5">
                 <label
                   htmlFor="report-description"
-                  className="block text-xs font-medium text-[#66646d]"
+                  className="block text-xs font-medium text-[#4D5775]"
                 >
                   Descrição
                 </label>
-                <span className="text-xs text-[#66646d]">{description.length}/500</span>
+                <span className="text-xs text-[#4D5775]">{description.length}/500</span>
               </div>
               <textarea
                 id="report-description"
@@ -427,17 +442,17 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                   if (formError) setFormError(null);
                 }}
                 placeholder="Descreva o ponto escuro, poste danificado ou situação observada (10 a 500 caracteres)"
-                className="w-full min-h-[96px] p-3.5 rounded-xl border border-[#dfe3e6] bg-[#f3f3f4] text-sm text-[#131314] placeholder:text-[#66646d] focus:outline-2 focus:outline-[#131314]"
+                className="w-full min-h-[96px] p-3.5 rounded-xl border border-[#D8C89E] bg-[#FEF1CF] text-sm text-[#0B1226] placeholder:text-[#4D5775] focus:outline-2 focus:outline-[#0131CD]"
               />
             </div>
 
             {/* Confidentiality Switch */}
-            <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#f3f3f4] border border-[#dfe3e6]">
+            <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#FEF1CF] border border-[#D8C89E]">
               <div className="flex items-center gap-2.5 min-w-0">
                 <Lock className="w-4 h-4 text-[#15803d] shrink-0" aria-hidden="true" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#131314]">Denúncia confidencial</p>
-                  <p className="text-xs text-[#66646d]">
+                  <p className="text-sm font-medium text-[#0B1226]">Denúncia confidencial</p>
+                  <p className="text-xs text-[#4D5775]">
                     Oculta sua identidade no feed comunitário
                   </p>
                 </div>
@@ -450,12 +465,12 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 aria-label="Denúncia confidencial"
                 onClick={() => setIsConfidential((prev) => !prev)}
                 className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                  isConfidential ? 'bg-[#131314] justify-end' : 'bg-[#dfe3e6] justify-start'
+                  isConfidential ? 'bg-[#0131CD] justify-end' : 'bg-[#D8C89E] justify-start'
                 }`}
               >
                 <span
                   className={`w-7 h-7 rounded-full transition-transform ${
-                    isConfidential ? 'bg-[#befc65]' : 'bg-white'
+                    isConfidential ? 'bg-[#B9FC01]' : 'bg-[#FFF9EA]'
                   }`}
                 />
               </button>
@@ -504,18 +519,20 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               </div>
 
               {photoThumbnailUrl && (
-                <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#f3f3f4] border border-[#dfe3e6]">
+                <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#FEF1CF] border border-[#D8C89E]">
                   <img
                     src={photoThumbnailUrl}
                     alt="Prévia da evidência com EXIF removido"
-                    className="w-16 h-16 rounded-xl object-cover border border-[#dfe3e6] shrink-0"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-16 h-16 rounded-xl object-cover border border-[#D8C89E] shrink-0"
                   />
-                  <div className="text-xs text-[#46444a]">
+                  <div className="text-xs text-[#2E3856]">
                     <p className="font-medium text-[#15803d]">
                       Metadados EXIF removidos com segurança
                     </p>
-                    <p className="text-[#66646d]">
-                      Miniatura JPEG re-codificada localmente antes do envio.
+                    <p className="text-[#4D5775]">
+                      Miniatura WebP/JPEG re-codificada localmente antes do envio.
                     </p>
                   </div>
                 </div>
@@ -550,15 +567,15 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
           <div className="flex items-center gap-4">
             <div
               aria-hidden="true"
-              className="w-10 h-10 rounded-full bg-[#131314] text-white text-sm font-medium flex items-center justify-center shrink-0"
+              className="w-10 h-10 rounded-full bg-[#0131CD] text-[#FEF1CF] text-sm font-medium flex items-center justify-center shrink-0"
             >
               2
             </div>
             <div>
-              <h2 id="reports-feed-heading" className="text-lg font-medium text-[#131314]">
+              <h2 id="reports-feed-heading" className="text-lg font-medium text-[#0B1226]">
                 Feed comunitário ({sortedFilteredReports.length})
               </h2>
-              <p className="text-xs text-[#66646d]">
+              <p className="text-xs text-[#4D5775]">
                 Registros em ordem cronológica, com identidade preservada.
               </p>
             </div>
@@ -572,8 +589,8 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               aria-pressed={feedFilter === 'all'}
               className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97] cursor-pointer ${
                 feedFilter === 'all'
-                  ? 'bg-[#131314] text-white border-[#131314]'
-                  : 'bg-white text-[#46444a] border-[#dfe3e6] hover:text-[#131314]'
+                  ? 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD]'
+                  : 'bg-[#FFF9EA] text-[#2E3856] border-[#D8C89E] hover:text-[#0B1226]'
               }`}
             >
               Todas
@@ -588,8 +605,8 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                   aria-pressed={active}
                   className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97] cursor-pointer ${
                     active
-                      ? 'bg-[#131314] text-white border-[#131314]'
-                      : 'bg-white text-[#46444a] border-[#dfe3e6] hover:text-[#131314]'
+                      ? 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD]'
+                      : 'bg-[#FFF9EA] text-[#2E3856] border-[#D8C89E] hover:text-[#0B1226]'
                   }`}
                 >
                   {CATEGORY_META[cat].shortLabel}
@@ -598,82 +615,86 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
             })}
           </div>
 
-          {sortedFilteredReports.length === 0 ? (
-            <div className="bg-white border border-[#dfe3e6] rounded-[24px] p-5 text-sm text-[#66646d]">
-              Nenhuma denúncia registrada para esta categoria.
-            </div>
-          ) : (
-            <ul className="space-y-3">
-              {sortedFilteredReports.map((report) => {
-                const catMeta = CATEGORY_META[report.category];
-                const CatIcon = catMeta.Icon;
-                const stMeta = REPORT_STATUS_META[report.status];
-                const StatusIcon = stMeta.Icon;
-                const hasSafeThumb =
-                  typeof report.photoThumbnailUrl === 'string' &&
-                  /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(
-                    report.photoThumbnailUrl
-                  );
+          <VirtualizedList
+            items={sortedFilteredReports}
+            pageSize={5}
+            getItemKey={(report) => report.id}
+            ariaLabel="Feed comunitário de denúncias"
+            listClassName="space-y-3"
+            loadMoreLabel="Carregar mais denúncias"
+            emptyState={
+              <div className="bg-[#FFF9EA] border border-[#D8C89E] rounded-[24px] p-5 text-sm text-[#4D5775]">
+                Nenhuma denúncia registrada para esta categoria.
+              </div>
+            }
+            renderItem={(report) => {
+              const catMeta = CATEGORY_META[report.category];
+              const CatIcon = catMeta.Icon;
+              const stMeta = REPORT_STATUS_META[report.status];
+              const StatusIcon = stMeta.Icon;
+              const hasSafeThumb =
+                typeof report.photoThumbnailUrl === 'string' &&
+                /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(
+                  report.photoThumbnailUrl
+                );
 
-                return (
-                  <li
-                    key={report.id}
-                    className="bg-white border border-[#dfe3e6] rounded-2xl p-4 space-y-2.5"
-                  >
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${catMeta.badgeClass}`}
-                        >
-                          <CatIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span>{catMeta.shortLabel}</span>
-                        </span>
+              return (
+                <article className="bg-[#FFF9EA] border border-[#D8C89E] rounded-2xl p-4 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${catMeta.badgeClass}`}
+                      >
+                        <CatIcon className="w-3.5 h-3.5" aria-hidden="true" />
+                        <span>{catMeta.shortLabel}</span>
+                      </span>
 
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${stMeta.badgeClass}`}
-                        >
-                          <StatusIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span>{stMeta.label}</span>
-                        </span>
-                      </div>
-
-                      <span className="text-xs text-[#66646d]">
-                        {formatReportDate(report.createdAt)}
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${stMeta.badgeClass}`}
+                      >
+                        <StatusIcon className="w-3.5 h-3.5" aria-hidden="true" />
+                        <span>{stMeta.label}</span>
                       </span>
                     </div>
 
-                    <div>
-                      <h3 className="text-base font-medium text-[#131314]">
-                        {report.locationName}
-                      </h3>
-                      <p className="text-sm text-[#46444a] mt-1 leading-relaxed">
-                        {report.description}
-                      </p>
-                    </div>
+                    <span className="text-xs text-[#4D5775]">
+                      {formatReportDate(report.createdAt)}
+                    </span>
+                  </div>
 
-                    {hasSafeThumb && (
-                      <img
-                        src={report.photoThumbnailUrl}
-                        alt={`Evidência em ${report.locationName}`}
-                        className="w-24 h-24 rounded-xl object-cover border border-[#dfe3e6]"
-                      />
+                  <div>
+                    <h3 className="text-base font-medium text-[#0B1226]">
+                      {report.locationName}
+                    </h3>
+                    <p className="text-sm text-[#2E3856] mt-1 leading-relaxed">
+                      {report.description}
+                    </p>
+                  </div>
+
+                  {hasSafeThumb && (
+                    <img
+                      src={report.photoThumbnailUrl}
+                      alt={`Evidência em ${report.locationName}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-24 h-24 rounded-xl object-cover border border-[#D8C89E]"
+                    />
+                  )}
+
+                  <div className="pt-1 flex items-center gap-1.5 text-xs text-[#4D5775]">
+                    {report.isConfidential ? (
+                      <>
+                        <Lock className="w-3.5 h-3.5 text-[#15803d]" aria-hidden="true" />
+                        <span>Anônimo • Confidencial</span>
+                      </>
+                    ) : (
+                      <span>Colaborador verificado UFSC</span>
                     )}
-
-                    <div className="pt-1 flex items-center gap-1.5 text-xs text-[#66646d]">
-                      {report.isConfidential ? (
-                        <>
-                          <Lock className="w-3.5 h-3.5 text-[#15803d]" aria-hidden="true" />
-                          <span>Anônimo • Confidencial</span>
-                        </>
-                      ) : (
-                        <span>Colaborador verificado UFSC</span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+                  </div>
+                </article>
+              );
+            }}
+          />
         </section>
       </div>
 
@@ -683,9 +704,9 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="emergency-dialog-title"
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0B1226]/70"
         >
-          <div className="w-full max-w-md bg-white text-[#131314] rounded-3xl p-6 border border-[#dfe3e6] shadow-2xl space-y-5">
+          <div className="w-full max-w-md bg-[#FFF9EA] text-[#0B1226] rounded-3xl p-6 border border-[#D8C89E] shadow-2xl space-y-5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-full bg-[#D70015]/12 text-[#D70015] flex items-center justify-center shrink-0">
@@ -693,7 +714,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 </div>
                 <h2
                   id="emergency-dialog-title"
-                  className="text-lg font-medium text-[#131314]"
+                  className="text-lg font-medium text-[#0B1226]"
                 >
                   Confirmar acionamento de emergência
                 </h2>
@@ -703,24 +724,24 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 type="button"
                 aria-label="Fechar diálogo de emergência"
                 onClick={handleCloseEmergencyDialog}
-                className="min-w-[44px] min-h-[44px] -mt-1 -mr-1 rounded-full inline-flex items-center justify-center text-[#46444a] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer"
+                className="min-w-[44px] min-h-[44px] -mt-1 -mr-1 rounded-full inline-flex items-center justify-center text-[#2E3856] hover:bg-[#FEF1CF] active:scale-[0.97] transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
-            <div className="space-y-2.5 rounded-2xl bg-[#f3f3f4] border border-[#dfe3e6] p-4">
+            <div className="space-y-2.5 rounded-2xl bg-[#FEF1CF] border border-[#D8C89E] p-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-[#131314]">Segurança UFSC (24h)</span>
+                <span className="font-medium text-[#0B1226]">Segurança UFSC (24h)</span>
                 <span className="font-semibold text-[#D70015]">(48) 3721-9555</span>
               </div>
-              <div className="flex items-center justify-between text-sm pt-2 border-t border-[#dfe3e6]">
-                <span className="font-medium text-[#131314]">Polícia Militar</span>
+              <div className="flex items-center justify-between text-sm pt-2 border-t border-[#D8C89E]">
+                <span className="font-medium text-[#0B1226]">Polícia Militar</span>
                 <span className="font-semibold text-[#D70015]">190</span>
               </div>
             </div>
 
-            <p className="text-xs text-[#46444a] leading-relaxed">
+            <p className="text-xs text-[#2E3856] leading-relaxed">
               Para evitar acionamentos acidentais, nenhuma ligação é disparada automaticamente. Ao confirmar, o app registra um alerta simulado de demonstração para os canais oficiais acima.
             </p>
 
@@ -728,7 +749,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               <button
                 type="button"
                 onClick={handleCloseEmergencyDialog}
-                className="flex-1 min-h-[44px] px-4 rounded-full border border-[#dfe3e6] bg-white text-sm font-medium text-[#131314] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer"
+                className="flex-1 min-h-[44px] px-4 rounded-full border border-[#D8C89E] bg-[#FFF9EA] text-sm font-medium text-[#0B1226] hover:bg-[#FEF1CF] active:scale-[0.97] transition-all cursor-pointer"
               >
                 Cancelar
               </button>

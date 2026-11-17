@@ -3,7 +3,7 @@ import { useCampusStore } from '../../hooks/useCampusStore';
 import { useHaptics } from '../../hooks/useHaptics';
 import type { SheetDetent } from '../ui/BottomSheet';
 import type { LampPost } from '../../types/campus';
-import { CampusMap, MapLayerFilters } from './CampusMap';
+import { CampusMap, MapLayerFilters, type MapStyle } from './CampusMap';
 import { RouteControlsOverlay } from './RouteControlsOverlay';
 import { RouteSheet } from './RouteSheet';
 
@@ -45,6 +45,7 @@ export const MapTab: React.FC<MapTabProps> = ({ onOpenReportsShortcut }) => {
     posts: true,
     darkZones: true,
   });
+  const [mapStyle, setMapStyle] = useState<MapStyle>('osm');
   const [detent, setDetent] = useState<SheetDetent>('medium');
   const [activeChatCompanionId, setActiveChatCompanionId] = useState<string | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
@@ -94,6 +95,7 @@ export const MapTab: React.FC<MapTabProps> = ({ onOpenReportsShortcut }) => {
     >
       <CampusMap
         isNightMap={isNightMap}
+        mapStyle={mapStyle}
         activeOriginId={activeOriginId}
         activeDestinationId={activeDestinationId}
         routeMode={routeMode}
@@ -113,11 +115,16 @@ export const MapTab: React.FC<MapTabProps> = ({ onOpenReportsShortcut }) => {
         activeOriginId={activeOriginId}
         activeDestinationId={activeDestinationId}
         isNightMap={isNightMap}
+        mapStyle={mapStyle}
         filters={filters}
         onChangeEndpoints={setRouteEndpoints}
         onSwapEndpoints={swapEndpoints}
         onToggleFilter={handleToggleFilter}
         onToggleNightMap={toggleNightMap}
+        onToggleMapStyle={() => {
+          trigger('selection');
+          setMapStyle((prev) => (prev === 'osm' ? 'satellite' : 'osm'));
+        }}
         onOpenReportsShortcut={onOpenReportsShortcut}
       />
 

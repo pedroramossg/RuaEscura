@@ -289,7 +289,7 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       await waitFor(() => {
         const thumbImg = screen.getByAltText(/Evidência em Entrada RU/i) as HTMLImageElement;
         expect(thumbImg).toBeInTheDocument();
-        expect(thumbImg.getAttribute('src')).toMatch(/^data:image\/jpeg;base64,/);
+        expect(thumbImg.getAttribute('src')).toMatch(/^data:image\/(webp|jpeg);base64,/);
       });
     });
   });
@@ -359,51 +359,51 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
   });
 
   describe('App Integration Smoke Tests', () => {
-    it('renders OnboardingFlow when unverified', () => {
+    it('renders OnboardingFlow when unverified', async () => {
       render(<App />);
       expect(
-        screen.getByRole('heading', { name: /Caminhe pela UFSC no claro\. E acompanhado\./i })
+        await screen.findByRole('heading', { name: /Caminhe pela UFSC no claro\. E acompanhado\./i })
       ).toBeInTheDocument();
       expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
     });
 
-    it('renders 4-tab shell when verified, preserves single-sheet rule across tab switches', () => {
+    it('renders 4-tab shell when verified, preserves single-sheet rule across tab switches', async () => {
       const verifiedState = createVerifiedState();
       localStorage.setItem(CAMPUS_STORAGE_KEY, JSON.stringify(verifiedState));
 
       render(<App />);
 
       // Starts in Explorar tab with 4-tab FloatingTabBar
-      const tabs = screen.getAllByRole('tab');
+      const tabs = await screen.findAllByRole('tab');
       expect(tabs).toHaveLength(4);
-      expect(screen.getByText(/Mariana/i)).toBeInTheDocument();
+      expect(await screen.findByText(/Mariana/i)).toBeInTheDocument();
       expect(screen.queryAllByTestId('bottom-sheet')).toHaveLength(0);
 
       // Open ProfileSheet from Explorar -> strictly 1 BottomSheet
       fireEvent.click(screen.getByRole('button', { name: /Abrir perfil/i }));
-      expect(screen.getAllByTestId('bottom-sheet')).toHaveLength(1);
+      expect(await screen.findAllByTestId('bottom-sheet')).toHaveLength(1);
 
       // Switch to Mapa -> ProfileSheet closes cleanly and MapTab renders its own single RouteSheet
       fireEvent.click(screen.getByRole('tab', { name: /Mapa/i }));
-      expect(screen.getByTestId('campus-map')).toBeInTheDocument();
+      expect(await screen.findByTestId('campus-map')).toBeInTheDocument();
       expect(screen.getAllByTestId('bottom-sheet')).toHaveLength(1);
 
       // Switch to Postes
       fireEvent.click(screen.getByRole('tab', { name: /Postes/i }));
-      expect(screen.getByText(/Postes & QR Code/i)).toBeInTheDocument();
+      expect(await screen.findByText(/Postes & QR Code/i)).toBeInTheDocument();
       expect(screen.queryAllByTestId('bottom-sheet')).toHaveLength(0);
 
       // Switch to Denúncias
       fireEvent.click(screen.getByRole('tab', { name: /Denúncias/i }));
-      expect(screen.getByText(/Denúncias & Emergência/i)).toBeInTheDocument();
+      expect(await screen.findByText(/Denúncias & Emergência/i)).toBeInTheDocument();
 
       // Switch back to Explorar, open ProfileSheet and reset session -> returns cleanly to OnboardingFlow
       fireEvent.click(screen.getByRole('tab', { name: /Explorar/i }));
-      fireEvent.click(screen.getByRole('button', { name: /Abrir perfil/i }));
-      fireEvent.click(screen.getByRole('button', { name: /Encerrar sessão Gov\.br/i }));
+      fireEvent.click(await screen.findByRole('button', { name: /Abrir perfil/i }));
+      fireEvent.click(await screen.findByRole('button', { name: /Encerrar sessão Gov\.br/i }));
 
       expect(
-        screen.getByRole('heading', { name: /Caminhe pela UFSC no claro\. E acompanhado\./i })
+        await screen.findByRole('heading', { name: /Caminhe pela UFSC no claro\. E acompanhado\./i })
       ).toBeInTheDocument();
     });
   });

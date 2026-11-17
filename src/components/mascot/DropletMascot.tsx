@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useReducedMotion } from 'motion/react';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { BotEngine, type BotFrame } from '../../mascot/bloub/engine';
 import { EXPRESSION_BY_ID, type ExpressionId } from '../../mascot/bloub/expressions';
 import { PITCH, PITCH_MAX, TURN_TIME, YAW_MAX } from '../../mascot/bloub/gaze';
@@ -44,13 +44,6 @@ export interface DropletMascotProps {
 }
 
 const VB = DEMI_VIEWBOX;
-
-function getReducedMotionPreference(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return false;
-  }
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 
 function normalizeHex(color: string): string | null {
   const trimmed = color.trim();
@@ -121,22 +114,7 @@ export const DropletMascot: React.FC<DropletMascotProps> = ({
   const [uncontrolledState, setUncontrolledState] = useState<StateId>('idle');
   const activeState: StateId = isControlled ? controlledState : uncontrolledState;
 
-  const motionReduced = useReducedMotion();
-  const [mediaReduced, setMediaReduced] = useState<boolean>(getReducedMotionPreference);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
-    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setMediaReduced(mql.matches);
-    const onChange = (event: MediaQueryListEvent) => setMediaReduced(event.matches);
-    mql.addEventListener?.('change', onChange);
-    return () => {
-      mql.removeEventListener?.('change', onChange);
-    };
-  }, []);
-
-  const prefersReducedMotion =
-    Boolean(motionReduced) || mediaReduced || getReducedMotionPreference();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const isStatic = frozenAt !== undefined || prefersReducedMotion;
 
   const shapeRadii = useMemo(() => SHAPE_BY_ID.get(shape)?.radii ?? null, [shape]);

@@ -1,14 +1,31 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion } from 'motion/react';
 import { CampusStoreProvider, useCampusStore } from './hooks/useCampusStore';
 import { useHaptics } from './hooks/useHaptics';
-import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
+import { usePrefersReducedMotion } from './hooks/usePrefersReducedMotion';
 import { FloatingTabBar, TabId } from './components/ui/FloatingTabBar';
-import { ExploreTab } from './components/explore/ExploreTab';
-import { MapTab } from './components/map/MapTab';
-import { LightsTab } from './components/lights/LightsTab';
-import { ReportsTab } from './components/reports/ReportsTab';
-import { ProfileSheet } from './components/profile/ProfileSheet';
+import { TabSkeleton } from './components/ui/Skeleton';
+import { initPerfObservers } from './utils/perfMonitor';
 import type { PersistedCampusState } from './types/campus';
+
+const OnboardingFlow = lazy(() =>
+  import('./components/onboarding/OnboardingFlow').then((m) => ({ default: m.OnboardingFlow }))
+);
+const ExploreTab = lazy(() =>
+  import('./components/explore/ExploreTab').then((m) => ({ default: m.ExploreTab }))
+);
+const MapTab = lazy(() =>
+  import('./components/map/MapTab').then((m) => ({ default: m.MapTab }))
+);
+const LightsTab = lazy(() =>
+  import('./components/lights/LightsTab').then((m) => ({ default: m.LightsTab }))
+);
+const ReportsTab = lazy(() =>
+  import('./components/reports/ReportsTab').then((m) => ({ default: m.ReportsTab }))
+);
+const ProfileSheet = lazy(() =>
+  import('./components/profile/ProfileSheet').then((m) => ({ default: m.ProfileSheet }))
+);
 
 export interface AppProps {
   initialState?: PersistedCampusState;
@@ -33,8 +50,12 @@ export function AppShell() {
   const toastTimerRef = useRef<number | null>(null);
   const profileTriggerRef = useRef<HTMLButtonElement | null>(null);
 
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   useEffect(() => {
+    const cleanupObservers = initPerfObservers();
     return () => {
+      cleanupObservers();
       if (toastTimerRef.current !== null) {
         window.clearTimeout(toastTimerRef.current);
       }
@@ -78,8 +99,10 @@ export function AppShell() {
 
   if (!onboardingCompleted) {
     return (
-      <main className="min-h-screen bg-[#f3f3f4] text-[#131314]">
-        <OnboardingFlow onComplete={() => notify('Bem-vindo ao RuaEscura UFSC Trindade.')} />
+      <main className="min-h-screen bg-[#FEF1CF] text-[#0B1226]">
+        <Suspense fallback={<TabSkeleton label="Carregando boas-vindas..." />}>
+          <OnboardingFlow onComplete={() => notify('Bem-vindo ao RuaEscura UFSC Trindade.')} />
+        </Suspense>
       </main>
     );
   }
@@ -88,10 +111,10 @@ export function AppShell() {
 
   return (
     <div
-      className={`min-h-screen relative ${
+      className={`min-h-screen relative transition-colors duration-200 ${
         isMapTab && isNightMap
-          ? 'bg-[#131314] text-[#f3f3f4]'
-          : 'bg-[#f3f3f4] text-[#131314]'
+          ? 'bg-[#080E21] text-[#FEF1CF]'
+          : 'bg-[#FEF1CF] text-[#0B1226]'
       }`}
     >
       {/* Global Polite Toast Announcer positioned above FloatingTabBar so top headings are never obscured */}
@@ -103,7 +126,7 @@ export function AppShell() {
         {toastMessage && (
           <div
             role="status"
-            className="max-w-md w-fit px-4 py-2.5 rounded-full bg-[#131314] text-[#befc65] text-xs sm:text-sm font-medium shadow-lg border border-white/15"
+            className="max-w-md w-fit px-4 py-2.5 rounded-full bg-[#0131CD] text-[#B9FC01] text-xs sm:text-sm font-medium shadow-lg border border-[#B9FC01]/35"
           >
             {toastMessage}
           </div>
@@ -112,38 +135,55 @@ export function AppShell() {
 
       {/* Active Tab Content (MapTab is unmounted on other tabs to preserve single-sheet rule) */}
       <main>
-        {activeTab === 'explorar' && (
-          <ExploreTab
-            onOpenMap={() => handleTabChange('mapa')}
-            onOpenLights={() => handleTabChange('postes')}
-            onOpenReports={() => handleTabChange('denuncias')}
-            onOpenProfile={() => setIsProfileOpen(true)}
-            profileTriggerRef={profileTriggerRef}
-            onNotify={notify}
-          />
-        )}
+        <Suspense fallback={<TabSkeleton />}>
+          <motion.div
+            key={activeTab}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: isMapTab ? 0 : 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={
+              prefersReducedMotion
+                ? { duration: 0.01 }
+                : { duration: 0.18, ease: 'easeOut' }
+            }
+          >
+            {activeTab === 'explorar' && (
+              <ExploreTab
+                onOpenMap={() => handleTabChange('mapa')}
+                onOpenLights={() => handleTabChange('postes')}
+                onOpenReports={() => handleTabChange('denuncias')}
+                onOpenProfile={() => setIsProfileOpen(true)}
+                profileTriggerRef={profileTriggerRef}
+                onNotify={notify}
+              />
+            )}
 
-        {activeTab === 'mapa' && (
-          <MapTab onOpenReportsShortcut={() => handleTabChange('denuncias')} />
-        )}
+            {activeTab === 'mapa' && (
+              <MapTab onOpenReportsShortcut={() => handleTabChange('denuncias')} />
+            )}
 
-        {activeTab === 'postes' && (
-          <LightsTab
-            onOpenMap={() => handleTabChange('mapa')}
-            onNotify={notify}
-          />
-        )}
+            {activeTab === 'postes' && (
+              <LightsTab
+                onOpenMap={() => handleTabChange('mapa')}
+                onNotify={notify}
+              />
+            )}
 
-        {activeTab === 'denuncias' && <ReportsTab onNotify={notify} />}
+            {activeTab === 'denuncias' && <ReportsTab onNotify={notify} />}
+          </motion.div>
+        </Suspense>
       </main>
 
       {/* Single-Sheet Profile Drawer (only rendered when opened outside MapTab) */}
-      <ProfileSheet
-        isOpen={isProfileOpen && !isMapTab}
-        onClose={() => setIsProfileOpen(false)}
-        returnFocusRef={profileTriggerRef}
-        onNotify={notify}
-      />
+      {isProfileOpen && !isMapTab && (
+        <Suspense fallback={null}>
+          <ProfileSheet
+            isOpen={true}
+            onClose={() => setIsProfileOpen(false)}
+            returnFocusRef={profileTriggerRef}
+            onNotify={notify}
+          />
+        </Suspense>
+      )}
 
       {/* Persistent Floating Liquid Glass Tab Bar */}
       <FloatingTabBar

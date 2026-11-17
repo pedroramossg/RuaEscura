@@ -66,6 +66,7 @@ function precompressAssetsPlugin(): Plugin {
           if (!COMPRESSIBLE_EXTENSIONS.has(ext)) continue;
 
           const source = fs.readFileSync(fullPath);
+          if (source.length < 1024) continue;
           const gzipped = zlib.gzipSync(source, { level: 9 });
           const brotli = zlib.brotliCompressSync(source, {
             params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 },

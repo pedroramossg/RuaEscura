@@ -80,9 +80,9 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
     submitText(draft, true);
   };
 
-  const borderClass = dark ? 'border-[#2e2e32]' : 'border-[#dfe3e6]';
-  const mutedTextClass = dark ? 'text-[#a1a1aa]' : 'text-[#66646d]';
-  const subtleBgClass = dark ? 'bg-[#262629]' : 'bg-[#f3f3f4]';
+  const borderClass = dark ? 'border-[#1F2E5C]' : 'border-[#D8C89E]';
+  const mutedTextClass = dark ? 'text-[#9FB0D8]' : 'text-[#4D5775]';
+  const subtleBgClass = dark ? 'bg-[#121D3D]' : 'bg-[#FEF1CF]/70';
 
   return (
     <div className="flex flex-col gap-3 pt-1 pb-24" data-testid="companion-chat-view">
@@ -95,8 +95,8 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
             aria-label="Voltar para rota e colegas"
             className={`min-h-[44px] min-w-[44px] px-3 rounded-full inline-flex items-center gap-1.5 text-sm font-medium border transition-colors active:scale-[0.97] cursor-pointer shrink-0 ${
               dark
-                ? 'bg-[#262629] text-[#f3f3f4] border-[#3a3a3e] hover:bg-[#333337]'
-                : 'bg-[#f3f3f4] text-[#131314] border-[#dfe3e6] hover:bg-[#e7e7ea]'
+                ? 'bg-[#121D3D] text-[#FEF1CF] border-[#1F2E5C] hover:bg-[#192852]'
+                : 'bg-[#FEF1CF] text-[#0B1226] border-[#D8C89E] hover:bg-[#E7D8B0]'
             }`}
           >
             <ArrowLeft className="w-4 h-4" aria-hidden="true" />
@@ -111,7 +111,7 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
                   title="Verificado Gov.br"
                   className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-medium shrink-0 ${
                     dark
-                      ? 'bg-[#befc65]/15 text-[#befc65]'
+                      ? 'bg-[#B9FC01]/15 text-[#B9FC01]'
                       : 'bg-[#15803d]/10 text-[#15803d]'
                   }`}
                 >
@@ -133,10 +133,10 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
           aria-pressed={Boolean(companion.isUserJoined)}
           className={`min-h-[44px] px-3 rounded-full text-xs font-semibold shrink-0 inline-flex items-center gap-1 transition-all active:scale-[0.97] cursor-pointer ${
             companion.isUserJoined
-              ? 'bg-[#befc65] text-[#131314]'
+              ? 'bg-[#B9FC01] text-[#0B1226]'
               : dark
-                ? 'bg-[#262629] text-[#f3f3f4] border border-[#3a3a3e]'
-                : 'bg-[#f3f3f4] text-[#131314] border border-[#dfe3e6]'
+                ? 'bg-[#121D3D] text-[#FEF1CF] border border-[#1F2E5C]'
+                : 'bg-[#FEF1CF] text-[#0B1226] border border-[#D8C89E]'
           }`}
         >
           {companion.isUserJoined && <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />}
@@ -164,10 +164,10 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
                 <div
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-snug ${
                     isOwn
-                      ? 'bg-[#befc65] text-[#131314] rounded-br-sm'
+                      ? 'bg-[#B9FC01] text-[#0B1226] rounded-br-sm'
                       : dark
-                        ? 'bg-[#1c1c1e] text-[#f3f3f4] border border-[#2e2e32] rounded-bl-sm'
-                        : 'bg-white text-[#131314] border border-[#dfe3e6] rounded-bl-sm'
+                        ? 'bg-[#0B132B] text-[#FEF1CF] border border-[#1F2E5C] rounded-bl-sm'
+                        : 'bg-[#FFF9EA] text-[#0B1226] border border-[#D8C89E] rounded-bl-sm'
                   }`}
                 >
                   <p className="break-words">{msg.text}</p>
@@ -191,8 +191,8 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
             onClick={() => submitText(chip, false)}
             className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium shrink-0 border transition-colors active:scale-[0.97] cursor-pointer ${
               dark
-                ? 'bg-[#262629] text-[#f3f3f4] border-[#3a3a3e] hover:border-[#befc65]'
-                : 'bg-white text-[#131314] border-[#dfe3e6] hover:border-[#131314]'
+                ? 'bg-[#121D3D] text-[#FEF1CF] border-[#1F2E5C] hover:border-[#B9FC01]'
+                : 'bg-[#FFF9EA] text-[#0B1226] border-[#D8C89E] hover:border-[#0131CD]'
             }`}
           >
             {chip}
@@ -219,14 +219,14 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
             aria-invalid={Boolean(error)}
             className={`flex-1 min-h-[44px] h-11 px-4 rounded-full border text-sm outline-none transition-colors ${
               dark
-                ? 'bg-[#262629] text-[#f3f3f4] border-[#3a3a3e] placeholder:text-[#a1a1aa] focus:border-[#befc65]'
-                : 'bg-white text-[#131314] border-[#dfe3e6] placeholder:text-[#66646d] focus:border-[#131314]'
+                ? 'bg-[#121D3D] text-[#FEF1CF] border-[#1F2E5C] placeholder:text-[#9FB0D8] focus:border-[#B9FC01]'
+                : 'bg-[#FFF9EA] text-[#0B1226] border-[#D8C89E] placeholder:text-[#4D5775] focus:border-[#0131CD]'
             } ${error ? (dark ? 'border-[#FF3B30]' : 'border-[#D70015]') : ''}`}
           />
           <button
             type="submit"
             aria-label="Enviar mensagem"
-            className="min-h-[44px] min-w-[44px] h-11 px-4 rounded-full bg-[#befc65] text-[#131314] font-semibold text-sm inline-flex items-center justify-center gap-1.5 hover:bg-[#b0f34e] active:scale-[0.97] transition-all cursor-pointer shrink-0"
+            className="min-h-[44px] min-w-[44px] h-11 px-4 rounded-full bg-[#B9FC01] text-[#0B1226] font-semibold text-sm inline-flex items-center justify-center gap-1.5 hover:bg-[#a9ea00] active:scale-[0.97] transition-all cursor-pointer shrink-0"
           >
             <Send className="w-4 h-4" aria-hidden="true" />
             <span className="sr-only sm:not-sr-only">Enviar</span>

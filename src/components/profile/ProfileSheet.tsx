@@ -12,7 +12,9 @@ import {
 import { useCampusStore } from '../../hooks/useCampusStore';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { maskCpf } from '../../security/schemas';
+import { getPerfSnapshot } from '../../utils/perfMonitor';
 import { BottomSheet, SheetDetent } from '../ui/BottomSheet';
+import { DropletMascot } from '../mascot/DropletMascot';
 
 export interface ProfileSheetProps {
   isOpen: boolean;
@@ -83,6 +85,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
   }
 
   const safeCpf = toSafeMaskedCpf(userSession?.cpfMasked);
+  const perf = getPerfSnapshot();
 
   const handleResetSessionOnly = () => {
     resetSessionOnly();
@@ -107,53 +110,61 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
       <div className="space-y-5 pb-4">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#131314] text-[#befc65]">
-              <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Gov.br verificado</span>
-            </span>
-            <h2 className="text-xl font-medium text-[#131314] mt-2">
-              Perfil & Privacidade
-            </h2>
+          <div className="flex items-center gap-3">
+            <DropletMascot
+              state={isNightMap ? 'sleep' : 'play'}
+              size={44}
+              interactive
+              ariaLabel="Mascote do perfil"
+            />
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0131CD] text-[#B9FC01]">
+                <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Gov.br verificado</span>
+              </span>
+              <h2 className="text-xl font-medium text-[#0B1226] mt-1.5">
+                Perfil & Privacidade
+              </h2>
+            </div>
           </div>
 
           <button
             type="button"
             onClick={handleClose}
             aria-label="Fechar perfil"
-            className="min-w-[44px] min-h-[44px] rounded-full inline-flex items-center justify-center border border-[#dfe3e6] text-[#131314] hover:bg-[#f3f3f4] active:scale-[0.97] transition-all cursor-pointer shrink-0"
+            className="min-w-[44px] min-h-[44px] rounded-full inline-flex items-center justify-center border border-[#D8C89E] text-[#0B1226] hover:bg-[#FEF1CF] active:scale-[0.97] transition-all cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
         {/* Identity Card (Masked CPF Only) */}
-        <div className="rounded-2xl bg-[#f3f3f4] border border-[#dfe3e6] p-4 space-y-3">
+        <div className="rounded-2xl bg-[#FEF1CF]/75 border border-[#D8C89E] p-4 space-y-3">
           <div>
-            <p className="text-base font-medium text-[#131314]">
+            <p className="text-base font-medium text-[#0B1226]">
               {userSession?.name ?? 'Estudante UFSC'}
             </p>
-            <p className="text-sm text-[#46444a]">
+            <p className="text-sm text-[#2E3856]">
               {userSession?.affiliation ?? 'UFSC Campus Trindade'}
             </p>
           </div>
 
-          <div className="pt-2.5 border-t border-[#dfe3e6] flex items-center justify-between text-xs">
-            <span className="text-[#66646d]">CPF verificado (mascarado)</span>
-            <span className="font-mono font-medium text-[#131314]">{safeCpf}</span>
+          <div className="pt-2.5 border-t border-[#D8C89E]/70 flex items-center justify-between text-xs">
+            <span className="text-[#4D5775]">CPF verificado (mascarado)</span>
+            <span className="font-mono font-medium text-[#0B1226]">{safeCpf}</span>
           </div>
 
-          <div className="pt-2.5 border-t border-[#dfe3e6] space-y-2">
+          <div className="pt-2.5 border-t border-[#D8C89E]/70 space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="inline-flex items-center gap-1.5 text-[#66646d]">
+              <span className="inline-flex items-center gap-1.5 text-[#4D5775]">
                 <Clock className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Horário habitual</span>
               </span>
-              <span className="font-medium text-[#131314]">{timeSlot}</span>
+              <span className="font-medium text-[#0B1226]">{timeSlot}</span>
             </div>
 
             <div className="flex items-start justify-between gap-2 text-xs">
-              <span className="inline-flex items-center gap-1.5 text-[#66646d] shrink-0 pt-1">
+              <span className="inline-flex items-center gap-1.5 text-[#4D5775] shrink-0 pt-1">
                 <Building2 className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Prédios frequentes</span>
               </span>
@@ -161,7 +172,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
                 {buildingLabels.map((label) => (
                   <span
                     key={label}
-                    className="px-2.5 py-0.5 rounded-full bg-white border border-[#dfe3e6] text-xs font-medium text-[#131314]"
+                    className="px-2.5 py-0.5 rounded-full bg-[#FFF9EA] border border-[#D8C89E] text-xs font-medium text-[#0B1226]"
                   >
                     {label}
                   </span>
@@ -172,13 +183,13 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
         </div>
 
         {/* Preferences Toggles */}
-        <div className="rounded-2xl bg-white border border-[#dfe3e6] divide-y divide-[#dfe3e6]">
+        <div className="rounded-2xl bg-[#FFF9EA] border border-[#D8C89E] divide-y divide-[#D8C89E]/70">
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <Moon className="w-4 h-4 text-[#131314] shrink-0" aria-hidden="true" />
+              <Moon className="w-4 h-4 text-[#0131CD] shrink-0" aria-hidden="true" />
               <div>
-                <p className="text-sm font-medium text-[#131314]">Luz Noturna no mapa</p>
-                <p className="text-xs text-[#66646d]">
+                <p className="text-sm font-medium text-[#0B1226]">Luz Noturna no mapa</p>
+                <p className="text-xs text-[#4D5775]">
                   Realce escuro com halos nos postes ativos
                 </p>
               </div>
@@ -191,12 +202,12 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               aria-label="Luz Noturna no mapa"
               onClick={toggleNightMap}
               className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                isNightMap ? 'bg-[#131314] justify-end' : 'bg-[#dfe3e6] justify-start'
+                isNightMap ? 'bg-[#0131CD] justify-end' : 'bg-[#D8C89E] justify-start'
               }`}
             >
               <span
                 className={`w-7 h-7 rounded-full transition-transform ${
-                  isNightMap ? 'bg-[#befc65]' : 'bg-white'
+                  isNightMap ? 'bg-[#B9FC01]' : 'bg-[#FFF9EA]'
                 }`}
               />
             </button>
@@ -204,12 +215,12 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
 
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <Smartphone className="w-4 h-4 text-[#131314] shrink-0" aria-hidden="true" />
+              <Smartphone className="w-4 h-4 text-[#0131CD] shrink-0" aria-hidden="true" />
               <div>
-                <p className="text-sm font-medium text-[#131314]">
+                <p className="text-sm font-medium text-[#0B1226]">
                   Feedback tátil (hápticos)
                 </p>
-                <p className="text-xs text-[#66646d]">
+                <p className="text-xs text-[#4D5775]">
                   Vibração sutil em alertas e atualizações
                 </p>
               </div>
@@ -222,16 +233,31 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               aria-label="Feedback tátil (hápticos)"
               onClick={() => setHapticsEnabled(!hapticsEnabled)}
               className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                hapticsEnabled ? 'bg-[#131314] justify-end' : 'bg-[#dfe3e6] justify-start'
+                hapticsEnabled ? 'bg-[#0131CD] justify-end' : 'bg-[#D8C89E] justify-start'
               }`}
             >
               <span
                 className={`w-7 h-7 rounded-full transition-transform ${
-                  hapticsEnabled ? 'bg-[#befc65]' : 'bg-white'
+                  hapticsEnabled ? 'bg-[#B9FC01]' : 'bg-[#FFF9EA]'
                 }`}
               />
             </button>
           </div>
+        </div>
+
+        {/* Local Web Vitals & Span Telemetry (Read-only, zero PII) */}
+        <div
+          aria-label="Telemetria local de desempenho"
+          className="rounded-2xl bg-[#FEF1CF]/60 border border-[#D8C89E] px-4 py-3 text-xs text-[#2E3856] flex items-center justify-between gap-2 flex-wrap"
+        >
+          <span>
+            Telemetria RUM:{' '}
+            {typeof perf.vitals.LCP === 'number' ? `LCP ${Math.round(perf.vitals.LCP)}ms` : 'LCP —'} •{' '}
+            {typeof perf.vitals.INP === 'number' ? `INP ${Math.round(perf.vitals.INP)}ms` : 'INP —'}
+          </span>
+          <span className="font-mono text-[11px] text-[#4D5775]">
+            {perf.totalRecorded} spans ({perf.slowCount} lentos)
+          </span>
         </div>
 
         {/* Distinct Account Reset vs Full Demo Reset */}
@@ -239,7 +265,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
           <button
             type="button"
             onClick={handleResetSessionOnly}
-            className="w-full min-h-[44px] px-4 rounded-full border border-[#dfe3e6] bg-white hover:bg-[#f3f3f4] active:scale-[0.97] text-sm font-medium text-[#131314] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+            className="w-full min-h-[44px] px-4 rounded-full border border-[#D8C89E] bg-[#FFF9EA] hover:bg-[#FEF1CF] active:scale-[0.97] text-sm font-medium text-[#0B1226] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <LogOut className="w-4 h-4" aria-hidden="true" />
             <span>Encerrar sessão Gov.br</span>

@@ -103,14 +103,21 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
 
     expect(mapEl).toHaveAttribute('data-night', 'false');
     expect(nightToggle).toHaveAttribute('aria-pressed', 'false');
-    expect(sheetEl.className).toContain('bg-white');
+    expect(sheetEl.className).toContain('bg-[#FFF9EA]');
 
     fireEvent.click(nightToggle);
 
     expect(mapEl).toHaveAttribute('data-night', 'true');
     const dayToggle = screen.getByRole('button', { name: /Mapa Claro/i });
     expect(dayToggle).toHaveAttribute('aria-pressed', 'true');
-    expect(sheetEl.className).toContain('bg-[#1c1c1e]');
+    expect(sheetEl.className).toContain('bg-[#0B132B]');
+
+    // Satellite / Streets toggle works
+    const satToggle = screen.getByRole('button', { name: /Satélite/i });
+    expect(satToggle).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(satToggle);
+    const streetsToggle = screen.getByRole('button', { name: /Ruas/i });
+    expect(streetsToggle).toHaveAttribute('aria-pressed', 'true');
 
     // Emergency shortcut triggers callback
     const emergencyBtn = screen.getByRole('button', { name: /emergência|denúncias/i });
@@ -128,8 +135,8 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
     expect(brightestBtn).toHaveAttribute('aria-pressed', 'true');
     expect(fastestBtn).toHaveAttribute('aria-pressed', 'false');
 
-    // BU -> RU fastest uses dark shortcut (130m, low illumination -> dark warning)
-    expect(within(sheet).getByText(/130\s*m/i)).toBeInTheDocument();
+    // BU -> RU fastest uses real OSM shortcut (360m, low illumination -> dark warning)
+    expect(within(sheet).getByText(/360\s*m/i)).toBeInTheDocument();
 
     fireEvent.click(fastestBtn);
     expect(fastestBtn).toHaveAttribute('aria-pressed', 'true');
