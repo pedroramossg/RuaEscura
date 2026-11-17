@@ -65,8 +65,8 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
   };
 
   const selectThemeClass = isNightMap
-    ? 'bg-[#0B132B]/90 text-[#FEF1CF] border-[#1F2E5C] focus:border-[#B9FC01]'
-    : 'bg-[#FFF9EA]/95 text-[#0B1226] border-[#D8C89E] focus:border-[#0131CD]';
+    ? 'bg-[#0B1120]/90 text-[#F8FAFC] border-[#1E293B] focus:border-[#60A5FA]'
+    : 'bg-white/95 text-[#111827] border-[#E5EAF4] focus:border-[#2563EB]';
 
   return (
     <div className="absolute top-3 inset-x-3 z-30 pointer-events-none flex flex-col gap-2 max-w-2xl mx-auto">
@@ -102,8 +102,8 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
             aria-label="Trocar origem e destino"
             className={`min-h-[44px] min-w-[44px] w-11 h-11 rounded-full shrink-0 inline-flex items-center justify-center border transition-all duration-120 active:scale-[0.95] cursor-pointer ${
               isNightMap
-                ? 'bg-[#121D3D] text-[#B9FC01] border-[#1F2E5C] hover:bg-[#192852]'
-                : 'bg-[#FEF1CF] text-[#0131CD] border-[#D8C89E] hover:bg-[#E7D8B0]'
+                ? 'bg-[#111A2E] text-[#60A5FA] border-[#1E293B] hover:bg-[#1E293B]'
+                : 'bg-[#F8FAFC] text-[#2563EB] border-[#E5EAF4] hover:bg-[#EFF6FF]'
             }`}
           >
             <ArrowLeftRight className="w-4 h-4" aria-hidden="true" />
@@ -153,8 +153,8 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
             aria-pressed={isNightMap}
             className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold shrink-0 inline-flex items-center gap-1.5 border transition-all duration-120 active:scale-[0.97] cursor-pointer ${
               isNightMap
-                ? 'bg-[#B9FC01] text-[#0B1226] border-[#B9FC01]'
-                : 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD]'
+                ? 'bg-[#60A5FA] text-[#0B1120] border-[#60A5FA]'
+                : 'bg-[#111827] text-white border-[#111827]'
             }`}
           >
             <span>{isNightMap ? '☀ Mapa Claro' : '☾ Luz Noturna'}</span>
@@ -167,10 +167,10 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
               aria-pressed={mapStyle === 'satellite'}
               className={`min-h-[44px] px-3 rounded-full text-xs font-medium shrink-0 inline-flex items-center gap-1.5 border transition-all duration-120 active:scale-[0.97] cursor-pointer ${
                 mapStyle === 'satellite'
-                  ? 'bg-[#B9FC01] text-[#0B1226] border-[#B9FC01]'
+                  ? 'bg-[#2563EB] text-white border-[#2563EB]'
                   : isNightMap
-                    ? 'bg-[#121D3D]/85 text-[#FEF1CF] border-[#1F2E5C] hover:border-[#B9FC01]'
-                    : 'bg-[#FFF9EA]/90 text-[#0B1226] border-[#D8C89E] hover:border-[#0131CD]'
+                    ? 'bg-[#111A2E]/85 text-[#F8FAFC] border-[#1E293B] hover:border-[#60A5FA]'
+                    : 'bg-white/95 text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]'
               }`}
             >
               {mapStyle === 'satellite' ? (
@@ -198,11 +198,11 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
                 className={`min-h-[44px] px-3 rounded-full text-xs font-medium shrink-0 inline-flex items-center gap-1.5 border transition-all duration-120 active:scale-[0.97] cursor-pointer ${
                   active
                     ? isNightMap
-                      ? 'bg-[#FEF1CF] text-[#0B1226] border-[#FEF1CF]'
-                      : 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD]'
+                      ? 'bg-[#F8FAFC] text-[#0B1120] border-[#F8FAFC]'
+                      : 'bg-[#2563EB] text-white border-[#2563EB]'
                     : isNightMap
-                      ? 'bg-[#121D3D]/80 text-[#9FB0D8] border-[#1F2E5C] hover:text-[#FEF1CF]'
-                      : 'bg-[#FFF9EA]/85 text-[#4D5775] border-[#D8C89E] hover:text-[#0B1226]'
+                      ? 'bg-[#111A2E]/80 text-[#94A3B8] border-[#1E293B] hover:text-[#F8FAFC]'
+                      : 'bg-white/90 text-[#4B5563] border-[#E5EAF4] hover:text-[#111827]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" aria-hidden="true" />

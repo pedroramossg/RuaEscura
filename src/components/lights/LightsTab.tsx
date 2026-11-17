@@ -35,8 +35,8 @@ const STATUS_META: Record<
   aceso: {
     label: 'Aceso',
     Icon: Zap,
-    badgeClass: 'bg-[#B9FC01] text-[#0B1226] border-[#0B1226]/20',
-    activeBtnClass: 'bg-[#B9FC01] text-[#0B1226] border-[#0B1226]',
+    badgeClass: 'bg-[#D1FAE5] text-[#065F46] border-[#A7F3D0]',
+    activeBtnClass: 'bg-[#10B981] text-white border-[#059669]',
   },
   oscilando: {
     label: 'Oscilando',
@@ -161,18 +161,18 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
   return (
     <section
       aria-label="Monitoramento de postes e QR Code"
-      className="min-h-screen bg-[#FEF1CF] text-[#0B1226] px-4 pt-5 pb-28 sm:px-6"
+      className="min-h-screen bg-gradient-to-b from-[#E5ECFF] via-[#F2F6FF] to-[#F6F8FC] text-[#111827] px-4 pt-5 pb-28 sm:px-6"
     >
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Editorial Header */}
         <header className="space-y-1">
-          <p className="text-xs font-medium text-[#4D5775]">
+          <p className="text-xs font-medium text-[#4B5563]">
             Monitoramento colaborativo UFSC
           </p>
-          <h1 className="text-2xl sm:text-3xl font-normal tracking-tight text-[#0B1226]">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#111827]">
             Postes & QR Code
           </h1>
-          <p className="text-sm text-[#2E3856]">
+          <p className="text-sm text-[#4B5563]">
             {counts.aceso} acesos • {counts.oscilando} oscilando • {counts.queimado} queimados
           </p>
         </header>
@@ -180,37 +180,37 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
         {/* Section 1: Interactive QR Code Scanner Simulator */}
         <section
           aria-labelledby="lights-scanner-heading"
-          className="bg-[#FFF9EA] border border-[#D8C89E] rounded-[24px] p-5 space-y-5"
+          className="bg-white border border-[#E5EAF4] rounded-[24px] p-5 space-y-5 shadow-2xs"
         >
           <div className="flex items-start gap-4">
             <div
               aria-hidden="true"
-              className="w-10 h-10 rounded-full bg-[#0131CD] text-[#FEF1CF] text-sm font-medium flex items-center justify-center shrink-0"
+              className="w-10 h-10 rounded-full bg-[#2563EB] text-white text-sm font-medium flex items-center justify-center shrink-0"
             >
               1
             </div>
             <div className="min-w-0 flex-1">
-              <h2 id="lights-scanner-heading" className="text-lg font-medium text-[#0B1226]">
+              <h2 id="lights-scanner-heading" className="text-lg font-medium text-[#111827]">
                 Leitor QR do poste
               </h2>
-              <p className="text-sm text-[#2E3856] mt-0.5">
+              <p className="text-sm text-[#4B5563] mt-0.5">
                 Selecione uma etiqueta QR do campus ou digite o código do poste para atualizar em 1 toque.
               </p>
             </div>
           </div>
 
-          {/* Stylized QR Viewfinder with Droplet Mascot */}
+          {/* Stylized QR Viewfinder with Reactive Droplet Mascot */}
           {selectedPost && (
-            <div className="rounded-[17.6px] bg-[#0131CD] text-[#FEF1CF] p-4 relative overflow-hidden">
+            <div className="rounded-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white p-4 relative overflow-hidden">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-12 h-12 rounded-2xl border border-[#B9FC01]/60 bg-[#FEF1CF]/10 flex items-center justify-center shrink-0">
-                    <QrCode className="w-6 h-6 text-[#B9FC01]" aria-hidden="true" />
+                  <div className="w-12 h-12 rounded-2xl border border-white/25 bg-white/10 flex items-center justify-center shrink-0">
+                    <QrCode className="w-6 h-6 text-white" aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-[#B9FC01] font-medium">Etiqueta ativa</p>
-                    <p className="text-base font-medium truncate">{selectedPost.id}</p>
-                    <p className="text-xs text-[#FEF1CF]/75 truncate">{selectedPost.name}</p>
+                    <p className="text-xs text-white/80 font-medium">Etiqueta ativa</p>
+                    <p className="text-base font-semibold truncate">{selectedPost.id}</p>
+                    <p className="text-xs text-white/75 truncate">{selectedPost.name}</p>
                   </div>
                 </div>
 
@@ -223,7 +223,18 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                           ? 'alert'
                           : 'exclaim'
                     }
-                    size={44}
+                    expression={
+                      selectedPost.status === 'aceso'
+                        ? 'heureux'
+                        : selectedPost.status === 'oscilando'
+                          ? 'curieux'
+                          : 'effraye'
+                    }
+                    tremble={selectedPost.status === 'queimado'}
+                    inkColor="#FFFFFF"
+                    paperColor="#1D4ED8"
+                    notifColor={selectedPost.status === 'queimado' ? '#EF4444' : '#10B981'}
+                    size={54}
                     interactive
                     ariaLabel="Mascote indicador do estado do poste"
                   />
@@ -246,7 +257,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
 
           {/* Quick-Select Seeded QR Pills */}
           <div className="space-y-2">
-            <span className="block text-xs font-medium text-[#4D5775]">
+            <span className="block text-xs font-medium text-[#6B7280]">
               Simular leitura rápida no campus
             </span>
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
@@ -261,8 +272,8 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     aria-pressed={isSelected}
                     className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border inline-flex items-center gap-1.5 shrink-0 transition-all active:scale-[0.97] cursor-pointer ${
                       isSelected
-                        ? 'bg-[#0131CD] text-[#B9FC01] border-[#0131CD]'
-                        : 'bg-[#FEF1CF] text-[#0B1226] border-[#D8C89E] hover:border-[#0131CD]'
+                        ? 'bg-[#2563EB] text-white border-[#2563EB]'
+                        : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]'
                     }`}
                   >
                     <StatusIcon className="w-3.5 h-3.5" aria-hidden="true" />
@@ -277,7 +288,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
           <form onSubmit={handleQrScanSubmit} className="space-y-2">
             <label
               htmlFor="qr-code-input"
-              className="block text-xs font-medium text-[#4D5775]"
+              className="block text-xs font-medium text-[#6B7280]"
             >
               Código QR do poste
             </label>
@@ -292,11 +303,11 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                   if (qrError) setQrError(null);
                 }}
                 placeholder="Ex: POSTE-BU-01"
-                className="flex-1 min-w-0 min-h-[44px] px-3.5 rounded-xl border border-[#D8C89E] bg-[#FEF1CF] text-sm text-[#0B1226] placeholder:text-[#4D5775] focus:outline-2 focus:outline-[#0131CD]"
+                className="flex-1 min-w-0 min-h-[44px] px-3.5 rounded-xl border border-[#E5EAF4] bg-[#F8FAFC] text-sm text-[#111827] placeholder:text-[#6B7280] focus:outline-2 focus:outline-[#2563EB]"
               />
               <button
                 type="submit"
-                className="min-h-[44px] px-5 rounded-full bg-[#0131CD] text-[#FEF1CF] text-sm font-medium hover:bg-[#0025A1] active:scale-[0.97] transition-all cursor-pointer shrink-0"
+                className="min-h-[44px] px-5 rounded-full bg-[#2563EB] text-white text-sm font-medium hover:bg-[#1D4ED8] active:scale-[0.97] transition-all cursor-pointer shrink-0"
               >
                 Ler QR
               </button>
@@ -314,12 +325,12 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
 
           {/* Instant 1-Tap Status Controls */}
           {selectedPost && (
-            <div className="pt-4 border-t border-[#D8C89E]/70 space-y-3">
+            <div className="pt-4 border-t border-[#E5EAF4] space-y-3">
               <div>
-                <h3 className="text-base font-medium text-[#0B1226]">
+                <h3 className="text-base font-medium text-[#111827]">
                   Atualizar status de {selectedPost.id}
                 </h3>
-                <p className="text-xs text-[#4D5775] mt-0.5">{selectedPost.name}</p>
+                <p className="text-xs text-[#6B7280] mt-0.5">{selectedPost.name}</p>
               </div>
 
               <div
@@ -340,7 +351,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                       className={`min-h-[44px] px-2.5 py-2 rounded-2xl border text-xs sm:text-sm font-medium inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
                         isCurrent
                           ? meta.activeBtnClass
-                          : 'bg-[#FEF1CF] text-[#0B1226] border-[#D8C89E] hover:border-[#0131CD]'
+                          : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]'
                       }`}
                     >
                       <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -352,13 +363,13 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
             </div>
           )}
 
-          {/* Optimistic Route Recalculation Banner + Single Prominent Lime PillButton */}
-          <div className="rounded-2xl bg-[#FEF1CF] border border-[#D8C89E] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Optimistic Route Recalculation Banner + Single Prominent CTA */}
+          <div className="rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="min-w-0 space-y-0.5">
-              <p className="text-xs font-medium text-[#0B1226]">
+              <p className="text-xs font-medium text-[#111827]">
                 {statusFeedback ?? `Corredor ${originShort} → ${destShort}`}
               </p>
-              <p className="text-xs text-[#2E3856]">
+              <p className="text-xs text-[#4B5563]">
                 Rota iluminada atual: {brightestRoute.illuminationPercentage}% •{' '}
                 {brightestRoute.hasDarkWarning
                   ? 'Desvio ou alerta de trecho escuro ativo'
@@ -381,20 +392,20 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
         {/* Section 2: Filterable UFSC Lamp Post Directory */}
         <section
           aria-labelledby="lights-directory-heading"
-          className="bg-[#FFF9EA] border border-[#D8C89E] rounded-[24px] p-5 space-y-4"
+          className="bg-white border border-[#E5EAF4] rounded-[24px] p-5 space-y-4 shadow-2xs"
         >
           <div className="flex items-start gap-4">
             <div
               aria-hidden="true"
-              className="w-10 h-10 rounded-full bg-[#0131CD] text-[#FEF1CF] text-sm font-medium flex items-center justify-center shrink-0"
+              className="w-10 h-10 rounded-full bg-[#2563EB] text-white text-sm font-medium flex items-center justify-center shrink-0"
             >
               2
             </div>
             <div className="min-w-0 flex-1">
-              <h2 id="lights-directory-heading" className="text-lg font-medium text-[#0B1226]">
+              <h2 id="lights-directory-heading" className="text-lg font-medium text-[#111827]">
                 Diretório de postes UFSC
               </h2>
-              <p className="text-sm text-[#2E3856] mt-0.5">
+              <p className="text-sm text-[#4B5563] mt-0.5">
                 Toque em qualquer poste para selecionar e atualizar sua situação.
               </p>
             </div>
@@ -402,8 +413,8 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
 
           {/* Search & Status Filter Chips */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 bg-[#FEF1CF] border border-[#D8C89E] rounded-full px-3.5">
-              <Search className="w-4 h-4 text-[#4D5775] shrink-0" aria-hidden="true" />
+            <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E5EAF4] rounded-full px-3.5">
+              <Search className="w-4 h-4 text-[#6B7280] shrink-0" aria-hidden="true" />
               <label htmlFor="lights-directory-search" className="sr-only">
                 Filtrar postes no diretório
               </label>
@@ -414,7 +425,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                 value={directorySearch}
                 onChange={(e) => setDirectorySearch(e.target.value)}
                 placeholder="Buscar por código ou local (ex: BU, Bosque)"
-                className="flex-1 min-h-[44px] bg-transparent text-sm text-[#0B1226] placeholder:text-[#4D5775] focus:outline-none"
+                className="flex-1 min-h-[44px] bg-transparent text-sm text-[#111827] placeholder:text-[#6B7280] focus:outline-none"
               />
             </div>
 
@@ -436,8 +447,8 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     aria-pressed={active}
                     className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97] cursor-pointer ${
                       active
-                        ? 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD]'
-                        : 'bg-[#FEF1CF] text-[#2E3856] border-[#D8C89E] hover:text-[#0B1226]'
+                        ? 'bg-[#2563EB] text-white border-[#2563EB]'
+                        : 'bg-[#F8FAFC] text-[#4B5563] border-[#E5EAF4] hover:text-[#111827]'
                     }`}
                   >
                     {chip.label}
@@ -453,10 +464,10 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
             pageSize={6}
             getItemKey={(post) => post.id}
             ariaLabel="Lista de postes da UFSC"
-            listClassName="divide-y divide-[#D8C89E]/70 border-t border-[#D8C89E]/70"
+            listClassName="divide-y divide-[#E5EAF4] border-t border-[#E5EAF4]"
             loadMoreLabel="Mostrar mais postes"
             emptyState={
-              <p className="text-sm text-[#4D5775] py-4 border-t border-[#D8C89E]/70">
+              <p className="text-sm text-[#6B7280] py-4 border-t border-[#E5EAF4]">
                 Nenhum poste encontrado para este filtro.
               </p>
             }
@@ -472,14 +483,14 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     onClick={() => handleSelectQuickQr(post.id)}
                     aria-label={`Selecionar ${post.id} — ${post.name} (${meta.label})`}
                     className={`w-full min-h-[44px] px-3 py-2.5 rounded-2xl text-left flex items-center justify-between gap-3 transition-all active:scale-[0.98] cursor-pointer ${
-                      isSelected ? 'bg-[#FEF1CF]' : 'hover:bg-[#FEF1CF]/60'
+                      isSelected ? 'bg-[#EFF6FF]' : 'hover:bg-[#F8FAFC]'
                     }`}
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-[#0B1226] truncate">
+                      <p className="text-sm font-medium text-[#111827] truncate">
                         {post.name}
                       </p>
-                      <p className="text-xs text-[#4D5775] mt-0.5">
+                      <p className="text-xs text-[#6B7280] mt-0.5">
                         {post.id} • Atualizado às {formatPostTime(post.lastUpdated)}
                       </p>
                     </div>

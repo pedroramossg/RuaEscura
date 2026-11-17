@@ -17,6 +17,7 @@ import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { PillButton } from '../ui/PillButton';
 import { DropletMascot } from '../mascot/DropletMascot';
 import type { StateId } from '../../mascot/bloub/states';
+import type { ExpressionId } from '../../mascot/bloub/expressions';
 import { findRoute } from '../../engine/routing';
 import { GovBrAuthSchema, maskCpf } from '../../security/schemas';
 
@@ -49,6 +50,13 @@ const HERO_DROPLET_STATES: StateId[] = [
   'idle',
 ];
 
+const AUTO_MOOD_CYCLE: Array<{ state: StateId; expression: ExpressionId; line: string }> = [
+  { state: 'play', expression: 'heureux', line: 'Oi! Eu sou a Gotinha do RuaEscura!' },
+  { state: 'orbit', expression: 'curieux', line: 'Mapeio postes acesos na UFSC em tempo real.' },
+  { state: 'wink', expression: 'excite', line: 'Te conecto com colegas do Gov.br!' },
+  { state: 'idle', expression: 'fier', line: 'Bora desbloquear seu passe seguro?' },
+];
+
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
   const {
     posts,
@@ -63,6 +71,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
   // Mascot state per step
   const [heroDropletState, setHeroDropletState] = useState<StateId>('orbit');
+  const [autoMoodIdx, setAutoMoodIdx] = useState<number>(0);
   const [step2MascotState, setStep2MascotState] = useState<StateId>('idle');
   const [companionHighlighted, setCompanionHighlighted] = useState<boolean>(false);
 
@@ -95,12 +104,24 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
   const prefersReducedMotion = usePrefersReducedMotion();
 
+  useEffect(() => {
+    if (prefersReducedMotion || step !== 1) return;
+    const timer = window.setInterval(() => {
+      setAutoMoodIdx((prev) => (prev + 1) % AUTO_MOOD_CYCLE.length);
+    }, 2600);
+    return () => window.clearInterval(timer);
+  }, [prefersReducedMotion, step]);
+
+  const activeAutoMood = AUTO_MOOD_CYCLE[autoMoodIdx] ?? AUTO_MOOD_CYCLE[0];
+  const xpEarned = step * 25;
+
   const goToStep = (nextStep: 1 | 2 | 3 | 4) => {
     setDirection(nextStep >= step ? 1 : -1);
     setStep(nextStep);
   };
 
   const cycleHeroDropletState = () => {
+    setAutoMoodIdx((prev) => (prev + 1) % AUTO_MOOD_CYCLE.length);
     setHeroDropletState((prev) => {
       const idx = HERO_DROPLET_STATES.indexOf(prev);
       return HERO_DROPLET_STATES[(idx + 1) % HERO_DROPLET_STATES.length] ?? 'orbit';
@@ -240,86 +261,110 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     : { opacity: 0, x: direction * 22 };
 
   return (
-    <div className="min-h-screen w-full bg-[#FEF1CF] text-[#0B1226] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-300">
+    <div className="min-h-screen w-full bg-gradient-to-b from-[#DBEAFE] via-[#F2F6FF] to-[#F6F8FC] text-[#111827] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-300">
+      {/* Gamified XP & Step Progress Bar */}
+      <div className="w-full max-w-md mb-3 px-1">
+        <div className="flex items-center justify-between text-xs font-medium text-[#4B5563] mb-1.5">
+          <span>Etapa {step} de 4</span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white border border-[#E5EAF4] text-[#2563EB] font-semibold shadow-2xs">
+            <Sparkles className="w-3 h-3 text-[#F59E0B]" aria-hidden="true" />
+            <span>{xpEarned} XP</span>
+          </span>
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-white/80 overflow-hidden border border-[#E5EAF4]">
+          <motion.div
+            className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#10B981]"
+            initial={false}
+            animate={{ width: `${(step / 4) * 100}%` }}
+            transition={prefersReducedMotion ? { duration: 0.01 } : { type: 'spring', bounce: 0.15, duration: 0.45 }}
+          />
+        </div>
+      </div>
+
       <AnimatePresence initial={false}>
-        {/* STEP 1: DEEP COBALT STAGE + VOLT GLOW + ANIMATED CORRIDOR + DROPLET MASCOT */}
+        {/* STEP 1: ATMOSPHERIC SKY GRADIENT + CENTERPIECE DROPLET MASCOT + SPEECH BUBBLE */}
         {step === 1 && (
           <motion.div
             key="step-1"
             initial={stepInitial}
             animate={{ opacity: 1, x: 0 }}
             transition={springTransition}
-            className="w-full max-w-md bg-[#0131CD] text-white rounded-[32px] p-5 sm:p-8 relative overflow-hidden shadow-2xl border border-[#B9FC01]/25"
+            className="w-full max-w-md bg-white text-[#111827] rounded-[32px] p-5 sm:p-8 relative overflow-hidden shadow-xl border border-[#E5EAF4]"
           >
-            {/* Volt Lime curved ambient glow */}
+            {/* Atmospheric top sky wash (Reference Image 5) */}
             <div
-              className="absolute -top-24 left-1/2 -translate-x-1/2 w-80 h-64 rounded-full bg-[#B9FC01]/25 blur-[64px] pointer-events-none"
+              className="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-[#2563EB]/14 via-[#60A5FA]/8 to-transparent pointer-events-none"
               aria-hidden="true"
             />
 
             {/* Header Badge */}
-            <div className="relative flex items-center justify-between gap-2 mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#B9FC01]/15 text-[#B9FC01] border border-[#B9FC01]/35">
+            <div className="relative flex items-center justify-between gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#EFF6FF] text-[#2563EB] border border-[#DBEAFE]">
                 <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>UFSC Campus Trindade</span>
               </span>
-              <span className="text-xs font-medium text-[#FEF1CF]/90">Etapa 1 de 4</span>
+              <span className="text-xs font-medium text-[#4B5563]">Missão Inicial</span>
             </div>
 
-            {/* Interactive DropletMascot + Animated SVG UFSC Corridor */}
-            <div className="relative flex flex-col items-center gap-2 py-1">
+            {/* Centerpiece Interactive DropletMascot + Dynamic Speech Bubble */}
+            <div className="relative flex flex-col items-center gap-2.5 py-2">
+              <motion.div
+                key={activeAutoMood.line}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 4, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.2 }}
+                className="px-4 py-2 rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4] shadow-xs text-xs sm:text-sm font-medium text-[#111827] text-center max-w-[280px]"
+              >
+                {activeAutoMood.line}
+              </motion.div>
+
               <DropletMascot
-                state={heroDropletState}
-                size={88}
-                inkColor="#B9FC01"
-                paperColor="#0131CD"
-                notifColor="#FEF1CF"
+                state={heroDropletState === 'orbit' ? activeAutoMood.state : heroDropletState}
+                expression={activeAutoMood.expression}
+                size={124}
+                inkColor="#2563EB"
+                paperColor="#FFFFFF"
+                notifColor="#10B981"
                 interactive
                 onTap={cycleHeroDropletState}
                 ariaLabel="Mascote gota RuaEscura — toque para mudar o humor"
               />
 
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#080E21]/45 text-[#FEF1CF] border border-[#B9FC01]/30">
-                Toque na gotinha para mudar o humor
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#475569]">
+                Toque na gotinha para interagir
               </span>
 
               <div className="w-full flex justify-center pt-1" aria-hidden="true">
-                <svg className="w-full h-24" viewBox="0 0 320 96" fill="none">
-                  <defs>
-                    <filter id="glow-volt" x="-20%" y="-20%" width="140%" height="140%">
-                      <feGaussianBlur stdDeviation="5" result="blur" />
-                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                    </filter>
-                  </defs>
+                <svg className="w-full h-20" viewBox="0 0 320 84" fill="none">
                   <motion.path
-                    d="M 25 60 Q 90 16 160 50 T 295 40"
-                    stroke="#B9FC01"
+                    d="M 25 52 Q 90 14 160 44 T 295 34"
+                    stroke="#2563EB"
                     strokeWidth="4"
                     strokeLinecap="round"
-                    filter="url(#glow-volt)"
+                    strokeOpacity="0.22"
                     initial={prefersReducedMotion ? false : { pathLength: 0 }}
                     animate={{ pathLength: 1 }}
                     transition={prefersReducedMotion ? undefined : { duration: 0.9, ease: 'easeOut' }}
                   />
                   <motion.path
-                    d="M 25 60 Q 90 16 160 50 T 295 40"
-                    stroke="#FFFFFF"
-                    strokeWidth="2"
+                    d="M 25 52 Q 90 14 160 44 T 295 34"
+                    stroke="#10B981"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     initial={prefersReducedMotion ? false : { pathLength: 0 }}
                     animate={{ pathLength: 1 }}
                     transition={prefersReducedMotion ? undefined : { duration: 0.9, ease: 'easeOut' }}
                   />
-                  <circle cx="25" cy="60" r="7" fill="#B9FC01" />
-                  <circle cx="160" cy="50" r="6" fill="#B9FC01" />
-                  <circle cx="295" cy="40" r="7" fill="#B9FC01" />
-                  <text x="25" y="84" fill="#FEF1CF" fontSize="11" textAnchor="middle" fontWeight="500">
+                  <circle cx="25" cy="52" r="6" fill="#2563EB" />
+                  <circle cx="160" cy="44" r="5" fill="#10B981" />
+                  <circle cx="295" cy="34" r="6" fill="#2563EB" />
+                  <text x="25" y="74" fill="#4B5563" fontSize="11" textAnchor="middle" fontWeight="600">
                     BU
                   </text>
-                  <text x="160" y="74" fill="#FEF1CF" fontSize="11" textAnchor="middle" fontWeight="500">
+                  <text x="160" y="66" fill="#4B5563" fontSize="11" textAnchor="middle" fontWeight="600">
                     Reitoria
                   </text>
-                  <text x="295" y="64" fill="#FEF1CF" fontSize="11" textAnchor="middle" fontWeight="500">
+                  <text x="295" y="56" fill="#4B5563" fontSize="11" textAnchor="middle" fontWeight="600">
                     RU
                   </text>
                 </svg>
@@ -327,20 +372,20 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             </div>
 
             {/* Outcome Headline */}
-            <h1 className="relative text-3xl sm:text-4xl font-normal tracking-tight text-white mt-2 leading-tight">
-              Caminhe pela UFSC no claro. <span className="text-[#B9FC01]">E acompanhado.</span>
+            <h1 className="relative text-3xl sm:text-4xl font-semibold tracking-tight text-[#111827] mt-1 leading-tight">
+              Caminhe pela UFSC no claro. <span className="text-[#2563EB]">E acompanhado.</span>
             </h1>
 
-            <p className="relative text-base text-[#FEF1CF] mt-3 leading-relaxed">
+            <p className="relative text-sm sm:text-base text-[#4B5563] mt-2.5 leading-relaxed">
               Descubra trajetos com iluminação verificada em tempo real e conecte-se com colegas fazendo o mesmo caminho pelo campus Trindade.
             </p>
 
             {/* Actions */}
-            <div className="relative mt-7 space-y-3">
+            <div className="relative mt-6 space-y-2.5">
               <PillButton
                 variant="lime"
                 size="feature"
-                className="w-full shadow-lg shadow-[#080E21]/25 font-semibold text-lg"
+                className="w-full shadow-md font-semibold text-base sm:text-lg"
                 onClick={() => goToStep(2)}
               >
                 Começar meu trajeto →
@@ -348,7 +393,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
               <button
                 type="button"
-                className="w-full min-h-[44px] py-2 text-sm font-medium text-[#FEF1CF] hover:text-[#B9FC01] transition-colors cursor-pointer text-center underline-offset-4 hover:underline rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B9FC01]"
+                className="w-full min-h-[44px] py-2 text-sm font-medium text-[#4B5563] hover:text-[#2563EB] transition-colors cursor-pointer text-center rounded-full bg-[#F1F5F9] hover:bg-[#E2E8F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
                 onClick={() => {
                   setSelectedBuildings(['bu', 'ru', 'cce']);
                   goToStep(4);
@@ -367,22 +412,22 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             initial={stepInitial}
             animate={{ opacity: 1, x: 0 }}
             transition={springTransition}
-            className="w-full max-w-md bg-white text-[#0B1226] rounded-[32px] p-5 sm:p-8 shadow-xl border border-[#E4D6B2]"
+            className="w-full max-w-md bg-white text-[#111827] rounded-[32px] p-5 sm:p-8 shadow-xl border border-[#E5EAF4]"
           >
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-[#334155]">
+                  <span className="text-xs uppercase tracking-wider font-semibold text-[#4B5563]">
                     Etapa 2 de 4
                   </span>
-                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[#FEF1CF] text-[#0131CD] border border-[#E4D6B2]">
+                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[#EFF6FF] text-[#2563EB] border border-[#DBEAFE]">
                     Preferências
                   </span>
                 </div>
-                <h2 className="text-2xl font-medium tracking-tight text-[#0B1226]">
+                <h2 className="text-2xl font-semibold tracking-tight text-[#111827]">
                   Seus trajetos e horários frequentes
                 </h2>
-                <p className="text-sm text-[#334155]">
+                <p className="text-sm text-[#4B5563]">
                   Personalize seu mapa seguro da UFSC
                 </p>
               </div>
@@ -390,10 +435,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
               <div className="shrink-0">
                 <DropletMascot
                   state={step2MascotState}
-                  size={60}
-                  inkColor="#0131CD"
+                  expression={mapMode === 'noturno' ? 'attentif' : 'heureux'}
+                  size={74}
+                  inkColor="#2563EB"
                   paperColor="#FFFFFF"
-                  notifColor="#B9FC01"
+                  notifColor="#10B981"
                   ariaLabel="Mascote acompanhando suas preferências"
                 />
               </div>
@@ -401,7 +447,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
             {/* Building Selection Multi-Select Chips */}
             <div className="mt-5">
-              <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-[#4B5563] uppercase tracking-wider mb-2">
                 Prédios e centros que você frequenta
               </label>
               <div className="flex flex-wrap gap-2">
@@ -414,10 +460,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                       aria-pressed={isSelected}
                       aria-label={`${item.shortName} — ${item.name}`}
                       onClick={() => toggleBuilding(item.id)}
-                      className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD] ${
+                      className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
                         isSelected
-                          ? 'bg-[#0131CD] text-[#B9FC01] border-[#0131CD] shadow-sm'
-                          : 'bg-[#FEF1CF] text-[#0B1226] border-[#E4D6B2] hover:bg-[#F5E3B3]'
+                          ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-sm'
+                          : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:bg-[#EFF6FF]'
                       }`}
                     >
                       {item.label}
@@ -429,7 +475,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
             {/* Time Slot Selection */}
             <div className="mt-5">
-              <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-[#4B5563] uppercase tracking-wider mb-2">
                 Horário principal de retorno
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -441,14 +487,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                       type="button"
                       aria-pressed={isSelected}
                       onClick={() => handleSelectTimeSlot(slot)}
-                      className={`min-h-[44px] flex items-center justify-center rounded-2xl text-xs sm:text-sm font-medium transition-all cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD] ${
+                      className={`min-h-[44px] flex items-center justify-center rounded-2xl text-xs sm:text-sm font-medium transition-all cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
                         isSelected
-                          ? 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD] shadow-sm'
-                          : 'bg-[#FEF1CF] text-[#0B1226] border-[#E4D6B2] hover:bg-[#F5E3B3]'
+                          ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-sm'
+                          : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:bg-[#EFF6FF]'
                       }`}
                     >
                       <Clock
-                        className={`w-3.5 h-3.5 mr-1.5 ${isSelected ? 'text-[#B9FC01]' : 'text-[#0131CD]'}`}
+                        className={`w-3.5 h-3.5 mr-1.5 ${isSelected ? 'text-white' : 'text-[#2563EB]'}`}
                         aria-hidden="true"
                       />
                       {slot}
@@ -460,7 +506,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
             {/* Map Style Selection */}
             <div className="mt-5">
-              <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-[#4B5563] uppercase tracking-wider mb-2">
                 Modo visual inicial do mapa
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -468,14 +514,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                   type="button"
                   aria-pressed={mapMode === 'claro'}
                   onClick={() => handleSelectMapMode('claro')}
-                  className={`min-h-[44px] px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD] ${
+                  className={`min-h-[44px] px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
                     mapMode === 'claro'
-                      ? 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD] shadow-sm'
-                      : 'bg-[#FEF1CF] text-[#0B1226] border-[#E4D6B2] hover:bg-[#F5E3B3]'
+                      ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-sm'
+                      : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:bg-[#EFF6FF]'
                   }`}
                 >
                   <Sun
-                    className={`w-4 h-4 shrink-0 ${mapMode === 'claro' ? 'text-[#B9FC01]' : 'text-[#0131CD]'}`}
+                    className={`w-4 h-4 shrink-0 ${mapMode === 'claro' ? 'text-white' : 'text-[#2563EB]'}`}
                     aria-hidden="true"
                   />
                   <span>Claro + Modo Noturno</span>
@@ -485,14 +531,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                   type="button"
                   aria-pressed={mapMode === 'noturno'}
                   onClick={() => handleSelectMapMode('noturno')}
-                  className={`min-h-[44px] px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD] ${
+                  className={`min-h-[44px] px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
                     mapMode === 'noturno'
-                      ? 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD] shadow-sm'
-                      : 'bg-[#FEF1CF] text-[#0B1226] border-[#E4D6B2] hover:bg-[#F5E3B3]'
+                      ? 'bg-[#111827] text-white border-[#111827] shadow-sm'
+                      : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:bg-[#EFF6FF]'
                   }`}
                 >
                   <Moon
-                    className={`w-4 h-4 shrink-0 ${mapMode === 'noturno' ? 'text-[#B9FC01]' : 'text-[#0131CD]'}`}
+                    className={`w-4 h-4 shrink-0 ${mapMode === 'noturno' ? 'text-[#60A5FA]' : 'text-[#2563EB]'}`}
                     aria-hidden="true"
                   />
                   <span>Sempre Noturno</span>
@@ -506,7 +552,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                 type="button"
                 aria-label="Voltar"
                 onClick={() => goToStep(1)}
-                className="min-w-[44px] min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#0B1226] bg-[#FEF1CF] border border-[#E4D6B2] hover:bg-[#F5E3B3] active:scale-[0.97] transition-all cursor-pointer inline-flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD]"
+                className="min-w-[44px] min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#111827] bg-[#F1F5F9] border border-[#E5EAF4] hover:bg-[#E2E8F0] active:scale-[0.97] transition-all cursor-pointer inline-flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
               >
                 <ArrowLeft className="w-4 h-4" aria-hidden="true" />
               </button>
@@ -530,33 +576,34 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             initial={stepInitial}
             animate={{ opacity: 1, x: 0 }}
             transition={springTransition}
-            className="w-full max-w-md bg-white text-[#0B1226] rounded-[32px] p-5 sm:p-8 shadow-xl border border-[#E4D6B2]"
+            className="w-full max-w-md bg-white text-[#111827] rounded-[32px] p-5 sm:p-8 shadow-xl border border-[#E5EAF4]"
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs uppercase tracking-wider font-semibold text-[#334155]">
+              <span className="text-xs uppercase tracking-wider font-semibold text-[#4B5563]">
                 Etapa 3 de 4
               </span>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#B9FC01] text-[#0B1226]">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#D1FAE5] text-[#065F46]">
                 Aha! Preview
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-medium tracking-tight text-[#0B1226]">
+                <h2 className="text-2xl font-semibold tracking-tight text-[#111827]">
                   Seu corredor inteligente
                 </h2>
-                <p className="text-sm text-[#334155] mt-1">
+                <p className="text-sm text-[#4B5563] mt-1">
                   Trajeto seguro calculado para seu perfil
                 </p>
               </div>
 
               <DropletMascot
                 state={step3MascotState}
-                size={64}
-                inkColor="#0131CD"
+                expression={companionHighlighted ? 'fier' : 'heureux'}
+                size={76}
+                inkColor="#2563EB"
                 paperColor="#FFFFFF"
-                notifColor="#B9FC01"
+                notifColor="#10B981"
                 interactive
                 onTap={() => setCompanionHighlighted((prev) => !prev)}
                 ariaLabel="Mascote celebrando seu corredor seguro"
@@ -564,42 +611,42 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             </div>
 
             {/* Corridor Origin/Destination Card */}
-            <div className="mt-5 p-4 rounded-2xl bg-[#FEF1CF] border border-[#E4D6B2] space-y-3">
+            <div className="mt-5 p-4 rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4] space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#0131CD]" aria-hidden="true" />
-                  <span className="text-sm font-semibold uppercase text-[#0B1226]">
+                  <MapPin className="w-4 h-4 text-[#2563EB]" aria-hidden="true" />
+                  <span className="text-sm font-semibold uppercase text-[#111827]">
                     {originId.toUpperCase()} → {destId.toUpperCase()}
                   </span>
                 </div>
-                <span className="text-xs text-[#0131CD] font-semibold px-2 py-0.5 rounded-full bg-white border border-[#E4D6B2]">
+                <span className="text-xs text-[#2563EB] font-semibold px-2 py-0.5 rounded-full bg-white border border-[#E5EAF4]">
                   {timeSlot}
                 </span>
               </div>
 
               {/* Illumination & Distance Stat */}
               <div className="grid grid-cols-2 gap-3 pt-1">
-                <div className="p-3 bg-white rounded-xl border border-[#E4D6B2]">
-                  <div className="flex items-center gap-1.5 text-xs text-[#334155] font-medium">
-                    <Lightbulb className="w-3.5 h-3.5 text-[#0131CD]" aria-hidden="true" />
+                <div className="p-3 bg-white rounded-xl border border-[#E5EAF4]">
+                  <div className="flex items-center gap-1.5 text-xs text-[#4B5563] font-medium">
+                    <Lightbulb className="w-3.5 h-3.5 text-[#10B981]" aria-hidden="true" />
                     <span>Iluminação</span>
                   </div>
-                  <div className="text-2xl font-semibold text-[#0B1226] mt-1">
+                  <div className="text-2xl font-semibold text-[#111827] mt-1">
                     {previewRoute.illuminationPercentage}
-                    <span className="text-sm font-normal text-[#334155]">% iluminado</span>
+                    <span className="text-sm font-normal text-[#4B5563]">% iluminado</span>
                   </div>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-[#E4D6B2]">
-                  <div className="flex items-center gap-1.5 text-xs text-[#334155] font-medium">
-                    <Clock className="w-3.5 h-3.5 text-[#0131CD]" aria-hidden="true" />
+                <div className="p-3 bg-white rounded-xl border border-[#E5EAF4]">
+                  <div className="flex items-center gap-1.5 text-xs text-[#4B5563] font-medium">
+                    <Clock className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
                     <span>Caminhada</span>
                   </div>
-                  <div className="text-2xl font-semibold text-[#0B1226] mt-1">
+                  <div className="text-2xl font-semibold text-[#111827] mt-1">
                     ~{previewRoute.estimatedMinutes}{' '}
-                    <span className="text-sm font-normal text-[#334155]">min a pé</span>
+                    <span className="text-sm font-normal text-[#4B5563]">min a pé</span>
                   </div>
-                  <div className="text-xs text-[#334155]">{previewRoute.distanceMeters}m de extensão</div>
+                  <div className="text-xs text-[#4B5563]">{previewRoute.distanceMeters}m de extensão</div>
                 </div>
               </div>
 
@@ -608,16 +655,16 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                 type="button"
                 aria-pressed={companionHighlighted}
                 onClick={() => setCompanionHighlighted((prev) => !prev)}
-                className={`w-full min-h-[44px] p-3 rounded-xl border flex items-center justify-between gap-3 text-left transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD] ${
+                className={`w-full min-h-[44px] p-3 rounded-xl border flex items-center justify-between gap-3 text-left transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
                   companionHighlighted
-                    ? 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD]'
-                    : 'bg-white text-[#0B1226] border-[#E4D6B2] hover:border-[#0131CD]/40'
+                    ? 'bg-[#2563EB] text-white border-[#2563EB]'
+                    : 'bg-white text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]/40'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Users
                     className={`w-4 h-4 shrink-0 ${
-                      companionHighlighted ? 'text-[#B9FC01]' : 'text-[#0131CD]'
+                      companionHighlighted ? 'text-white' : 'text-[#2563EB]'
                     }`}
                     aria-hidden="true"
                   />
@@ -627,7 +674,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                     </div>
                     <div
                       className={`text-xs ${
-                        companionHighlighted ? 'text-[#FEF1CF]/90' : 'text-[#334155]'
+                        companionHighlighted ? 'text-white/85' : 'text-[#4B5563]'
                       }`}
                     >
                       Caminhando no seu horário
@@ -635,13 +682,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                   </div>
                 </div>
                 <div className="flex -space-x-1.5 overflow-hidden shrink-0" aria-hidden="true">
-                  <span className="inline-block h-6 w-6 rounded-full bg-[#0131CD] text-[#B9FC01] text-[10px] font-semibold text-center leading-6 ring-2 ring-white">
+                  <span className="inline-block h-6 w-6 rounded-full bg-[#2563EB] text-white text-[10px] font-semibold text-center leading-6 ring-2 ring-white">
                     MS
                   </span>
-                  <span className="inline-block h-6 w-6 rounded-full bg-[#0B1226] text-[#FEF1CF] text-[10px] font-semibold text-center leading-6 ring-2 ring-white">
+                  <span className="inline-block h-6 w-6 rounded-full bg-[#111827] text-white text-[10px] font-semibold text-center leading-6 ring-2 ring-white">
                     CD
                   </span>
-                  <span className="inline-block h-6 w-6 rounded-full bg-[#B9FC01] text-[#0B1226] text-[10px] font-semibold text-center leading-6 ring-2 ring-white">
+                  <span className="inline-block h-6 w-6 rounded-full bg-[#10B981] text-white text-[10px] font-semibold text-center leading-6 ring-2 ring-white">
                     GS
                   </span>
                 </div>
@@ -649,7 +696,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             </div>
 
             {/* Trust statement */}
-            <p className="text-xs text-[#334155] mt-4 leading-relaxed">
+            <p className="text-xs text-[#4B5563] mt-4 leading-relaxed">
               Você não precisa caminhar no escuro ou sozinho. Complete a identificação Gov.br para entrar em grupos de caminhada monitorada.
             </p>
 
@@ -658,7 +705,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
               <button
                 type="button"
                 onClick={() => goToStep(2)}
-                className="min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#0B1226] bg-[#FEF1CF] border border-[#E4D6B2] hover:bg-[#F5E3B3] active:scale-[0.97] transition-all cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD]"
+                className="min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#111827] bg-[#F1F5F9] border border-[#E5EAF4] hover:bg-[#E2E8F0] active:scale-[0.97] transition-all cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
               >
                 Voltar
               </button>
@@ -675,33 +722,33 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
           </motion.div>
         )}
 
-        {/* STEP 4: GPS PRE-PERMISSION + COBALT GOV.BR TRUST GATE */}
+        {/* STEP 4: GPS PRE-PERMISSION + GOV.BR TRUST GATE */}
         {step === 4 && (
           <motion.div
             key="step-4"
             initial={stepInitial}
             animate={{ opacity: 1, x: 0 }}
             transition={springTransition}
-            className="w-full max-w-md bg-white text-[#0B1226] rounded-[32px] p-5 sm:p-8 shadow-xl border border-[#E4D6B2] overflow-hidden"
+            className="w-full max-w-md bg-white text-[#111827] rounded-[32px] p-5 sm:p-8 shadow-xl border border-[#E5EAF4] overflow-hidden"
           >
-            {/* Cobalt Gov.br Header Stage */}
-            <div className="-mx-5 -mt-5 sm:-mx-8 sm:-mt-8 px-5 py-5 sm:px-8 sm:py-6 mb-5 bg-[#0131CD] text-white border-b border-[#B9FC01]/30">
+            {/* Royal Blue Gov.br Header Stage */}
+            <div className="-mx-5 -mt-5 sm:-mx-8 sm:-mt-8 px-5 py-5 sm:px-8 sm:py-6 mb-5 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs uppercase tracking-wider font-semibold text-[#FEF1CF]">
+                <span className="text-xs uppercase tracking-wider font-semibold text-white/85">
                   Etapa 4 de 4
                 </span>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#B9FC01] text-[#0B1226]">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#0B1226]" aria-hidden="true" />
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white text-[#1E3A8A]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" aria-hidden="true" />
                   <span>Gov.br Gate</span>
                 </span>
               </div>
 
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-2xl font-medium tracking-tight text-white">
+                  <h2 className="text-2xl font-semibold tracking-tight text-white">
                     Validação única Gov.br
                   </h2>
-                  <p className="text-sm text-[#FEF1CF] mt-1">
+                  <p className="text-sm text-white/85 mt-1">
                     Identificação institucional segura para acessar o mapa com estudantes verificados
                   </p>
                 </div>
@@ -709,10 +756,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                 <div className="shrink-0">
                   <DropletMascot
                     state={step4MascotState}
-                    size={68}
-                    inkColor="#B9FC01"
-                    paperColor="#0131CD"
-                    notifColor="#FEF1CF"
+                    expression={isVerifying ? 'excite' : 'attentif'}
+                    size={76}
+                    inkColor="#FFFFFF"
+                    paperColor="#1D4ED8"
+                    notifColor="#10B981"
                     ariaLabel="Mascote de verificação Gov.br"
                   />
                 </div>
@@ -720,11 +768,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             </div>
 
             {/* GPS Pre-Permission Card */}
-            <div className="p-3.5 rounded-2xl bg-[#FEF1CF]/75 border border-[#E4D6B2]">
+            <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4]">
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-[#0131CD] shrink-0 mt-0.5" aria-hidden="true" />
-                <div className="text-xs text-[#24304D] leading-relaxed">
-                  <span className="font-semibold text-[#0B1226] block mb-0.5">
+                <MapPin className="w-5 h-5 text-[#2563EB] shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="text-xs text-[#4B5563] leading-relaxed">
+                  <span className="font-semibold text-[#111827] block mb-0.5">
                     Localização no campus
                   </span>
                   Usamos sua posição apenas enquanto caminha na UFSC para alertar sobre trechos escuros.
@@ -735,12 +783,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                 <button
                   type="button"
                   onClick={requestGps}
-                  className="min-h-[44px] px-3.5 py-1.5 rounded-full text-xs font-medium bg-white border border-[#0131CD]/25 text-[#0131CD] hover:bg-[#FEF1CF] active:scale-[0.97] transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD]"
+                  className="min-h-[44px] px-3.5 py-1.5 rounded-full text-xs font-medium bg-white border border-[#E5EAF4] text-[#2563EB] hover:bg-[#EFF6FF] active:scale-[0.97] transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
                 >
                   Continuar para localização
                 </button>
                 {gpsStatus !== 'prompt' && (
-                  <span className="text-xs font-medium text-[#15803d] flex items-center gap-1">
+                  <span className="text-xs font-medium text-[#059669] flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>{gpsStatus === 'granted' ? 'Habilitada' : 'Campus Trindade'}</span>
                   </span>
@@ -753,14 +801,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="govbr-name"
-                  className="block text-xs font-semibold text-[#334155] uppercase tracking-wider"
+                  className="block text-xs font-semibold text-[#4B5563] uppercase tracking-wider"
                 >
                   Nome completo
                 </label>
                 <button
                   type="button"
                   onClick={handleAutofillDemo}
-                  className="min-h-[44px] inline-flex items-center px-2 text-xs text-[#0131CD] font-medium hover:underline cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD]"
+                  className="min-h-[44px] inline-flex items-center px-2 text-xs text-[#2563EB] font-medium hover:underline cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
                 >
                   Preencher demo Gov.br
                 </button>
@@ -774,13 +822,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Mariana Silva"
                 disabled={isVerifying}
-                className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-[#E4D6B2] bg-[#FFF9EA]/60 text-sm text-[#0B1226] focus-visible:outline-2 focus-visible:outline-[#0131CD]"
+                className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-[#E5EAF4] bg-[#F8FAFC] text-sm text-[#111827] focus-visible:outline-2 focus-visible:outline-[#2563EB]"
               />
 
               <div>
                 <label
                   htmlFor="govbr-affiliation"
-                  className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1"
+                  className="block text-xs font-semibold text-[#4B5563] uppercase tracking-wider mb-1"
                 >
                   Vínculo UFSC
                 </label>
@@ -792,14 +840,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                   onChange={(e) => setAffiliation(e.target.value)}
                   placeholder="Ex: Ciência da Computação • 6ª fase"
                   disabled={isVerifying}
-                  className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-[#E4D6B2] bg-[#FFF9EA]/60 text-sm text-[#0B1226] focus-visible:outline-2 focus-visible:outline-[#0131CD]"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-[#E5EAF4] bg-[#F8FAFC] text-sm text-[#111827] focus-visible:outline-2 focus-visible:outline-[#2563EB]"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="govbr-cpf"
-                  className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1"
+                  className="block text-xs font-semibold text-[#4B5563] uppercase tracking-wider mb-1"
                 >
                   CPF
                 </label>
@@ -811,7 +859,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                   onChange={(e) => setCpf(e.target.value)}
                   placeholder="000.000.000-00"
                   disabled={isVerifying}
-                  className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-[#E4D6B2] bg-[#FFF9EA]/60 text-sm text-[#0B1226] focus-visible:outline-2 focus-visible:outline-[#0131CD]"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-[#E5EAF4] bg-[#F8FAFC] text-sm text-[#111827] focus-visible:outline-2 focus-visible:outline-[#2563EB]"
                 />
               </div>
 
@@ -831,20 +879,20 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                   initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   transition={prefersReducedMotion ? { duration: 0.01 } : { duration: 0.2 }}
-                  className="mt-4 p-4 rounded-2xl bg-[#FEF1CF] border border-[#0131CD]/20 space-y-2.5"
+                  className="mt-4 p-4 rounded-2xl bg-[#EFF6FF] border border-[#DBEAFE] space-y-2.5"
                 >
                   <div className="flex items-center gap-2.5 text-xs">
                     <CheckCircle2
                       className={`w-4 h-4 transition-colors ${
-                        checklistStep >= 1 ? 'text-[#0131CD]' : 'text-[#64748B]'
+                        checklistStep >= 1 ? 'text-[#2563EB]' : 'text-[#94A3B8]'
                       }`}
                       aria-hidden="true"
                     />
                     <span
                       className={
                         checklistStep >= 1
-                          ? 'text-[#0B1226] font-medium'
-                          : 'text-[#334155]'
+                          ? 'text-[#111827] font-medium'
+                          : 'text-[#4B5563]'
                       }
                     >
                       Identidade Gov.br validada
@@ -854,15 +902,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                   <div className="flex items-center gap-2.5 text-xs">
                     <CheckCircle2
                       className={`w-4 h-4 transition-colors ${
-                        checklistStep >= 2 ? 'text-[#0131CD]' : 'text-[#64748B]'
+                        checklistStep >= 2 ? 'text-[#2563EB]' : 'text-[#94A3B8]'
                       }`}
                       aria-hidden="true"
                     />
                     <span
                       className={
                         checklistStep >= 2
-                          ? 'text-[#0B1226] font-medium'
-                          : 'text-[#334155]'
+                          ? 'text-[#111827] font-medium'
+                          : 'text-[#4B5563]'
                       }
                     >
                       Vínculo UFSC confirmado
@@ -872,18 +920,18 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                   <div className="flex items-center gap-2.5 text-xs">
                     <CheckCircle2
                       className={`w-4 h-4 transition-colors ${
-                        checklistStep >= 3 ? 'text-[#15803d]' : 'text-[#64748B]'
+                        checklistStep >= 3 ? 'text-[#10B981]' : 'text-[#94A3B8]'
                       }`}
                       aria-hidden="true"
                     />
                     <span
                       className={
                         checklistStep >= 3
-                          ? 'text-[#0B1226] font-semibold'
-                          : 'text-[#334155]'
+                          ? 'text-[#111827] font-semibold'
+                          : 'text-[#4B5563]'
                       }
                     >
-                      Selo Verificado ativo
+                      Selo Verificado ativo (+100 XP)
                     </span>
                   </div>
                 </motion.div>

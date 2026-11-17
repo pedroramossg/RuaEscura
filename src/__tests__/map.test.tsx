@@ -103,14 +103,14 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
 
     expect(mapEl).toHaveAttribute('data-night', 'false');
     expect(nightToggle).toHaveAttribute('aria-pressed', 'false');
-    expect(sheetEl.className).toContain('bg-[#FFF9EA]');
+    expect(sheetEl.className).toContain('bg-white');
 
     fireEvent.click(nightToggle);
 
     expect(mapEl).toHaveAttribute('data-night', 'true');
     const dayToggle = screen.getByRole('button', { name: /Mapa Claro/i });
     expect(dayToggle).toHaveAttribute('aria-pressed', 'true');
-    expect(sheetEl.className).toContain('bg-[#0B132B]');
+    expect(sheetEl.className).toContain('bg-[#0B1120]');
 
     // Satellite / Streets toggle works
     const satToggle = screen.getByRole('button', { name: /Satélite/i });

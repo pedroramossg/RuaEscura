@@ -12,6 +12,7 @@ import {
 import { BottomSheet, SheetDetent } from '../ui/BottomSheet';
 import { CompanionChatView } from './CompanionChatView';
 import { DropletMascot } from '../mascot/DropletMascot';
+import { getRouteMascotMood } from '../../mascot/moods';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import type {
   ChatMessage,
@@ -99,18 +100,19 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
       .join(' → ');
   }, [activeRoute.path, landmarkShortMap]);
 
-  const mutedTextClass = isNightMap ? 'text-[#9FB0D8]' : 'text-[#4D5775]';
+  const mutedTextClass = isNightMap ? 'text-[#94A3B8]' : 'text-[#4B5563]';
   const cardBgClass = isNightMap
-    ? 'bg-[#121D3D] border-[#1F2E5C]'
-    : 'bg-[#FEF1CF]/70 border-[#D8C89E]';
+    ? 'bg-[#111A2E] border-[#1E293B]'
+    : 'bg-[#F8FAFC] border-[#E5EAF4]';
 
-  const sheetMascotState = activeRoute.hasDarkWarning
-    ? 'alert'
-    : sortedCompanions.some((c) => c.isUserJoined)
-      ? 'notify'
-      : routeMode === 'brightest'
-        ? 'orbit'
-        : 'hexagon';
+  const routeMood = useMemo(
+    () => getRouteMascotMood(activeRoute, originShort, destShort),
+    [activeRoute, originShort, destShort]
+  );
+
+  const sheetMascotState = sortedCompanions.some((c) => c.isUserJoined) && !routeMood.tremble
+    ? 'notify'
+    : routeMood.state;
 
   return (
     <BottomSheet
@@ -130,11 +132,11 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
         />
       ) : (
         <div className="space-y-4">
-          {/* Summary Header (visible in peek & expanded detents) */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+          {/* Summary Header + Live Mascot Reaction */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg font-medium tracking-tight truncate">
+                <h2 className="text-lg font-semibold tracking-tight truncate">
                   {originShort} → {destShort}
                 </h2>
                 <span
@@ -143,7 +145,7 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                       ? isNightMap
                         ? 'bg-[#FF3B30]/20 text-[#FF3B30]'
                         : 'bg-[#D70015]/10 text-[#D70015]'
-                      : 'bg-[#B9FC01] text-[#0B1226]'
+                      : 'bg-[#D1FAE5] text-[#065F46]'
                   }`}
                 >
                   {activeRoute.hasDarkWarning ? (
@@ -167,11 +169,31 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
 
             <DropletMascot
               state={sheetMascotState}
-              size={44}
+              expression={routeMood.expression}
+              tremble={routeMood.tremble}
+              inkColor={isNightMap && !routeMood.tremble ? '#60A5FA' : routeMood.inkColor}
+              paperColor={isNightMap ? '#0B1120' : '#FFFFFF'}
+              notifColor={routeMood.notifColor}
+              size={58}
               interactive
               ariaLabel="Status animado da rota"
               className="shrink-0"
             />
+          </div>
+
+          {/* Mascot Speech Reaction Bubble */}
+          <div
+            className={`rounded-2xl px-3.5 py-2 text-xs font-medium border ${
+              routeMood.tremble
+                ? isNightMap
+                  ? 'bg-[#FF3B30]/12 border-[#FF3B30]/35 text-[#FECACA]'
+                  : 'bg-[#FFF7ED] border-[#FDBA74] text-[#9A3412]'
+                : isNightMap
+                  ? 'bg-[#111A2E] border-[#1E293B] text-[#E2E8F0]'
+                  : 'bg-[#EFF6FF] border-[#DBEAFE] text-[#1E3A8A]'
+            }`}
+          >
+            {routeMood.bubble}
           </div>
 
           {/* Route Mode Comparison Switcher */}
@@ -188,11 +210,11 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
               className={`min-h-[44px] rounded-2xl p-3 text-left border transition-all duration-150 cursor-pointer active:scale-[0.98] ${
                 routeMode === 'brightest'
                   ? isNightMap
-                    ? 'bg-[#B9FC01] text-[#0B1226] border-[#B9FC01] shadow-sm'
-                    : 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD] shadow-sm'
+                    ? 'bg-[#60A5FA] text-[#0B1120] border-[#60A5FA] shadow-sm'
+                    : 'bg-[#2563EB] text-white border-[#2563EB] shadow-sm'
                   : isNightMap
-                    ? 'bg-[#121D3D] text-[#FEF1CF] border-[#1F2E5C] hover:border-[#B9FC01]/60'
-                    : 'bg-[#FEF1CF]/70 text-[#0B1226] border-[#D8C89E] hover:border-[#0131CD]/50'
+                    ? 'bg-[#111A2E] text-[#F8FAFC] border-[#1E293B] hover:border-[#60A5FA]/60'
+                    : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]/50'
               }`}
             >
               <div className="flex items-center justify-between gap-1">
@@ -244,11 +266,11 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
               className={`min-h-[44px] rounded-2xl p-3 text-left border transition-all duration-150 cursor-pointer active:scale-[0.98] ${
                 routeMode === 'fastest'
                   ? isNightMap
-                    ? 'bg-[#B9FC01] text-[#0B1226] border-[#B9FC01] shadow-sm'
-                    : 'bg-[#0131CD] text-[#FEF1CF] border-[#0131CD] shadow-sm'
+                    ? 'bg-[#60A5FA] text-[#0B1120] border-[#60A5FA] shadow-sm'
+                    : 'bg-[#111827] text-white border-[#111827] shadow-sm'
                   : isNightMap
-                    ? 'bg-[#121D3D] text-[#FEF1CF] border-[#1F2E5C] hover:border-[#B9FC01]/60'
-                    : 'bg-[#FEF1CF]/70 text-[#0B1226] border-[#D8C89E] hover:border-[#0131CD]/50'
+                    ? 'bg-[#111A2E] text-[#F8FAFC] border-[#1E293B] hover:border-[#60A5FA]/60'
+                    : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]/50'
               }`}
             >
               <div className="flex items-center justify-between gap-1">
@@ -360,8 +382,8 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                         <div
                           className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-xs font-semibold ${
                             isNightMap
-                              ? 'bg-[#B9FC01] text-[#0B1226]'
-                              : 'bg-[#0131CD] text-[#FEF1CF]'
+                              ? 'bg-[#60A5FA] text-[#0B1120]'
+                              : 'bg-[#2563EB] text-white'
                           }`}
                         >
                           {comp.initials}
@@ -373,8 +395,8 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                               <span
                                 className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-medium ${
                                   isNightMap
-                                    ? 'bg-[#B9FC01]/15 text-[#B9FC01]'
-                                    : 'bg-[#15803d]/10 text-[#15803d]'
+                                    ? 'bg-[#10B981]/20 text-[#34D399]'
+                                    : 'bg-[#D1FAE5] text-[#065F46]'
                                 }`}
                               >
                                 <ShieldCheck className="w-3 h-3" aria-hidden="true" />
@@ -385,8 +407,8 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                               <span
                                 className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium ${
                                   isNightMap
-                                    ? 'bg-white/10 text-[#FEF1CF]'
-                                    : 'bg-[#FFF9EA] text-[#0B1226] border border-[#D8C89E]'
+                                    ? 'bg-white/10 text-[#F8FAFC]'
+                                    : 'bg-white text-[#111827] border border-[#E5EAF4]'
                                 }`}
                               >
                                 No seu corredor
@@ -412,10 +434,10 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                         aria-pressed={Boolean(comp.isUserJoined)}
                         className={`flex-1 min-h-[44px] px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 border transition-all active:scale-[0.97] cursor-pointer ${
                           comp.isUserJoined
-                            ? 'bg-[#B9FC01] text-[#0B1226] border-[#B9FC01]'
+                            ? 'bg-[#10B981] text-white border-[#10B981]'
                             : isNightMap
-                              ? 'bg-[#0B132B] text-[#FEF1CF] border-[#1F2E5C] hover:border-[#B9FC01]'
-                              : 'bg-[#FFF9EA] text-[#0B1226] border-[#D8C89E] hover:border-[#0131CD]'
+                              ? 'bg-[#0B1120] text-[#F8FAFC] border-[#1E293B] hover:border-[#60A5FA]'
+                              : 'bg-white text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]'
                         }`}
                       >
                         {comp.isUserJoined && (
@@ -429,8 +451,8 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                         onClick={() => onOpenChat(comp.id)}
                         className={`flex-1 min-h-[44px] px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
                           isNightMap
-                            ? 'bg-[#FEF1CF] text-[#0B1226] hover:bg-white'
-                            : 'bg-[#0131CD] text-[#FEF1CF] hover:bg-[#0025A1]'
+                            ? 'bg-[#F8FAFC] text-[#0B1120] hover:bg-white'
+                            : 'bg-[#111827] text-white hover:bg-[#1F2937]'
                         }`}
                       >
                         <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />

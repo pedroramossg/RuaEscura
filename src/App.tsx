@@ -11,6 +11,11 @@ import type { PersistedCampusState } from './types/campus';
 const OnboardingFlow = lazy(() =>
   import('./components/onboarding/OnboardingFlow').then((m) => ({ default: m.OnboardingFlow }))
 );
+const WelcomeBackOverlay = lazy(() =>
+  import('./components/onboarding/WelcomeBackOverlay').then((m) => ({
+    default: m.WelcomeBackOverlay,
+  }))
+);
 const ExploreTab = lazy(() =>
   import('./components/explore/ExploreTab').then((m) => ({ default: m.ExploreTab }))
 );
@@ -41,11 +46,14 @@ export function AppShell() {
     hapticsEnabled,
     posts,
     reports,
+    timeSlot,
+    userSession,
   } = useCampusStore();
 
   const haptics = useHaptics();
   const [activeTab, setActiveTab] = useState<TabId>('explorar');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [showWelcomeBack, setShowWelcomeBack] = useState<boolean>(onboardingCompleted);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const profileTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -99,9 +107,32 @@ export function AppShell() {
 
   if (!onboardingCompleted) {
     return (
-      <main className="min-h-screen bg-[#FEF1CF] text-[#0B1226]">
+      <main className="min-h-screen bg-[#F6F8FC] text-[#111827]">
         <Suspense fallback={<TabSkeleton label="Carregando boas-vindas..." />}>
-          <OnboardingFlow onComplete={() => notify('Bem-vindo ao RuaEscura UFSC Trindade.')} />
+          <OnboardingFlow
+            onComplete={() => {
+              setShowWelcomeBack(false);
+              notify('Bem-vindo ao RuaEscura UFSC Trindade.');
+            }}
+          />
+        </Suspense>
+      </main>
+    );
+  }
+
+  if (showWelcomeBack) {
+    return (
+      <main className="min-h-screen bg-[#F6F8FC] text-[#111827]">
+        <Suspense fallback={<TabSkeleton label="Preparando seu campus..." />}>
+          <WelcomeBackOverlay
+            userName={userSession?.name}
+            timeSlot={timeSlot}
+            safeRoutesCount={posts.filter((p) => p.status === 'aceso').length}
+            onContinue={(targetTab) => {
+              setShowWelcomeBack(false);
+              if (targetTab) setActiveTab(targetTab);
+            }}
+          />
         </Suspense>
       </main>
     );
@@ -113,10 +144,11 @@ export function AppShell() {
     <div
       className={`min-h-screen relative transition-colors duration-200 ${
         isMapTab && isNightMap
-          ? 'bg-[#080E21] text-[#FEF1CF]'
-          : 'bg-[#FEF1CF] text-[#0B1226]'
+          ? 'bg-[#0B1120] text-[#F8FAFC]'
+          : 'bg-[#F6F8FC] text-[#111827]'
       }`}
     >
+
       {/* Global Polite Toast Announcer positioned above FloatingTabBar so top headings are never obscured */}
       <div
         aria-live="polite"
@@ -126,7 +158,7 @@ export function AppShell() {
         {toastMessage && (
           <div
             role="status"
-            className="max-w-md w-fit px-4 py-2.5 rounded-full bg-[#0131CD] text-[#B9FC01] text-xs sm:text-sm font-medium shadow-lg border border-[#B9FC01]/35"
+            className="max-w-md w-fit px-4 py-2.5 rounded-full bg-[#111827] text-white text-xs sm:text-sm font-medium shadow-lg border border-white/15"
           >
             {toastMessage}
           </div>
@@ -179,6 +211,10 @@ export function AppShell() {
           <ProfileSheet
             isOpen={true}
             onClose={() => setIsProfileOpen(false)}
+            onOpenWelcomeBack={() => {
+              setIsProfileOpen(false);
+              setShowWelcomeBack(true);
+            }}
             returnFocusRef={profileTriggerRef}
             onNotify={notify}
           />

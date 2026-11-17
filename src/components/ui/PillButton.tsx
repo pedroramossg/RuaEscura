@@ -25,25 +25,25 @@ export const PillButton: React.FC<PillButtonProps> = ({
   const variantClasses = (() => {
     switch (variant) {
       case 'lime':
-        return 'bg-[#B9FC01] text-[#0B1226] hover:bg-[#A6E500] active:scale-[0.97] shadow-sm';
+        return 'bg-[#111827] text-white hover:bg-[#1F2937] active:scale-[0.97] shadow-sm';
       case 'ink':
       case 'cobalt':
-        return 'bg-[#0131CD] text-[#FEF1CF] hover:bg-[#01259E] active:scale-[0.97] shadow-sm';
+        return 'bg-[#2563EB] text-white hover:bg-[#1D4ED8] active:scale-[0.97] shadow-sm';
       case 'glass':
-        return 'liquid-glass text-[#0B1226] hover:bg-[#FFF9EA] active:scale-[0.97]';
+        return 'liquid-glass text-[#111827] hover:bg-white active:scale-[0.97]';
       case 'danger':
         return 'bg-[#D70015] text-white hover:bg-[#b50012] active:scale-[0.97] shadow-sm';
       case 'outline':
-        return 'border border-[#0131CD]/25 bg-white text-[#0131CD] hover:bg-[#FEF1CF] active:scale-[0.97]';
+        return 'border border-[#E5EAF4] bg-white text-[#111827] hover:bg-[#F6F8FC] active:scale-[0.97]';
       default:
-        return 'bg-[#B9FC01] text-[#0B1226]';
+        return 'bg-[#2563EB] text-white';
     }
   })();
 
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center rounded-full transition-all duration-120 ease-out select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD] disabled:opacity-50 disabled:pointer-events-none ${sizeClasses} ${variantClasses} ${className}`.trim()}
+      className={`inline-flex items-center justify-center rounded-full transition-all duration-120 ease-out select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] disabled:opacity-50 disabled:pointer-events-none ${sizeClasses} ${variantClasses} ${className}`.trim()}
       {...props}
     >
       {children}

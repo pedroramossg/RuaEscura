@@ -36,6 +36,7 @@ export interface DropletMascotProps {
   notifColor?: string;
   follow?: boolean;
   interactive?: boolean;
+  tremble?: boolean;
   frozenAt?: number;
   ariaLabel?: string;
   className?: string;
@@ -99,11 +100,12 @@ export const DropletMascot: React.FC<DropletMascotProps> = ({
   expression = 'heureux',
   shape = 'goutte',
   size = 88,
-  inkColor = '#0131CD',
-  paperColor = '#FEF1CF',
-  notifColor = '#B9FC01',
+  inkColor = '#2563EB',
+  paperColor = '#FFFFFF',
+  notifColor = '#10B981',
   follow = true,
   interactive = false,
+  tremble = false,
   frozenAt,
   ariaLabel = 'Mascote RuaEscura',
   className = '',
@@ -296,6 +298,8 @@ export const DropletMascot: React.FC<DropletMascotProps> = ({
 
   const frame = staticFrame ?? liveFrame;
 
+  const trembleClass = tremble && !prefersReducedMotion ? 'droplet-tremble' : '';
+
   const svgElement = (
     <svg
       ref={svgRef}
@@ -307,7 +311,8 @@ export const DropletMascot: React.FC<DropletMascotProps> = ({
       data-state={activeState}
       data-shape={shape}
       data-expression={expression}
-      className={isInteractive ? 'block shrink-0' : className || undefined}
+      data-tremble={tremble ? 'true' : 'false'}
+      className={`${isInteractive ? 'block shrink-0' : className || ''} ${trembleClass}`.trim() || undefined}
     >
       <defs>
         <mask id={maskId} maskUnits="userSpaceOnUse" x={-VB} y={-VB} width={VB * 2} height={VB * 2}>

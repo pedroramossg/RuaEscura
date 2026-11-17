@@ -68,12 +68,12 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   };
 
   const sheetThemeClasses = dark
-    ? 'bg-[#0B132B] text-[#FEF1CF] border-t border-[#0131CD]/40 shadow-[0_-12px_36px_rgba(1,49,205,0.24)]'
-    : 'bg-[#FFF9EA] text-[#0B1226] border-t border-[#E4D6B2] shadow-[0_-12px_32px_rgba(11,18,38,0.12)]';
+    ? 'bg-[#0B1120] text-[#F8FAFC] border-t border-[#1E293B] shadow-[0_-12px_36px_rgba(0,0,0,0.45)]'
+    : 'bg-white text-[#111827] border-t border-[#E5EAF4] shadow-[0_-12px_32px_rgba(17,24,39,0.08)]';
 
   const grabberPillClass = dark
-    ? 'bg-[#B9FC01]/70 group-hover:bg-[#B9FC01]'
-    : 'bg-[#0131CD]/30 group-hover:bg-[#0131CD]/60';
+    ? 'bg-[#60A5FA]/70 group-hover:bg-[#60A5FA]'
+    : 'bg-[#CBD5E1] group-hover:bg-[#94A3B8]';
 
   return (
     <motion.aside

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { DropletMascot, DROPLET_ALL_STATES } from '../components/mascot/DropletMascot';
+import { getRouteMascotMood } from '../mascot/moods';
 import { BotEngine } from '../mascot/bloub/engine';
 import { EXPRESSION_BY_ID } from '../mascot/bloub/expressions';
 import { RAYON } from '../mascot/bloub/repere';
@@ -74,15 +75,15 @@ describe('DropletMascot', () => {
     expect(maskPaths[1]).toHaveAttribute('fill', '#000');
     expect(maskPaths[2]).toHaveAttribute('fill', '#000');
 
-    // Backing path in paperColor (#FEF1CF) and masked rect in inkColor (#0131CD)
-    const backingPath = svg.querySelector(`path[fill="#FEF1CF"]`);
+    // Backing path in paperColor (#FFFFFF) and masked rect in inkColor (#2563EB)
+    const backingPath = svg.querySelector(`path[fill="#FFFFFF"]`);
     expect(backingPath).not.toBeNull();
     expect(backingPath).toHaveAttribute('d', expectedFrame.bodyPath);
 
     const maskedGroup = svg.querySelector(`g[mask="url(#${mask!.id})"]`);
     expect(maskedGroup).not.toBeNull();
     const inkRect = maskedGroup!.querySelector('rect');
-    expect(inkRect).toHaveAttribute('fill', '#0131CD');
+    expect(inkRect).toHaveAttribute('fill', '#2563EB');
   });
 
   it('supports custom RuaEscura palette overrides including inkColor, paperColor, and notifColor', () => {
@@ -128,7 +129,7 @@ describe('DropletMascot', () => {
         EXPRESSION_BY_ID.get('heureux')!
       ).sample(POSES[state]);
 
-      const backingPath = svg.querySelector('path[fill="#FEF1CF"]');
+      const backingPath = svg.querySelector('path[fill="#FFFFFF"]');
       expect(backingPath).toHaveAttribute('d', expected.bodyPath);
     }
 
@@ -178,7 +179,7 @@ describe('DropletMascot', () => {
     ).sample(POSES.orbit);
 
     const svg = screen.getByRole('img');
-    const backingPath = svg.querySelector('path[fill="#FEF1CF"]');
+    const backingPath = svg.querySelector('path[fill="#FFFFFF"]');
     expect(backingPath).toHaveAttribute('d', expected.bodyPath);
   });
 
@@ -210,7 +211,7 @@ describe('DropletMascot', () => {
       flushFrame(200);
     });
 
-    const idlePath = screen.getByRole('img').querySelector('path[fill="#FEF1CF"]')?.getAttribute('d');
+    const idlePath = screen.getByRole('img').querySelector('path[fill="#FFFFFF"]')?.getAttribute('d');
 
     rerender(<DropletMascot state="alert" />);
 
@@ -221,7 +222,7 @@ describe('DropletMascot', () => {
 
     const midMorphPath = screen
       .getByRole('img')
-      .querySelector('path[fill="#FEF1CF"]')
+      .querySelector('path[fill="#FFFFFF"]')
       ?.getAttribute('d');
     expect(midMorphPath).toBeTruthy();
     expect(midMorphPath).not.toBe(idlePath);
@@ -361,5 +362,43 @@ describe('DropletMascot', () => {
     });
 
     unmount();
+  });
+
+  it('maps bright vs dark routes to happy vs trembling scared mascot moods', () => {
+    const brightMood = getRouteMascotMood(
+      {
+        path: ['bu', 'ru'],
+        edges: [],
+        posts: [],
+        coordinates: [],
+        distanceMeters: 601,
+        estimatedMinutes: 8,
+        illuminationPercentage: 98,
+        hasDarkWarning: false,
+      },
+      'BU',
+      'RU'
+    );
+    expect(brightMood.tremble).toBe(false);
+    expect(brightMood.expression).toBe('heureux');
+    expect(brightMood.tone).toBe('safe');
+
+    const darkMood = getRouteMascotMood(
+      {
+        path: ['bu', 'ru'],
+        edges: [],
+        posts: [],
+        coordinates: [],
+        distanceMeters: 360,
+        estimatedMinutes: 5,
+        illuminationPercentage: 5,
+        hasDarkWarning: true,
+      },
+      'BU',
+      'RU'
+    );
+    expect(darkMood.tremble).toBe(true);
+    expect(darkMood.expression).toBe('effraye');
+    expect(darkMood.tone).toBe('danger');
   });
 });

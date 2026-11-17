@@ -373,6 +373,10 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
 
       render(<App />);
 
+      // Returning verified user sees the WelcomeBackOverlay first, then enters Explorar
+      const enterCampusBtn = await screen.findByRole('button', { name: /Entrar no campus/i });
+      fireEvent.click(enterCampusBtn);
+
       // Starts in Explorar tab with 4-tab FloatingTabBar
       const tabs = await screen.findAllByRole('tab');
       expect(tabs).toHaveLength(4);

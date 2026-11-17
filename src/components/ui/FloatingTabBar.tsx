@@ -51,14 +51,14 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
 
-          const activePillClass = dark ? 'bg-[#B9FC01]' : 'bg-[#0131CD]';
+          const activePillClass = dark ? 'bg-[#60A5FA]' : 'bg-[#2563EB]';
           const textStateClass = isActive
             ? dark
-              ? 'text-[#0B1226]'
-              : 'text-[#B9FC01]'
+              ? 'text-[#0B1120]'
+              : 'text-white'
             : dark
-              ? 'text-[#FEF1CF]/80 hover:text-[#FEF1CF] hover:bg-white/10'
-              : 'text-[#0B1226]/80 hover:text-[#0131CD] hover:bg-[#0131CD]/8';
+              ? 'text-[#CBD5E1] hover:text-white hover:bg-white/10'
+              : 'text-[#4B5563] hover:text-[#111827] hover:bg-[#2563EB]/8';
 
           return (
             <button
@@ -70,7 +70,7 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
               aria-current={isActive ? 'page' : undefined}
               onClick={() => onTabChange(tab.id)}
               className={`relative flex items-center justify-center gap-1 sm:gap-1.5 min-h-[44px] min-w-[44px] h-11 px-2.5 sm:px-4 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-colors duration-150 ease-out active:scale-[0.97] select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                dark ? 'focus-visible:outline-[#B9FC01]' : 'focus-visible:outline-[#0131CD]'
+                dark ? 'focus-visible:outline-[#60A5FA]' : 'focus-visible:outline-[#2563EB]'
               } ${textStateClass}`}
             >
               {isActive && (
