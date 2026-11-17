@@ -41,17 +41,18 @@ export function detectImageTypeFromMagicBytes(
 }
 
 /**
- * Strips EXIF metadata by re-encoding image into a downscaled JPEG thumbnail (<= 480px).
+ * Strips EXIF metadata by re-encoding image into a downscaled WebP thumbnail (<= 480px),
+ * falling back cleanly to JPEG when browser canvas WebP encoding is unavailable.
  */
 export async function defaultStripExifCanvas(file: File): Promise<string> {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return 'data:image/jpeg;base64,mockthumb';
+    return 'data:image/webp;base64,mockthumb';
   }
 
   // Check if 2D canvas context is supported (headless JSDOM without canvas library returns null)
   const testCanvas = document.createElement('canvas');
   if (typeof testCanvas.getContext !== 'function' || !testCanvas.getContext('2d')) {
-    return 'data:image/jpeg;base64,mockthumb';
+    return 'data:image/webp;base64,mockthumb';
   }
 
   return new Promise((resolve, reject) => {
@@ -82,7 +83,12 @@ export async function defaultStripExifCanvas(file: File): Promise<string> {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.8));
+        const webpDataUrl = canvas.toDataURL('image/webp', 0.8);
+        if (webpDataUrl.startsWith('data:image/webp;base64,')) {
+          resolve(webpDataUrl);
+        } else {
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        }
       } else {
         reject(new Error('Contexto 2D do Canvas indisponível.'));
       }

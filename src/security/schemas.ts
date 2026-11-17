@@ -106,6 +106,16 @@ export const LightRatingSchema = z.object({
     .max(5, 'Avaliação máxima é 5'),
 });
 
+const SAFE_THUMBNAIL_DATA_URL_REGEX = /^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/;
+
+const SafePhotoThumbnailSchema = z
+  .string()
+  .regex(
+    SAFE_THUMBNAIL_DATA_URL_REGEX,
+    'Formato de miniatura inválido (permitido apenas WebP, JPEG ou PNG).'
+  )
+  .max(250000);
+
 export const ReportSubmissionSchema = z.object({
   category: z.enum(['iluminacao', 'assedio', 'suspeito', 'manutencao', 'outro'], {
     errorMap: () => ({ message: 'Categoria de denúncia inválida' }),
@@ -126,14 +136,7 @@ export const ReportSubmissionSchema = z.object({
       'Descrição contém caracteres inválidos ou scripts (<, >, javascript:)'
     ),
   isConfidential: z.boolean().default(true),
-  photoThumbnailUrl: z
-    .string()
-    .regex(
-      /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/,
-      'Formato de miniatura inválido (permitido apenas JPEG, PNG ou WebP).'
-    )
-    .max(250000)
-    .optional(),
+  photoThumbnailUrl: SafePhotoThumbnailSchema.optional(),
 });
 
 export const ChatMessageSchema = z.object({
@@ -177,7 +180,7 @@ const IncidentReportSchema = z.object({
   isConfidential: z.boolean(),
   createdAt: z.string(),
   status: z.enum(['pendente', 'em_analise', 'resolvido']),
-  photoThumbnailUrl: z.string().optional(),
+  photoThumbnailUrl: SafePhotoThumbnailSchema.optional(),
 });
 
 const CompanionMatchSchema = z.object({

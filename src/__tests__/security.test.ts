@@ -9,9 +9,13 @@ import {
   ChatMessageSchema,
   PersistedCampusStateSchema,
 } from '../security/schemas';
-import { validateEvidenceImage } from '../security/fileValidation';
+import {
+  defaultStripExifCanvas,
+  validateEvidenceImage,
+} from '../security/fileValidation';
 import { loadCampusState, saveCampusState } from '../security/storage';
 import { getSeedCampusState } from '../data/ufscTrindade';
+import { assertSafeFetchUrl, isAllowedFetchUrl } from '../utils/network';
 
 describe('Security & DevSecOps Validation Layer', () => {
   describe('Zod Input Schemas & XSS Prevention', () => {
@@ -248,6 +252,64 @@ describe('Security & DevSecOps Validation Layer', () => {
       expect(webpResult.valid).toBe(true);
       expect(webpResult.mimeType).toBe('image/webp');
     });
+
+    it('produces WebP sanitized data URL by default and falls back to JPEG when canvas returns PNG', async () => {
+      const jpegBytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46]);
+      const jpegFile = new File([jpegBytes], 'valid.jpg', { type: 'image/jpeg' });
+
+      // Default JSDOM headless path returns data:image/webp;base64,mockthumb
+      const defaultResult = await validateEvidenceImage(jpegFile);
+      expect(defaultResult.valid).toBe(true);
+      expect(defaultResult.sanitizedDataUrl).toBe('data:image/webp;base64,mockthumb');
+
+      // Browser canvas supporting 2D context: falls back to JPEG if webp encodes as PNG
+      const originalGetContext = HTMLCanvasElement.prototype.getContext;
+      const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+      const originalCreateObjectURL = URL.createObjectURL;
+      const originalRevokeObjectURL = URL.revokeObjectURL;
+      const OriginalImage = globalThis.Image;
+
+      try {
+        HTMLCanvasElement.prototype.getContext = (() => ({
+          drawImage: () => {},
+        })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.toDataURL = ((mime?: string) =>
+          mime === 'image/webp'
+            ? 'data:image/png;base64,iVBORw0KGgo='
+            : 'data:image/jpeg;base64,/9j/4AAQSkZJRg==') as typeof HTMLCanvasElement.prototype.toDataURL;
+        URL.createObjectURL = () => 'blob:mock-image';
+        URL.revokeObjectURL = () => {};
+
+        class MockImage {
+          width = 800;
+          height = 600;
+          onload: (() => void) | null = null;
+          onerror: (() => void) | null = null;
+          set src(_val: string) {
+            queueMicrotask(() => this.onload?.());
+          }
+        }
+        globalThis.Image = MockImage as unknown as typeof Image;
+
+        const fallbackUrl = await defaultStripExifCanvas(jpegFile);
+        expect(fallbackUrl).toBe('data:image/jpeg;base64,/9j/4AAQSkZJRg==');
+
+        // When browser supports WebP canvas encoding, returns image/webp directly
+        HTMLCanvasElement.prototype.toDataURL = ((mime?: string) =>
+          mime === 'image/webp'
+            ? 'data:image/webp;base64,UklGRh4AAABXRUJQ'
+            : 'data:image/jpeg;base64,/9j/4AAQSkZJRg==') as typeof HTMLCanvasElement.prototype.toDataURL;
+
+        const webpUrl = await defaultStripExifCanvas(jpegFile);
+        expect(webpUrl).toBe('data:image/webp;base64,UklGRh4AAABXRUJQ');
+      } finally {
+        HTMLCanvasElement.prototype.getContext = originalGetContext;
+        HTMLCanvasElement.prototype.toDataURL = originalToDataURL;
+        URL.createObjectURL = originalCreateObjectURL;
+        URL.revokeObjectURL = originalRevokeObjectURL;
+        globalThis.Image = OriginalImage;
+      }
+    });
   });
 
   describe('Storage Resilience & Prototype Pollution Defense', () => {
@@ -387,24 +449,67 @@ describe('Security & DevSecOps Validation Layer', () => {
       expect(saveSuccess).toBe(false); // Does not throw, returns false
     });
 
-    it('rejects non-JPEG/PNG/WebP thumbnail URIs such as SVG in ReportSubmissionSchema', () => {
-      const svgResult = ReportSubmissionSchema.safeParse({
-        category: 'iluminacao',
-        location: 'Bosque UFSC',
-        description: 'Poste apagado perto da entrada do Bosque.',
-        isConfidential: true,
-        photoThumbnailUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
-      });
-      expect(svgResult.success).toBe(false);
+    it('accepts WebP/JPEG/PNG thumbnail URIs and rejects SVG/HTML in ReportSubmissionSchema', () => {
+      const invalidThumbnails = [
+        'data:image/svg+xml;base64,PHN2Zy8+',
+        'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==',
+        'javascript:alert(1)',
+      ];
+      for (const badThumb of invalidThumbnails) {
+        const result = ReportSubmissionSchema.safeParse({
+          category: 'iluminacao',
+          location: 'Bosque UFSC',
+          description: 'Poste apagado perto da entrada do Bosque.',
+          isConfidential: true,
+          photoThumbnailUrl: badThumb,
+        });
+        expect(result.success).toBe(false);
+      }
 
-      const jpegResult = ReportSubmissionSchema.safeParse({
-        category: 'iluminacao',
-        location: 'Bosque UFSC',
-        description: 'Poste apagado perto da entrada do Bosque.',
-        isConfidential: true,
-        photoThumbnailUrl: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
-      });
-      expect(jpegResult.success).toBe(true);
+      const validThumbnails = [
+        'data:image/webp;base64,UklGRh4AAABXRUJQ',
+        'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
+        'data:image/png;base64,iVBORw0KGgo=',
+      ];
+      for (const goodThumb of validThumbnails) {
+        const result = ReportSubmissionSchema.safeParse({
+          category: 'iluminacao',
+          location: 'Bosque UFSC',
+          description: 'Poste apagado perto da entrada do Bosque.',
+          isConfidential: true,
+          photoThumbnailUrl: goodThumb,
+        });
+        expect(result.success).toBe(true);
+      }
+    });
+  });
+
+  describe('Zero-Trust Network URL Allowlist (SSRF & Protocol Defense)', () => {
+    it('allows only allowlisted HTTPS tile hosts and same-origin paths while blocking SSRF/HTTP/XSS', () => {
+      expect(isAllowedFetchUrl('https://tile.openstreetmap.org/16/1/2.png')).toBe(true);
+      expect(isAllowedFetchUrl('https://a.tile.openstreetmap.org/16/1/2.png')).toBe(true);
+      expect(isAllowedFetchUrl('https://b.tile.openstreetmap.org/16/1/2.png')).toBe(true);
+      expect(isAllowedFetchUrl('https://c.tile.openstreetmap.org/16/1/2.png')).toBe(true);
+      expect(isAllowedFetchUrl('https://server.arcgisonline.com/ArcGIS/rest/services')).toBe(true);
+      expect(isAllowedFetchUrl('/assets/campus.json')).toBe(true);
+
+      const blocked = [
+        'http://169.254.169.254/latest/meta-data/',
+        'https://169.254.169.254/latest/meta-data/',
+        'http://127.0.0.1:3000/',
+        'https://192.168.0.1/router',
+        'http://tile.openstreetmap.org/16/1/2.png',
+        'https://user:pass@tile.openstreetmap.org/16/1/2.png',
+        'javascript:alert(1)',
+        'data:text/html,<script>alert(1)</script>',
+        '//attacker.example.com/payload',
+        'https://attacker.example.com/tile.openstreetmap.org',
+      ];
+
+      for (const url of blocked) {
+        expect(isAllowedFetchUrl(url)).toBe(false);
+        expect(() => assertSafeFetchUrl(url)).toThrow();
+      }
     });
   });
 });

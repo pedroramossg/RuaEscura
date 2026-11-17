@@ -125,11 +125,22 @@ describe('UFSC Trindade Routing Engine (Dijkstra Lighting Router)', () => {
   });
 
   it('falls back to least-dark route with hasDarkWarning=true when ALL paths contain burned poles', () => {
-    // Mark ALL lamp posts as queimado
-    const allBurnedPosts: LampPost[] = INITIAL_LAMP_POSTS.map((p) => ({
-      ...p,
-      status: 'queimado' as const,
-    }));
+    // Mark ALL lamp posts as queimado across every campus edge so no unburned corridor remains
+    const coveredEdgeIds = new Set(INITIAL_LAMP_POSTS.flatMap((p) => p.connectedEdgeIds));
+    const allBurnedPosts: LampPost[] = [
+      ...INITIAL_LAMP_POSTS.map((p) => ({
+        ...p,
+        status: 'queimado' as const,
+      })),
+      ...UFSC_EDGES.filter((edge) => !coveredEdgeIds.has(edge.id)).map((edge) => ({
+        id: `POSTE-BURN-${edge.id}`,
+        name: `Poste ${edge.id}`,
+        coordinates: edge.waypoints?.[0] ?? UFSC_LANDMARKS[0].coordinates,
+        status: 'queimado' as const,
+        connectedEdgeIds: [edge.id],
+        lastUpdated: '2026-11-16T10:00:00Z',
+      })),
+    ];
 
     const route = findRoute(
       'bu',
@@ -263,5 +274,50 @@ describe('UFSC Trindade Routing Engine (Dijkstra Lighting Router)', () => {
     );
     expect(routeWithVitorLimaReport.distanceMeters).toEqual(routeWithoutReport.distanceMeters);
     expect(routeWithVitorLimaReport.path).toEqual(routeWithoutReport.path);
+  });
+
+  it('places CTC / EPS on the east side and CCE on the west side using real OSM coordinates', () => {
+    const eps = UFSC_LANDMARKS.find((l) => l.id === 'eps');
+    const cce = UFSC_LANDMARKS.find((l) => l.id === 'cce');
+
+    expect(eps).toBeDefined();
+    expect(cce).toBeDefined();
+    expect(eps!.shortName).toBe('CTC / EPS');
+    expect(eps!.coordinates[1]).toBeGreaterThan(-48.519);
+    expect(cce!.coordinates[1]).toBeLessThan(-48.520);
+  });
+
+  it('stitches multi-point OSM sidewalk polylines into RouteResult.coordinates in traversal direction', () => {
+    const brightest = findRoute(
+      'bu',
+      'ru',
+      'brightest',
+      INITIAL_LAMP_POSTS,
+      INITIAL_EDGE_RATINGS,
+      INITIAL_REPORTS
+    );
+    const reversed = findRoute(
+      'ru',
+      'bu',
+      'brightest',
+      INITIAL_LAMP_POSTS,
+      INITIAL_EDGE_RATINGS,
+      INITIAL_REPORTS
+    );
+
+    expect(brightest.coordinates.length).toBeGreaterThan(brightest.path.length);
+    expect(reversed.coordinates.length).toBeGreaterThan(reversed.path.length);
+    expect(brightest.coordinates[0]).toEqual(
+      UFSC_LANDMARKS.find((l) => l.id === 'bu')!.coordinates
+    );
+    expect(brightest.coordinates[brightest.coordinates.length - 1]).toEqual(
+      UFSC_LANDMARKS.find((l) => l.id === 'ru')!.coordinates
+    );
+    expect(reversed.coordinates[0]).toEqual(
+      UFSC_LANDMARKS.find((l) => l.id === 'ru')!.coordinates
+    );
+    expect(reversed.coordinates[reversed.coordinates.length - 1]).toEqual(
+      UFSC_LANDMARKS.find((l) => l.id === 'bu')!.coordinates
+    );
   });
 });

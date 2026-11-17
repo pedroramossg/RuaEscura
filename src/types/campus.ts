@@ -29,6 +29,7 @@ export interface CampusEdge {
   distance: number; // in meters
   baseIllumination: number; // 0 to 100 percentage
   lampPostIds: string[];
+  waypoints?: Coordinates[];
 }
 
 export interface EdgeRatingSummary {

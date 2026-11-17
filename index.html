@@ -2,11 +2,31 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'self'; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://tile.openstreetmap.org https://*.tile.openstreetmap.org;" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://server.arcgisonline.com; connect-src 'self' https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://server.arcgisonline.com;"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#131314" />
-    <meta name="description" content="RuaEscura — Caminhe pela UFSC no claro. Roteamento iluminado, reporte comunitário de postes e segurança no Campus Trindade." />
+    <meta name="theme-color" content="#0131CD" />
+    <meta
+      name="description"
+      content="RuaEscura — Caminhe pela UFSC no claro. Roteamento iluminado, reporte comunitário de postes e segurança no Campus Trindade."
+    />
+    <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin />
+    <link rel="preconnect" href="https://server.arcgisonline.com" crossorigin />
     <title>RuaEscura — Iluminação & Segurança UFSC Trindade</title>
+    <style>
+      @font-face {
+        font-family: "NeueMontreal";
+        src: local("Inter"), local("SF Pro Display"), local("Helvetica Neue"), local("Arial");
+        font-display: swap;
+      }
+      :root {
+        --font-sans: "NeueMontreal", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --font-editorial: "NeueMontreal", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+    </style>
   </head>
   <body class="bg-[#f3f3f4] text-[#131314] antialiased selection:bg-[#befc65] selection:text-[#131314]">
     <div id="root"></div>

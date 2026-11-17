@@ -17,26 +17,73 @@ interface EdgeCalculation {
   hasBurnedPost: boolean;
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const NODE_MAP: Map<string, CampusNode> = new Map(UFSC_LANDMARKS.map((n) => [n.id, n]));
+
+const LANDMARK_MATCHERS = new Map(
+  UFSC_LANDMARKS.map((node) => [
+    node.id,
+    {
+      fullNameLower: node.name.toLowerCase(),
+      shortRegex: new RegExp(`\\b${escapeRegExp(node.shortName)}\\b`, 'i'),
+      idRegex: new RegExp(`\\b${escapeRegExp(node.id)}\\b`, 'i'),
+    },
+  ])
+);
+
 function matchesLandmark(locationName: string, nodeId: string): boolean {
-  const node = UFSC_LANDMARKS.find((n) => n.id === nodeId);
-  if (!node) {
-    const wordRegex = new RegExp(`\\b${nodeId}\\b`, 'i');
-    return wordRegex.test(locationName);
+  const matcher = LANDMARK_MATCHERS.get(nodeId);
+  if (!matcher) {
+    return new RegExp(`\\b${escapeRegExp(nodeId)}\\b`, 'i').test(locationName);
   }
 
-  const loc = locationName.toLowerCase();
-  const fullName = node.name.toLowerCase();
-  if (loc.includes(fullName)) return true;
+  if (locationName.toLowerCase().includes(matcher.fullNameLower)) return true;
+  if (matcher.shortRegex.test(locationName)) return true;
+  return matcher.idRegex.test(locationName);
+}
 
-  // Check word boundary for shortName (e.g. \bRU\b, \bBU\b, \bCCE\b, \bCFH\b)
-  const shortRegex = new RegExp(`\\b${node.shortName}\\b`, 'i');
-  if (shortRegex.test(locationName)) return true;
+/**
+ * Stitches traversed edge sidewalk waypoints in direction of travel,
+ * deduplicating touching boundary coordinates.
+ */
+function stitchRouteCoordinates(
+  path: string[],
+  traversedCalcs: EdgeCalculation[]
+): Coordinates[] {
+  const stitched: Coordinates[] = [];
 
-  // Check word boundary for id (e.g. \breitoria\b, \bbosque\b)
-  const idRegex = new RegExp(`\\b${node.id}\\b`, 'i');
-  if (idRegex.test(locationName)) return true;
+  for (let i = 0; i < traversedCalcs.length; i += 1) {
+    const currFrom = path[i];
+    const currTo = path[i + 1];
+    const { edge } = traversedCalcs[i];
 
-  return false;
+    let segment: Coordinates[];
+    if (edge.waypoints && edge.waypoints.length > 0) {
+      segment = edge.from === currFrom ? edge.waypoints : [...edge.waypoints].reverse();
+    } else {
+      const fromCoords = NODE_MAP.get(currFrom)?.coordinates;
+      const toCoords = NODE_MAP.get(currTo)?.coordinates;
+      segment = [fromCoords, toCoords].filter((c): c is Coordinates => Boolean(c));
+    }
+
+    for (const pt of segment) {
+      const last = stitched[stitched.length - 1];
+      if (!last || last[0] !== pt[0] || last[1] !== pt[1]) {
+        stitched.push(pt);
+      }
+    }
+  }
+
+  if (stitched.length === 0) {
+    return path
+      .map((id) => NODE_MAP.get(id)?.coordinates)
+      .filter((c): c is Coordinates => Boolean(c));
+  }
+
+  return stitched;
 }
 
 /**
@@ -127,13 +174,8 @@ export function findRoute(
   edgeRatings: Record<string, EdgeRatingSummary> = {},
   activeReports: IncidentReport[] = []
 ): RouteResult {
-  const nodeMap = new Map<string, CampusNode>();
-  for (const node of UFSC_LANDMARKS) {
-    nodeMap.set(node.id, node);
-  }
-
-  const originNode = nodeMap.get(originId);
-  const destNode = nodeMap.get(destinationId);
+  const originNode = NODE_MAP.get(originId);
+  const destNode = NODE_MAP.get(destinationId);
 
   // Edge case: origin === destination
   if (originId === destinationId) {
@@ -260,9 +302,7 @@ export function findRoute(
   path.unshift(originId);
 
   // Summary statistics
-  const pathCoordinates: Coordinates[] = path
-    .map((id) => nodeMap.get(id)?.coordinates)
-    .filter((c): c is Coordinates => Boolean(c));
+  const pathCoordinates = stitchRouteCoordinates(path, traversedCalcs);
 
   const totalDistance = traversedCalcs.reduce((acc, c) => acc + c.edge.distance, 0);
   const estimatedMinutes = Math.max(1, Math.round(totalDistance / 75)); // ~4.5 km/h walk

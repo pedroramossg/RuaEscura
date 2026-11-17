@@ -20,3 +20,4 @@
 ## 4. Performance, Cache & Segurança Zero-Trust (`Cortex/security.md`)
 - **Aplicados diretamente na PWA/Build/CDN:** `React.lazy` por página/aba com `Skeleton` shimmer, imagens WebP (`image/webp`) com remoção de EXIF e `loading="lazy"`, busca com `debounce`, paginação/virtualização de listas (`LightsTab`, `ReportsTab`), `React.memo` e throttle via `requestAnimationFrame` no mapa, deduplicação/timeout/paralelismo HTTPS-only (`network.ts`), compressão estática Gzip + Brotli (`.gz`/`.br`) no build sem dependências externas, headers imutáveis CDN + segurança em `public/_headers` e `vercel.json`, observador RUM Web Vitals + spans estilo OpenTelemetry locais (`perfMonitor.ts`), remoção de código morto.
 - **Documentado (fora de escopo de PWA sem backend ativo):** camadas exclusivas de servidor/banco (`Redis`, `pool` SQL, `N+1`, filas/instâncias multi-nó e streaming SSE de IA).
+

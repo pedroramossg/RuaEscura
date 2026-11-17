@@ -32,3 +32,4 @@
 ### Task E: Upgrade Feature Tabs (`ExploreTab`, `MapTab`, `RouteControlsOverlay`, `RouteSheet`, `LightsTab`, `ReportsTab`, `ProfileSheet`) & Live Browser QA
 - Files: `src/components/explore/ExploreTab.tsx`, `src/components/map/{MapTab,RouteControlsOverlay,RouteSheet,CompanionChatView}.tsx`, `src/components/lights/LightsTab.tsx`, `src/components/reports/ReportsTab.tsx`, `src/components/profile/ProfileSheet.tsx`, `src/__tests__/{map,flows}.test.tsx`.
 - Full verification (`tsc --noEmit`, `vitest run`, `npm run build` with `.br`/`.gz` & zero `.map`, live Chromium mobile `390×844` + Slow-3G + desktop `1280×800`).
+
