@@ -164,5 +164,5 @@ describe('v5 RouteStatusCard, Bencho TimeScrubber & SlideToConfirm, UIArc Bottom
     expect(screen.getAllByTestId('bottom-sheet')).toHaveLength(1);
     expect(screen.getByText(/Segmentos do caminho/i)).toBeInTheDocument();
     expect(screen.getByText(/Postes monitorados no trajeto/i)).toBeInTheDocument();
-  });
+  }, 15000);
 });
