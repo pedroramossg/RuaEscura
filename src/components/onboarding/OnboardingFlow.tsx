@@ -248,20 +248,19 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     timersRef.current.push(t1, t2, t3);
   };
 
-  const springTransition = prefersReducedMotion
+  const stepTransition = prefersReducedMotion
     ? { duration: 0.01 }
     : {
-        type: 'spring' as const,
-        bounce: 0,
         duration: 0.28,
+        ease: [0.23, 1, 0.32, 1] as const,
       };
 
   const stepInitial = prefersReducedMotion
     ? { opacity: 1, x: 0 }
-    : { opacity: 0, x: direction * 22 };
+    : { opacity: 0, x: direction * 20, filter: 'blur(4px)' };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#DBEAFE] via-[#F2F6FF] to-[#F6F8FC] text-[#111827] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-300">
+    <div className="min-h-screen w-full bg-gradient-to-b from-[#E5EEFF] via-[#F5F8FF] to-white text-[#111827] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-300">
       {/* Gamified XP & Step Progress Bar */}
       <div className="w-full max-w-md mb-3 px-1">
         <div className="flex items-center justify-between text-xs font-medium text-[#4B5563] mb-1.5">
@@ -276,116 +275,124 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
             className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#10B981]"
             initial={false}
             animate={{ width: `${(step / 4) * 100}%` }}
-            transition={prefersReducedMotion ? { duration: 0.01 } : { type: 'spring', bounce: 0.15, duration: 0.45 }}
+            transition={prefersReducedMotion ? { duration: 0.01 } : { type: 'spring', bounce: 0, duration: 0.35 }}
           />
         </div>
       </div>
 
       <AnimatePresence initial={false}>
-        {/* STEP 1: ATMOSPHERIC SKY GRADIENT + CENTERPIECE DROPLET MASCOT + SPEECH BUBBLE */}
+        {/* STEP 1: ROYAL BLUE SPLIT FADE HERO (Reference f5171e60) + FLOATING MASCOT */}
         {step === 1 && (
           <motion.div
             key="step-1"
             initial={stepInitial}
-            animate={{ opacity: 1, x: 0 }}
-            transition={springTransition}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={stepTransition}
             className="w-full max-w-md bg-white text-[#111827] rounded-[32px] p-5 sm:p-8 relative overflow-hidden shadow-xl border border-[#E5EAF4]"
           >
-            {/* Atmospheric top sky wash (Reference Image 5) */}
-            <div
-              className="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-[#2563EB]/14 via-[#60A5FA]/8 to-transparent pointer-events-none"
-              aria-hidden="true"
-            />
+            {/* Full-bleed Royal Blue to Pure White top stage (Reference f5171e60) */}
+            <div className="-mx-5 -mt-5 sm:-mx-8 sm:-mt-8 px-5 pt-6 pb-8 sm:px-8 bg-gradient-to-b from-[#0044CC] via-[#2274FA] via-75% to-white text-white">
+              <div className="flex items-center justify-between gap-2 mb-5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/18 backdrop-blur-md text-white border border-white/25">
+                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>UFSC Campus Trindade</span>
+                </span>
+                <span className="text-xs font-medium text-white/85">RuaEscura</span>
+              </div>
 
-            {/* Header Badge */}
-            <div className="relative flex items-center justify-between gap-2 mb-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#EFF6FF] text-[#2563EB] border border-[#DBEAFE]">
-                <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>UFSC Campus Trindade</span>
-              </span>
-              <span className="text-xs font-medium text-[#4B5563]">Missão Inicial</span>
-            </div>
+              <div className="flex flex-col items-center gap-2.5">
+                <AnimatePresence initial={false}>
+                  <motion.div
+                    key={activeAutoMood.line}
+                    initial={prefersReducedMotion ? false : { opacity: 0, y: 4, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4, scale: 0.96 }}
+                    transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                    className="px-4 py-1.5 rounded-full bg-white/18 backdrop-blur-md border border-white/30 text-xs font-medium text-white text-center shadow-xs"
+                  >
+                    {activeAutoMood.line}
+                  </motion.div>
+                </AnimatePresence>
 
-            {/* Centerpiece Interactive DropletMascot + Dynamic Speech Bubble */}
-            <div className="relative flex flex-col items-center gap-2.5 py-2">
-              <motion.div
-                key={activeAutoMood.line}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 4, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.2 }}
-                className="px-4 py-2 rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4] shadow-xs text-xs sm:text-sm font-medium text-[#111827] text-center max-w-[280px]"
-              >
-                {activeAutoMood.line}
-              </motion.div>
-
-              <DropletMascot
-                state={heroDropletState === 'orbit' ? activeAutoMood.state : heroDropletState}
-                expression={activeAutoMood.expression}
-                size={124}
-                inkColor="#2563EB"
-                paperColor="#FFFFFF"
-                notifColor="#10B981"
-                interactive
-                onTap={cycleHeroDropletState}
-                ariaLabel="Mascote gota RuaEscura — toque para mudar o humor"
-              />
-
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#475569]">
-                Toque na gotinha para interagir
-              </span>
-
-              <div className="w-full flex justify-center pt-1" aria-hidden="true">
-                <svg className="w-full h-20" viewBox="0 0 320 84" fill="none">
-                  <motion.path
-                    d="M 25 52 Q 90 14 160 44 T 295 34"
-                    stroke="#2563EB"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeOpacity="0.22"
-                    initial={prefersReducedMotion ? false : { pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={prefersReducedMotion ? undefined : { duration: 0.9, ease: 'easeOut' }}
+                <motion.div
+                  animate={prefersReducedMotion ? undefined : { y: [0, -6, 0] }}
+                  transition={
+                    prefersReducedMotion
+                      ? undefined
+                      : { duration: 3.2, repeat: Infinity, ease: 'easeInOut' }
+                  }
+                  className="drop-shadow-[0_14px_26px_rgba(0,25,110,0.32)]"
+                >
+                  <DropletMascot
+                    state={heroDropletState === 'orbit' ? activeAutoMood.state : heroDropletState}
+                    expression={activeAutoMood.expression}
+                    size={128}
+                    inkColor="#FFFFFF"
+                    paperColor="#1D4ED8"
+                    notifColor="#10B981"
+                    interactive
+                    onTap={cycleHeroDropletState}
+                    ariaLabel="Mascote gota RuaEscura — toque para mudar o humor"
                   />
-                  <motion.path
-                    d="M 25 52 Q 90 14 160 44 T 295 34"
-                    stroke="#10B981"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    initial={prefersReducedMotion ? false : { pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={prefersReducedMotion ? undefined : { duration: 0.9, ease: 'easeOut' }}
-                  />
-                  <circle cx="25" cy="52" r="6" fill="#2563EB" />
-                  <circle cx="160" cy="44" r="5" fill="#10B981" />
-                  <circle cx="295" cy="34" r="6" fill="#2563EB" />
-                  <text x="25" y="74" fill="#4B5563" fontSize="11" textAnchor="middle" fontWeight="600">
-                    BU
-                  </text>
-                  <text x="160" y="66" fill="#4B5563" fontSize="11" textAnchor="middle" fontWeight="600">
-                    Reitoria
-                  </text>
-                  <text x="295" y="56" fill="#4B5563" fontSize="11" textAnchor="middle" fontWeight="600">
-                    RU
-                  </text>
-                </svg>
+                </motion.div>
+
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-[#111827]/12 text-[#1E3A8A]">
+                  Toque na gotinha para interagir
+                </span>
               </div>
             </div>
 
-            {/* Outcome Headline */}
-            <h1 className="relative text-3xl sm:text-4xl font-semibold tracking-tight text-[#111827] mt-1 leading-tight">
+            {/* White Lower Stage: Route Sparkline + Clean Headline + Pill CTAs */}
+            <div className="w-full flex justify-center -mt-2 mb-1" aria-hidden="true">
+              <svg className="w-full h-16" viewBox="0 0 320 68" fill="none">
+                <motion.path
+                  d="M 28 38 Q 95 10 160 32 T 292 26"
+                  stroke="#2563EB"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  strokeOpacity="0.2"
+                  initial={prefersReducedMotion ? false : { pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={prefersReducedMotion ? undefined : { duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+                />
+                <motion.path
+                  d="M 28 38 Q 95 10 160 32 T 292 26"
+                  stroke="#10B981"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  initial={prefersReducedMotion ? false : { pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={prefersReducedMotion ? undefined : { duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+                />
+                <circle cx="28" cy="38" r="5" fill="#2563EB" />
+                <circle cx="160" cy="32" r="4.5" fill="#10B981" />
+                <circle cx="292" cy="26" r="5" fill="#2563EB" />
+                <text x="28" y="58" fill="#4B5563" fontSize="11" textAnchor="middle" fontWeight="600">
+                  BU
+                </text>
+                <text x="160" y="52" fill="#4B5563" fontSize="11" textAnchor="middle" fontWeight="600">
+                  Reitoria
+                </text>
+                <text x="292" y="46" fill="#4B5563" fontSize="11" textAnchor="middle" fontWeight="600">
+                  RU
+                </text>
+              </svg>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111827] leading-tight text-center">
               Caminhe pela UFSC no claro. <span className="text-[#2563EB]">E acompanhado.</span>
             </h1>
 
-            <p className="relative text-sm sm:text-base text-[#4B5563] mt-2.5 leading-relaxed">
+            <p className="text-sm text-[#4B5563] mt-2.5 leading-relaxed text-center">
               Descubra trajetos com iluminação verificada em tempo real e conecte-se com colegas fazendo o mesmo caminho pelo campus Trindade.
             </p>
 
-            {/* Actions */}
-            <div className="relative mt-6 space-y-2.5">
+            {/* Actions (Reference f5171e60) */}
+            <div className="mt-6 space-y-2.5">
               <PillButton
                 variant="lime"
-                size="feature"
-                className="w-full shadow-md font-semibold text-base sm:text-lg"
+                size="compact"
+                className="w-full h-14 shadow-md font-semibold text-base"
                 onClick={() => goToStep(2)}
               >
                 Começar meu trajeto →
@@ -393,7 +400,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
               <button
                 type="button"
-                className="w-full min-h-[44px] py-2 text-sm font-medium text-[#4B5563] hover:text-[#2563EB] transition-colors cursor-pointer text-center rounded-full bg-[#F1F5F9] hover:bg-[#E2E8F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+                className="w-full min-h-[44px] h-12 text-sm font-medium text-[#374151] hover:text-[#111827] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer text-center rounded-full bg-[#F1F5F9] hover:bg-[#E2E8F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
                 onClick={() => {
                   setSelectedBuildings(['bu', 'ru', 'cce']);
                   goToStep(4);
@@ -410,8 +417,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
           <motion.div
             key="step-2"
             initial={stepInitial}
-            animate={{ opacity: 1, x: 0 }}
-            transition={springTransition}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={stepTransition}
             className="w-full max-w-md bg-white text-[#111827] rounded-[32px] p-5 sm:p-8 shadow-xl border border-[#E5EAF4]"
           >
             <div className="flex items-start justify-between gap-3 mb-3">
@@ -574,8 +581,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
           <motion.div
             key="step-3"
             initial={stepInitial}
-            animate={{ opacity: 1, x: 0 }}
-            transition={springTransition}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={stepTransition}
             className="w-full max-w-md bg-white text-[#111827] rounded-[32px] p-5 sm:p-8 shadow-xl border border-[#E5EAF4]"
           >
             <div className="flex items-center justify-between mb-3">
@@ -727,8 +734,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
           <motion.div
             key="step-4"
             initial={stepInitial}
-            animate={{ opacity: 1, x: 0 }}
-            transition={springTransition}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={stepTransition}
             className="w-full max-w-md bg-white text-[#111827] rounded-[32px] p-5 sm:p-8 shadow-xl border border-[#E5EAF4] overflow-hidden"
           >
             {/* Royal Blue Gov.br Header Stage */}

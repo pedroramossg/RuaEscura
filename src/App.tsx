@@ -170,12 +170,18 @@ export function AppShell() {
         <Suspense fallback={<TabSkeleton />}>
           <motion.div
             key={activeTab}
-            initial={prefersReducedMotion ? false : { opacity: 0, y: isMapTab ? 0 : 6 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={
+              prefersReducedMotion
+                ? false
+                : isMapTab
+                  ? { opacity: 0 }
+                  : { opacity: 0, y: 10, filter: 'blur(4px)' }
+            }
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={
               prefersReducedMotion
                 ? { duration: 0.01 }
-                : { duration: 0.18, ease: 'easeOut' }
+                : { duration: 0.24, ease: [0.23, 1, 0.32, 1] }
             }
           >
             {activeTab === 'explorar' && (

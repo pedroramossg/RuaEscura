@@ -89,7 +89,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       dragElastic={shouldReduceMotion ? 0 : 0.2}
       onDragEnd={handleDragEnd}
       animate={{ height: currentDetent === 'peek' ? 140 : currentDetent === 'medium' ? '48vh' : '88vh' }}
-      transition={shouldReduceMotion ? { duration: 0.01 } : { type: 'spring', bounce: 0.16, duration: 0.4 }}
+      transition={shouldReduceMotion ? { duration: 0.01 } : { type: 'spring', bounce: 0, duration: 0.36 }}
       className={`fixed inset-x-0 bottom-0 z-40 rounded-t-[32px] flex flex-col will-change-[height] ${sheetThemeClasses} ${DETENT_HEIGHTS[currentDetent]} ${className}`.trim()}
     >
       {/* Clickable grabber hit target >= 44px with dedicated drag initiation */}

@@ -55,3 +55,4 @@ export function getRouteMascotMood(
     notifColor: '#10B981',
   };
 }
+

@@ -29,8 +29,11 @@
   --color-danger: #EF4444;
   --color-danger-dark: #FF3B30;
 
-  /* Typography */
+  /* Typography & Custom Motion Curves (Emil Kowalski / Apple HIG) */
   --font-sans: "NeueMontreal", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 body {
@@ -41,6 +44,7 @@ body {
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ==========================================================================

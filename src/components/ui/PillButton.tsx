@@ -25,16 +25,16 @@ export const PillButton: React.FC<PillButtonProps> = ({
   const variantClasses = (() => {
     switch (variant) {
       case 'lime':
-        return 'bg-[#111827] text-white hover:bg-[#1F2937] active:scale-[0.97] shadow-sm';
+        return 'bg-[#111827] text-white hover:bg-[#1F2937] enabled:active:scale-[0.96] shadow-sm';
       case 'ink':
       case 'cobalt':
-        return 'bg-[#2563EB] text-white hover:bg-[#1D4ED8] active:scale-[0.97] shadow-sm';
+        return 'bg-[#2563EB] text-white hover:bg-[#1D4ED8] enabled:active:scale-[0.96] shadow-sm';
       case 'glass':
-        return 'liquid-glass text-[#111827] hover:bg-white active:scale-[0.97]';
+        return 'liquid-glass text-[#111827] hover:bg-white enabled:active:scale-[0.96]';
       case 'danger':
-        return 'bg-[#D70015] text-white hover:bg-[#b50012] active:scale-[0.97] shadow-sm';
+        return 'bg-[#D70015] text-white hover:bg-[#b50012] enabled:active:scale-[0.96] shadow-sm';
       case 'outline':
-        return 'border border-[#E5EAF4] bg-white text-[#111827] hover:bg-[#F6F8FC] active:scale-[0.97]';
+        return 'border border-[#E5EAF4] bg-white text-[#111827] hover:bg-[#F6F8FC] enabled:active:scale-[0.96]';
       default:
         return 'bg-[#2563EB] text-white';
     }
@@ -43,7 +43,7 @@ export const PillButton: React.FC<PillButtonProps> = ({
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center rounded-full transition-all duration-120 ease-out select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] disabled:opacity-50 disabled:pointer-events-none ${sizeClasses} ${variantClasses} ${className}`.trim()}
+      className={`inline-flex items-center justify-center rounded-full transition-[transform,opacity,background-color,border-color,box-shadow] duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] disabled:opacity-50 disabled:pointer-events-none ${sizeClasses} ${variantClasses} ${className}`.trim()}
       {...props}
     >
       {children}

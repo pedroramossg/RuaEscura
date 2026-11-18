@@ -69,7 +69,7 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
               aria-selected={isActive}
               aria-current={isActive ? 'page' : undefined}
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex items-center justify-center gap-1 sm:gap-1.5 min-h-[44px] min-w-[44px] h-11 px-2.5 sm:px-4 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-colors duration-150 ease-out active:scale-[0.97] select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 ${
+              className={`relative flex items-center justify-center gap-1 sm:gap-1.5 min-h-[44px] min-w-[44px] h-11 px-2.5 sm:px-4 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-[transform,color,background-color] duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] enabled:active:scale-[0.96] select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 ${
                 dark ? 'focus-visible:outline-[#60A5FA]' : 'focus-visible:outline-[#2563EB]'
               } ${textStateClass}`}
             >
@@ -81,7 +81,7 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
                   transition={
                     prefersReducedMotion
                       ? { duration: 0.01 }
-                      : { type: 'spring', stiffness: 420, damping: 32 }
+                      : { type: 'spring', duration: 0.3, bounce: 0 }
                   }
                   className={`absolute inset-0 rounded-full shadow-sm ${activePillClass}`}
                 />

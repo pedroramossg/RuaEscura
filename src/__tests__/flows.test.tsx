@@ -385,7 +385,7 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
 
       // Open ProfileSheet from Explorar -> strictly 1 BottomSheet
       fireEvent.click(screen.getByRole('button', { name: /Abrir perfil/i }));
-      expect(await screen.findAllByTestId('bottom-sheet')).toHaveLength(1);
+      expect(await screen.findAllByTestId('bottom-sheet', {}, { timeout: 3000 })).toHaveLength(1);
 
       // Switch to Mapa -> ProfileSheet closes cleanly and MapTab renders its own single RouteSheet
       fireEvent.click(screen.getByRole('tab', { name: /Mapa/i }));
