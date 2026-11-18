@@ -2,25 +2,31 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  /* RuaEscura v3 Palette: Atmospheric Sky / Clean White / Royal Blue / Ink */
+  /* RuaEscura Unified Identity: Radiant Sky Trio (Blue / Gold / Pink) + High-Contrast Alabaster Ground */
   --color-cobalt: #2563EB;
   --color-cobalt-hover: #1D4ED8;
-  --color-cream: #F6F8FC;
+  --color-cream: #EAEFF6;
   --color-cream-elevated: #FFFFFF;
   --color-volt: #10B981;
   --color-volt-hover: #059669;
   --color-ink: #111827;
   --color-navy: #0B1120;
   --color-surface-white: #FFFFFF;
-  --color-rule: #E5EAF4;
+  --color-rule: #D5E0EE;
   --color-muted: #4B5563;
+
+  /* WelcomeBack Ambient Trio Identity Tokens */
+  --trio-blue: #5EC2F3;
+  --trio-gold: #F7C648;
+  --trio-pink: #EE86BF;
+  --trio-sky: #D7ECFF;
 
   /* Compatibility & Semantic State Tokens */
   --color-lime: #22C55E;
   --color-deep-gray: #1F2937;
   --color-mid-ink: #374151;
-  --color-editorial-rule: #E5EAF4;
-  --color-canvas: #F6F8FC;
+  --color-editorial-rule: #D5E0EE;
+  --color-canvas: #EAEFF6;
   --color-white: #FFFFFF;
   --color-safe: #10B981;
   --color-safe-dark: #065F46;
@@ -29,8 +35,9 @@
   --color-danger: #EF4444;
   --color-danger-dark: #FF3B30;
 
-  /* Typography & Custom Motion Curves (Emil Kowalski / Apple HIG) */
-  --font-sans: "NeueMontreal", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Typography: SF-PRO-TEXT System & Optical Variations */
+  --font-sans: "SF Pro Text", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SFProText-Regular", "Inter", system-ui, sans-serif;
+  --font-display: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -40,11 +47,18 @@ body {
   margin: 0;
   font-family: var(--font-sans);
   font-weight: 400;
+  letter-spacing: -0.008em;
+  font-feature-settings: "kern" 1, "liga" 1;
   background-color: var(--color-canvas);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
 }
 
 /* ==========================================================================

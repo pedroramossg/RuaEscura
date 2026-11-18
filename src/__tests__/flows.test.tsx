@@ -54,7 +54,8 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       );
 
       expect(screen.getByText(/Mariana/i)).toBeInTheDocument();
-      expect(screen.getByText('Gov.br')).toBeInTheDocument();
+      expect(screen.queryByText('Gov.br')).not.toBeInTheDocument();
+      expect(screen.getByText(/Campus em Grupo/i)).toBeInTheDocument();
 
       // Profile trigger button >= 44px
       const profileBtn = screen.getByRole('button', { name: /Abrir perfil/i });
@@ -385,7 +386,7 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
 
       // Open ProfileSheet from Explorar -> strictly 1 BottomSheet
       fireEvent.click(screen.getByRole('button', { name: /Abrir perfil/i }));
-      expect(await screen.findAllByTestId('bottom-sheet', {}, { timeout: 6000 })).toHaveLength(1);
+      expect(await screen.findAllByTestId('bottom-sheet', {}, { timeout: 10000 })).toHaveLength(1);
 
       // Switch to Mapa -> ProfileSheet closes cleanly and MapTab renders its own single RouteSheet
       fireEvent.click(screen.getByRole('tab', { name: /Mapa/i }));

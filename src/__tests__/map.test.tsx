@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import { CampusStoreProvider } from '../hooks/useCampusStore';
 import { MapTab } from '../components/map/MapTab';
 import { getSeedCampusState } from '../data/ufscTrindade';
@@ -9,6 +9,10 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   function renderMapTab(onOpenReportsShortcut = vi.fn(), customState = getSeedCampusState()) {
@@ -198,7 +202,8 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
     fireEvent.click(sendBtn);
 
     expect(screen.getByRole('alert')).toHaveTextContent(/inválidos|scripts/i);
-    expect(screen.queryByText('<script>alert(1)</script>')).not.toBeInTheDocument();
+    const chatLog = screen.getByRole('log');
+    expect(within(chatLog).queryByText('<script>alert(1)</script>')).not.toBeInTheDocument();
 
     // 2. Block javascript: scheme
     fireEvent.change(input, { target: { value: 'Clique em javascript:alert(1)' } });
@@ -232,5 +237,55 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
     expect(savedTexts).toContain('Nos vemos na entrada da BU!');
     expect(savedTexts).toContain('Saio em 5 min');
     expect(savedTexts).not.toContain('<script>alert(1)</script>');
+  });
+
+  it('creates a real multi-member walking group, opens ChatThread, receives live typing & member reply, and toggles emoji reaction', () => {
+    vi.useFakeTimers();
+    renderMapTab();
+
+    // Open inline Criar grupo form inside BottomSheet
+    const createGroupBtn = screen.getByRole('button', { name: /Criar grupo/i });
+    fireEvent.click(createGroupBtn);
+
+    // Reject too-short / XSS group title cleanly
+    const titleInput = screen.getByLabelText(/Nome do grupo/i);
+    fireEvent.change(titleInput, { target: { value: 'Oi' } });
+    fireEvent.click(screen.getByRole('button', { name: /Criar e abrir chat/i }));
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+
+    // Fill valid group name & departure time and create real group
+    fireEvent.change(titleInput, { target: { value: 'Volta CTC Noturna' } });
+    fireEvent.change(screen.getByLabelText(/Horário de saída/i), { target: { value: '21:45' } });
+    fireEvent.click(screen.getByRole('button', { name: /Criar e abrir chat/i }));
+
+    // New group opens directly in UIArc ChatThread without Gov.br badge
+    const sheet = screen.getByTestId('bottom-sheet');
+    expect(within(sheet).getByText('Volta CTC Noturna')).toBeInTheDocument();
+    expect(within(sheet).queryByText('Gov.br')).not.toBeInTheDocument();
+    expect(within(sheet).getByRole('log')).toBeInTheDocument();
+
+    // Send a message and verify live typing indicator + bidirectional peer reply after 550ms
+    const input = within(sheet).getByLabelText(/Mensagem para Volta CTC Noturna/i);
+    fireEvent.change(input, { target: { value: 'Estou saindo da entrada do CTC agora' } });
+    fireEvent.click(within(sheet).getByRole('button', { name: /Enviar/i }));
+
+    expect(within(sheet).getByText(/está digitando/i)).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(600);
+    });
+
+    const chatLog = within(sheet).getByRole('log');
+    expect(
+      within(chatLog).getByText(/Combinado! Passo ali na entrada combinada/i)
+    ).toBeInTheDocument();
+
+    // Toggle an emoji reaction on a chat message
+    const reactBtns = within(sheet).getAllByRole('button', { name: /^Reagir$/i });
+    fireEvent.click(reactBtns[0]);
+    const thumbsUp = within(sheet).getByRole('button', { name: /Reagir com 👍/i });
+    fireEvent.click(thumbsUp);
+
+    expect(within(sheet).getByRole('button', { name: /👍 1, incluindo você/i })).toBeInTheDocument();
   });
 });

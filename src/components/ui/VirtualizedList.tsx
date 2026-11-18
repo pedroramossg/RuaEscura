@@ -107,7 +107,7 @@ export function VirtualizedList<T>({
           <button
             type="button"
             onClick={handleLoadMore}
-            className="min-h-[44px] px-5 rounded-full text-sm font-medium bg-[#FEF1CF] text-[#0131CD] border border-[#0131CD]/25 hover:bg-[#0131CD] hover:text-[#FEF1CF] active:scale-[0.98] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0131CD]"
+            className="min-h-[44px] px-5 rounded-full text-sm font-semibold bg-white text-[#2563EB] border border-[#D5E0EE] shadow-[0_2px_8px_rgba(15,23,42,0.05)] hover:bg-[#2563EB] hover:text-white hover:border-[#2563EB] active:scale-[0.98] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
           >
             {loadMoreLabel} ({remainingCount})
           </button>

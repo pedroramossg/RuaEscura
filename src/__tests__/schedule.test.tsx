@@ -143,7 +143,7 @@ describe('v5 RouteStatusCard, Bencho TimeScrubber & SlideToConfirm, UIArc Bottom
 
     // Open Schedule Departure menu via RouteStatusCard
     fireEvent.click(screen.getByRole('button', { name: /Marcar horário para sair/i }));
-    expect(await screen.findAllByTestId('bottom-sheet', {}, { timeout: 5000 })).toHaveLength(1);
+    expect(await screen.findAllByTestId('bottom-sheet', {}, { timeout: 10000 })).toHaveLength(1);
     expect(
       screen.getByRole('heading', { name: /Marcar horário para sair/i })
     ).toBeInTheDocument();

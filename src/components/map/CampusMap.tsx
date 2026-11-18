@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import L from 'leaflet';
-import { Zap, AlertTriangle, Flame, ShieldCheck, X } from 'lucide-react';
+import { Zap, AlertTriangle, Flame, X } from 'lucide-react';
+import { pickTrioVariant, type TrioVariant } from '../mascot/TrioMascotBadge';
 import type {
   CampusNode,
   CompanionMatch,
@@ -65,21 +66,38 @@ const LAMP_STATUS_META: Record<
   aceso: {
     label: 'Aceso',
     Icon: Zap,
-    dayBadgeClass: 'bg-[#B9FC01] text-[#0B1226] border-[#0B1226]',
-    nightBadgeClass:
-      'bg-[#B9FC01] text-[#0B1226] border-[#B9FC01] shadow-[0_0_16px_rgba(185,252,1,0.85)] ring-4 ring-[#B9FC01]/35',
+    dayBadgeClass: 'bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]',
+    nightBadgeClass: 'bg-[#10B981]/20 text-[#34D399] border-[#10B981]/45',
   },
   oscilando: {
     label: 'Oscilando',
     Icon: AlertTriangle,
-    dayBadgeClass: 'bg-[#D97706] text-white border-[#92400E]',
-    nightBadgeClass: 'bg-[#FF9F0A] text-[#0B1226] border-[#FF9F0A] ring-4 ring-[#FF9F0A]/30',
+    dayBadgeClass: 'bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]',
+    nightBadgeClass: 'bg-[#F7C648]/20 text-[#FFE270] border-[#F7C648]/45',
   },
   queimado: {
     label: 'Queimado',
     Icon: Flame,
-    dayBadgeClass: 'bg-[#D70015] text-white border-[#7F1D1D]',
-    nightBadgeClass: 'bg-[#FF3B30] text-white border-[#FF3B30] ring-4 ring-[#FF3B30]/35',
+    dayBadgeClass: 'bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]',
+    nightBadgeClass: 'bg-[#EF4444]/20 text-[#FCA5A5] border-[#EF4444]/45',
+  },
+};
+
+const TRIO_COMPANION_STYLES: Record<
+  TrioVariant,
+  { pillClass: string; dotClass: string }
+> = {
+  blue: {
+    pillClass: 'bg-gradient-to-br from-[#87D7FA] to-[#5EC2F3] text-[#0F172A]',
+    dotClass: 'bg-[#0369A1]',
+  },
+  gold: {
+    pillClass: 'bg-gradient-to-br from-[#FFE270] to-[#F7C648] text-[#0F172A]',
+    dotClass: 'bg-[#92400E]',
+  },
+  pink: {
+    pillClass: 'bg-gradient-to-br from-[#F5A4CE] to-[#EE86BF] text-[#0F172A]',
+    dotClass: 'bg-[#9D174D]',
   },
 };
 
@@ -190,19 +208,20 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
         }`}
       >
         <defs>
-          <radialGradient id="pole-halo-lime" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#B9FC01" stopOpacity="0.65" />
-            <stop offset="100%" stopColor="#B9FC01" stopOpacity="0" />
+          <radialGradient id="pole-halo-emerald" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#34D399" stopOpacity="0.45" />
+            <stop offset="60%" stopColor="#10B981" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
           </radialGradient>
         </defs>
 
         {/* Campus Perimeter Polygon */}
         <polygon
           points={PERIMETER_SVG_POINTS}
-          fill={isNightMap ? '#0d1736' : '#FFF9EA'}
-          fillOpacity={isNightMap ? 0.72 : 0.78}
-          stroke={isNightMap ? '#B9FC01' : '#cbd5e1'}
-          strokeOpacity={isNightMap ? 0.35 : 1}
+          fill={isNightMap ? '#132033' : '#FFFFFF'}
+          fillOpacity={isNightMap ? 0.78 : 0.85}
+          stroke={isNightMap ? '#5EC2F3' : '#CBD5E1'}
+          strokeOpacity={isNightMap ? 0.28 : 1}
           strokeWidth="2"
           strokeDasharray="8 6"
         />
@@ -210,10 +229,10 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
         {/* Bosque do CFH Green Polygon */}
         <polygon
           points={BOSQUE_SVG_POINTS}
-          fill="#15803d"
-          fillOpacity={isNightMap ? 0.28 : 0.18}
-          stroke="#15803d"
-          strokeOpacity={isNightMap ? 0.6 : 0.5}
+          fill={isNightMap ? '#065F46' : '#10B981'}
+          fillOpacity={isNightMap ? 0.34 : 0.16}
+          stroke={isNightMap ? '#34D399' : '#10B981'}
+          strokeOpacity={isNightMap ? 0.45 : 0.45}
           strokeWidth="1.5"
         />
 
@@ -223,7 +242,7 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
             key={`walkway-${idx}`}
             points={points}
             fill="none"
-            stroke={isNightMap ? '#1d2b53' : '#e2e8f0'}
+            stroke={isNightMap ? '#1E293B' : '#E2E8F0'}
             strokeWidth="1.4"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -244,11 +263,11 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
               stroke={
                 showAsDark
                   ? isNightMap
-                    ? '#FF3B30'
-                    : '#D70015'
+                    ? '#EF4444'
+                    : '#DC2626'
                   : isNightMap
-                    ? '#2a3c6e'
-                    : '#cbd5e1'
+                    ? '#283548'
+                    : '#CBD5E1'
               }
               strokeWidth={showAsDark ? 3.5 : 2}
               strokeDasharray={showAsDark ? '5 5' : undefined}
@@ -263,9 +282,9 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
           <polyline
             points={toSvgPolylinePoints(comparisonRoute.coordinates, true)}
             fill="none"
-            stroke={isNightMap ? '#a1a1aa' : '#66646d'}
+            stroke={isNightMap ? '#94A3B8' : '#64748B'}
             strokeWidth="2.5"
-            strokeDasharray="6 8"
+            strokeDasharray="6 7"
             strokeOpacity="0.6"
           />
         )}
@@ -276,9 +295,9 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
             <polyline
               points={toSvgPolylinePoints(activeRoute.coordinates, true)}
               fill="none"
-              stroke={isWarnRoute ? '#FF9F0A' : '#B9FC01'}
+              stroke={isWarnRoute ? '#F7C648' : isNightMap ? '#2563EB' : '#5EC2F3'}
               strokeWidth="12"
-              strokeOpacity={isNightMap ? 0.35 : 0.78}
+              strokeOpacity={isNightMap ? 0.45 : 0.55}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -286,9 +305,15 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
               points={toSvgPolylinePoints(activeRoute.coordinates, true)}
               fill="none"
               stroke={
-                isWarnRoute ? '#D97706' : isNightMap ? '#B9FC01' : '#0131CD'
+                isWarnRoute
+                  ? isNightMap
+                    ? '#FBBF24'
+                    : '#D97706'
+                  : isNightMap
+                    ? '#5EC2F3'
+                    : '#2563EB'
               }
-              strokeWidth="4"
+              strokeWidth="4.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -307,8 +332,8 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
                   key={`halo-${p.id}`}
                   cx={xPct * 8}
                   cy={yPct * 6}
-                  r="28"
-                  fill="url(#pole-halo-lime)"
+                  r="26"
+                  fill="url(#pole-halo-emerald)"
                 />
               );
             })}
@@ -381,21 +406,31 @@ const LandmarkMarker = React.memo<LandmarkMarkerProps>(
         style={style}
         aria-label={`${node.shortName} — ${node.name}${roleSuffix}`}
         aria-pressed={isOrigin || isDest}
-        className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer focus-visible:outline-2 focus-visible:outline-[#B9FC01] rounded-full group"
+        className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer focus-visible:outline-2 ${
+          isNightMap ? 'focus-visible:outline-[#5EC2F3]' : 'focus-visible:outline-[#2563EB]'
+        } rounded-full group`}
       >
         <span
-          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-tight border shadow-sm transition-transform duration-120 group-active:scale-95 whitespace-nowrap ${
+          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-tight border transition-transform duration-150 group-active:scale-95 whitespace-nowrap ${
             isOrigin
-              ? 'bg-[#0131CD] text-[#B9FC01] border-[#B9FC01]'
+              ? 'bg-[#0F172A] text-white border-white shadow-[0_4px_12px_rgba(15,23,42,0.28)]'
               : isDest
-                ? 'bg-[#B9FC01] text-[#0B1226] border-[#0131CD]'
+                ? 'bg-[#2563EB] text-white border-white shadow-[0_4px_14px_rgba(37,99,235,0.38)]'
                 : isNightMap
-                  ? 'bg-[#0B132B] text-[#FEF1CF] border-[#1F2E5C] hover:border-[#B9FC01]'
-                  : 'bg-[#FFF9EA] text-[#0B1226] border-[#D8C89E] hover:border-[#0131CD]'
+                  ? 'bg-[#132033]/92 backdrop-blur-md text-[#F1F5F9] border-[#334155] shadow-[0_2px_10px_rgba(0,0,0,0.45)] hover:border-[#5EC2F3]'
+                  : 'bg-white/95 backdrop-blur-md text-[#0F172A] border-[#CBD5E1]/90 shadow-[0_2px_8px_rgba(15,23,42,0.08)] hover:border-[#2563EB]'
           }`}
         >
-          {isOrigin && <span className="text-[10px] uppercase opacity-90">O</span>}
-          {isDest && <span className="text-[10px] uppercase opacity-90">D</span>}
+          {isOrigin && (
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-white/20 text-[9px] font-bold uppercase">
+              O
+            </span>
+          )}
+          {isDest && (
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-white/25 text-[9px] font-bold uppercase">
+              D
+            </span>
+          )}
           <span>{node.shortName}</span>
         </span>
       </button>
@@ -416,7 +451,6 @@ interface LampPostMarkerProps {
 const LampPostMarker = React.memo<LampPostMarkerProps>(
   ({ post, isSelected, isNightMap, left, top, onSelect }) => {
     const meta = LAMP_STATUS_META[post.status];
-    const StatusIcon = meta.Icon;
     const style = useMemo<React.CSSProperties>(() => ({ left, top }), [left, top]);
 
     return (
@@ -426,14 +460,74 @@ const LampPostMarker = React.memo<LampPostMarkerProps>(
         style={style}
         aria-label={`${post.id} — ${post.name} (${meta.label})`}
         aria-pressed={isSelected}
-        className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer focus-visible:outline-2 focus-visible:outline-[#B9FC01] rounded-full group"
+        className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer focus-visible:outline-2 ${
+          isNightMap ? 'focus-visible:outline-[#5EC2F3]' : 'focus-visible:outline-[#2563EB]'
+        } rounded-full group`}
       >
-        <span
-          className={`inline-flex items-center justify-center w-7 h-7 rounded-full border transition-transform duration-120 group-active:scale-95 ${
-            isNightMap ? meta.nightBadgeClass : meta.dayBadgeClass
-          } ${isSelected ? 'scale-110' : ''}`}
-        >
-          <StatusIcon className="w-3.5 h-3.5" aria-hidden="true" />
+        {/* Sleek 24px optical beacon pin inside 44x44 touch target */}
+        <span className="relative inline-flex items-center justify-center w-6 h-6">
+          {post.status === 'oscilando' && (
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full bg-[#F7C648]/55 motion-safe:animate-ping"
+            />
+          )}
+          {post.status === 'aceso' && isNightMap && (
+            <span
+              aria-hidden="true"
+              className="absolute -inset-1.5 rounded-full bg-[#34D399]/25 blur-[2px]"
+            />
+          )}
+          {post.status === 'queimado' && (
+            <span
+              aria-hidden="true"
+              className="absolute -inset-1 rounded-full bg-[#EF4444]/18"
+            />
+          )}
+
+          {post.status === 'aceso' && (
+            <span
+              className={`relative inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-white transition-transform duration-150 group-hover:scale-105 group-active:scale-95 ${
+                isNightMap
+                  ? 'bg-gradient-to-br from-[#34D399] to-[#10B981] shadow-[0_0_12px_rgba(52,211,153,0.75)]'
+                  : 'bg-gradient-to-br from-[#34D399] to-[#059669] shadow-[0_2px_8px_rgba(16,185,129,0.42)]'
+              } ${isSelected ? 'scale-120 ring-4 ring-[#34D399]/40' : ''}`}
+            >
+              {/* Crisp optical specular highlight */}
+              <span className="w-2 h-2 rounded-full bg-white/90 shadow-[0_0_4px_rgba(255,255,255,0.9)]" />
+            </span>
+          )}
+
+          {post.status === 'oscilando' && (
+            <span
+              className={`relative inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-white bg-gradient-to-br from-[#FFE270] to-[#F7C648] shadow-[0_2px_10px_rgba(247,198,72,0.55)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95 ${
+                isSelected ? 'scale-120 ring-4 ring-[#F7C648]/45' : ''
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#92400E]" />
+            </span>
+          )}
+
+          {post.status === 'queimado' && (
+            <span
+              className={`relative inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-[#EF4444] shadow-[0_2px_8px_rgba(239,68,68,0.38)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95 ${
+                isNightMap ? 'bg-[#1F1218]' : 'bg-[#FEF2F2]'
+              } ${isSelected ? 'scale-120 ring-4 ring-[#EF4444]/40' : ''}`}
+            >
+              {/* Subtle crossed-filament optical glyph (never color-only) */}
+              <svg
+                viewBox="0 0 12 12"
+                className="w-3 h-3 text-[#EF4444]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M3 3l6 6M9 3l-6 6" />
+              </svg>
+            </span>
+          )}
         </span>
       </button>
     );
@@ -443,6 +537,7 @@ LampPostMarker.displayName = 'LampPostMarker';
 
 interface CompanionMarkerProps {
   companion: CompanionMatch;
+  variant: TrioVariant;
   isNightMap: boolean;
   left: string;
   top: string;
@@ -450,26 +545,30 @@ interface CompanionMarkerProps {
 }
 
 const CompanionMarker = React.memo<CompanionMarkerProps>(
-  ({ companion, isNightMap, left, top, onSelect }) => {
+  ({ companion, variant, isNightMap, left, top, onSelect }) => {
     const style = useMemo<React.CSSProperties>(() => ({ left, top }), [left, top]);
+    const trioStyle = TRIO_COMPANION_STYLES[variant];
 
     return (
       <button
         type="button"
         onClick={() => onSelect?.(companion.id)}
         style={style}
-        aria-label={`Colega verificado Gov.br: ${companion.name} saindo às ${companion.departureTime}`}
-        className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer rounded-full group"
+        aria-label={`Colega de trajeto: ${companion.name} saindo às ${companion.departureTime}`}
+        className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer focus-visible:outline-2 ${
+          isNightMap ? 'focus-visible:outline-[#5EC2F3]' : 'focus-visible:outline-[#2563EB]'
+        } rounded-full group`}
       >
         <span
-          className={`inline-flex items-center gap-0.5 px-1.5 h-6 rounded-full text-[10px] font-semibold border shadow-sm transition-transform group-active:scale-95 ${
-            isNightMap
-              ? 'bg-[#0f172a] text-[#B9FC01] border-[#B9FC01]/60'
-              : 'bg-[#0131CD] text-white border-white'
-          }`}
+          className={`relative inline-flex items-center gap-1 px-2 h-6 rounded-full text-[10px] font-bold tracking-tight border-2 border-white shadow-[0_3px_10px_rgba(15,23,42,0.20)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95 ${trioStyle.pillClass}`}
         >
           <span>{companion.initials}</span>
-          <ShieldCheck className="w-3 h-3 text-[#B9FC01]" aria-hidden="true" />
+          {companion.isGroup && (
+            <span
+              aria-hidden="true"
+              className={`w-1.5 h-1.5 rounded-full ${trioStyle.dotClass} ring-1 ring-white/80`}
+            />
+          )}
         </span>
       </button>
     );
@@ -661,11 +760,11 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
       // 1. UFSC Trindade campus perimeter GeoJSON
       L.geoJSON(toGeoJsonPolygon(UFSC_PERIMETER_RING), {
         style: {
-          color: isNightMap ? 'rgba(185, 252, 1, 0.38)' : '#94a3b8',
+          color: isNightMap ? 'rgba(94, 194, 243, 0.35)' : '#CBD5E1',
           weight: 2,
           dashArray: '6 6',
-          fillColor: isNightMap ? '#080E21' : '#FFF9EA',
-          fillOpacity: isNightMap ? 0.35 : 0.2,
+          fillColor: isNightMap ? '#132033' : '#EEF3F9',
+          fillOpacity: isNightMap ? 0.36 : 0.22,
         },
         interactive: false,
       }).addTo(group);
@@ -673,10 +772,10 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
       // 2. Bosque do CFH green polygon GeoJSON
       L.geoJSON(toGeoJsonPolygon(BOSQUE_RING), {
         style: {
-          color: isNightMap ? 'rgba(185, 252, 1, 0.45)' : '#15803d',
+          color: isNightMap ? 'rgba(52, 211, 153, 0.45)' : '#10B981',
           weight: 1.5,
-          fillColor: '#15803d',
-          fillOpacity: isNightMap ? 0.24 : 0.18,
+          fillColor: isNightMap ? '#065F46' : '#10B981',
+          fillOpacity: isNightMap ? 0.28 : 0.16,
         },
         interactive: false,
       }).addTo(group);
@@ -684,7 +783,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
       // 3. Real OSM campus sidewalks & pedestrian walkways GeoJSON
       L.geoJSON(UFSC_WALKWAYS_GEOJSON, {
         style: {
-          color: isNightMap ? '#23325b' : '#cbd5e1',
+          color: isNightMap ? '#283548' : '#CBD5E1',
           weight: 1.5,
           opacity: isNightMap ? 0.65 : 0.72,
         },
@@ -707,11 +806,11 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
         L.polyline(pts, {
           color: showAsDarkZone
             ? isNightMap
-              ? '#FF3B30'
-              : '#D70015'
+              ? '#EF4444'
+              : '#DC2626'
             : isNightMap
               ? '#334155'
-              : '#94a3b8',
+              : '#94A3B8',
           weight: showAsDarkZone ? 4 : 2.5,
           dashArray: showAsDarkZone ? '4 6' : undefined,
           opacity: showAsDarkZone ? 0.88 : 0.68,
@@ -722,9 +821,9 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
       // 5. Comparison route (dashed subtle preview)
       if (comparisonRoute.coordinates.length > 1) {
         L.polyline(comparisonRoute.coordinates, {
-          color: isNightMap ? '#a1a1aa' : '#66646d',
+          color: isNightMap ? '#94A3B8' : '#64748B',
           weight: 3,
-          dashArray: '6 8',
+          dashArray: '6 7',
           opacity: 0.55,
           interactive: false,
         }).addTo(group);
@@ -734,9 +833,9 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
       if (activeRoute.coordinates.length > 1) {
         const isWarnRoute = routeMode === 'fastest' && activeRoute.hasDarkWarning;
         L.polyline(activeRoute.coordinates, {
-          color: isWarnRoute ? '#FF9F0A' : '#B9FC01',
+          color: isWarnRoute ? '#F7C648' : isNightMap ? '#2563EB' : '#5EC2F3',
           weight: 12,
-          opacity: isNightMap ? 0.35 : 0.75,
+          opacity: isNightMap ? 0.45 : 0.55,
           lineCap: 'round',
           lineJoin: 'round',
           interactive: false,
@@ -745,11 +844,11 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
         L.polyline(activeRoute.coordinates, {
           color: isWarnRoute
             ? isNightMap
-              ? '#FF9F0A'
+              ? '#FBBF24'
               : '#D97706'
             : isNightMap
-              ? '#B9FC01'
-              : '#0131CD',
+              ? '#5EC2F3'
+              : '#2563EB',
           weight: 4.5,
           opacity: 1,
           lineCap: 'round',
@@ -763,12 +862,12 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
         for (const post of posts) {
           if (post.status === 'aceso') {
             L.circle(post.coordinates, {
-              radius: 36,
-              color: '#B9FC01',
+              radius: 32,
+              color: '#34D399',
               weight: 1,
-              opacity: 0.45,
-              fillColor: '#B9FC01',
-              fillOpacity: 0.22,
+              opacity: 0.4,
+              fillColor: '#10B981',
+              fillOpacity: 0.18,
               interactive: false,
             }).addTo(group);
           }
@@ -856,11 +955,11 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
   const tileThemeClass =
     mapStyle === 'satellite'
       ? isNightMap
-        ? 'bg-[#080E21] brightness-75 contrast-110'
-        : 'bg-[#080E21]'
+        ? 'bg-[#0B1120] brightness-75 contrast-110'
+        : 'bg-[#0B1120]'
       : isNightMap
-        ? 'bg-[#080E21] rua-escura-night-tiles'
-        : 'bg-[#FEF1CF] rua-escura-day-tiles';
+        ? 'bg-[#0B1120] rua-escura-night-tiles'
+        : 'bg-[#EEF3F9] rua-escura-day-tiles';
 
   return (
     <div
@@ -868,7 +967,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
       data-night={String(isNightMap)}
       data-map-style={mapStyle}
       className={`relative w-full h-full overflow-hidden select-none transition-colors duration-300 ${
-        isNightMap ? 'bg-[#080E21] text-[#f3f3f4]' : 'bg-[#FEF1CF] text-[#0B1226]'
+        isNightMap ? 'bg-[#0B1120] text-[#F8FAFC]' : 'bg-[#EEF3F9] text-[#0F172A]'
       }`}
     >
       {/* Leaflet Geographic Canvas */}
@@ -935,7 +1034,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
             );
           })}
 
-        {/* Verified Gov.br Companion Pins */}
+        {/* Trio Pastel Companion Pins */}
         {filters.companions &&
           companionMatches.map((comp, idx) => {
             const originNode = NODE_MAP.get(comp.originId);
@@ -947,6 +1046,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
               <CompanionMarker
                 key={comp.id}
                 companion={comp}
+                variant={pickTrioVariant(idx)}
                 isNightMap={isNightMap}
                 left={pos.left}
                 top={pos.top}
@@ -961,10 +1061,10 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
         <div
           role="status"
           aria-live="polite"
-          className={`absolute left-3 right-3 sm:left-auto sm:right-4 sm:w-80 top-[140px] z-20 rounded-2xl p-3.5 shadow-lg border flex items-start justify-between gap-3 ${
+          className={`absolute left-3 right-3 sm:left-auto sm:right-4 sm:w-80 top-[168px] sm:top-[152px] z-20 rounded-2xl p-3.5 border flex items-start justify-between gap-3 ${
             isNightMap
-              ? 'bg-[#0B132B] text-[#FEF1CF] border-[#1F2E5C]'
-              : 'bg-[#FFF9EA] text-[#0B1226] border-[#D8C89E]'
+              ? 'bg-[#0B1120]/95 backdrop-blur-xl text-[#F8FAFC] border-white/15 shadow-[0_12px_32px_rgba(0,0,0,0.45)]'
+              : 'bg-white/95 backdrop-blur-xl text-[#0F172A] border-[#CBD5E1]/90 shadow-[0_12px_32px_rgba(15,23,42,0.14)]'
           }`}
         >
           <div className="min-w-0">
@@ -992,7 +1092,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
             onClick={() => onSelectPost(null)}
             aria-label="Fechar resumo do poste"
             className={`min-w-[44px] min-h-[44px] -my-1 -mr-1 rounded-full inline-flex items-center justify-center cursor-pointer transition-colors ${
-              isNightMap ? 'hover:bg-white/10 text-[#f3f3f4]' : 'hover:bg-black/5 text-[#0B1226]'
+              isNightMap ? 'hover:bg-white/10 text-[#F8FAFC]' : 'hover:bg-black/5 text-[#0F172A]'
             }`}
           >
             <X className="w-4 h-4" aria-hidden="true" />

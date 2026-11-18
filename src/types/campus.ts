@@ -66,6 +66,13 @@ export interface RouteResult {
   posts: LampPost[];
 }
 
+export interface GroupMember {
+  id: string;
+  name: string;
+  initials: string;
+  mascotVariant: 'blue' | 'gold' | 'pink';
+}
+
 export interface CompanionMatch {
   id: string;
   name: string;
@@ -77,6 +84,9 @@ export interface CompanionMatch {
   departureTime: string;
   currentStatus: 'aguardando' | 'a_caminho' | 'concluido';
   isUserJoined?: boolean;
+  isGroup?: boolean;
+  groupTitle?: string;
+  members?: GroupMember[];
 }
 
 export interface ChatMessage {
@@ -86,6 +96,7 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   isSystem?: boolean;
+  reactions?: Record<string, string[]>;
 }
 
 export interface GovBrSession {

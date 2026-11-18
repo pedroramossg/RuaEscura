@@ -7,13 +7,13 @@ import {
   MapPin,
   ShieldAlert,
   ShieldCheck,
-  Users,
 } from 'lucide-react';
 import { ArcBottomSheet } from '../ui/ArcBottomSheet';
 import { Scrub, formatMinutesToHHMM } from '../ui/TimeScrubber';
 import { SlideConfirm } from '../ui/SlideToConfirm';
 import { PillButton } from '../ui/PillButton';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
+import { TrioCharacterAvatar, TrioMascotStack, pickTrioVariant } from '../mascot/TrioMascotBadge';
 import type { CompanionMatch, EdgeRatingSummary, RouteResult } from '../../types/campus';
 
 export type ExploreSheetMode = 'schedule' | 'details' | null;
@@ -116,24 +116,27 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
       {isSchedule ? (
         <div className="space-y-5 pt-1">
           {/* Corridor & Predicted Arrival Summary (t-stagger transitions.dev) */}
-          <div className="t-stagger is-shown rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4] p-4 space-y-2">
+          <div className="t-stagger is-shown rounded-2xl bg-[#E5EDF7]/65 border border-[#D5E0EE] p-4 space-y-2">
             <div className="t-stagger-line flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#111827]">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F172A]">
                 <MapPin className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
                 <span>
                   {originShort} → {destShort}
                 </span>
               </span>
-              <span className="text-xs font-medium text-[#059669] bg-[#ECFDF5] px-2.5 py-0.5 rounded-full border border-[#A7F3D0]">
+              <span className="text-xs font-medium text-[#059669] bg-white px-2.5 py-0.5 rounded-full border border-[#A7F3D0]">
                 Chegada prevista ~{etaHHMM}
               </span>
             </div>
-            <p className="t-stagger-line t-stagger-line--2 text-xs text-[#4B5563]">
-              {companions.length === 1
-                ? '1 colega Gov.br próximo a essa janela de saída.'
-                : companions.length > 1
-                  ? `${companions.length} colegas Gov.br próximos a essa janela de saída.`
-                  : 'Sua saída fica visível apenas para usuários verificados da UFSC.'}
+            <p className="t-stagger-line t-stagger-line--2 text-xs text-[#475569] flex items-center gap-2">
+              <TrioMascotStack size={20} />
+              <span>
+                {companions.length === 1
+                  ? '1 colega confirmado na rota próximo a essa janela de saída.'
+                  : companions.length > 1
+                    ? `${companions.length} colegas confirmados na rota próximos a essa janela de saída.`
+                    : 'Sua saída fica visível apenas para colegas verificados da UFSC.'}
+              </span>
             </p>
           </div>
 
@@ -279,18 +282,18 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
                 return (
                   <div
                     key={edge.id}
-                    className="rounded-xl bg-[#F8FAFC] border border-[#E5EAF4] px-3.5 py-2.5 flex items-center justify-between gap-2"
+                    className="rounded-xl bg-[#E5EDF7]/55 border border-[#D5E0EE] px-3.5 py-2.5 flex items-center justify-between gap-2"
                   >
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-[#111827] truncate">
+                      <p className="text-xs font-semibold text-[#0F172A] truncate">
                         {fromName} → {toName}
                       </p>
-                      <p className="text-[11px] text-[#64748B]">
+                      <p className="text-[11px] text-[#475569]">
                         {edge.distance} m • base {edge.baseIllumination}% iluminada
                       </p>
                     </div>
                     {summary && (
-                      <span className="text-xs font-semibold text-[#111827] tabular-nums shrink-0">
+                      <span className="text-xs font-semibold text-[#0F172A] tabular-nums shrink-0">
                         ★ {summary.averageRating.toFixed(1)}
                       </span>
                     )}
@@ -345,27 +348,28 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
             </div>
           </div>
 
-          {/* Active Gov.br Companions */}
-          <div className="rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4] p-3.5 space-y-2">
+          {/* Active Group Companions */}
+          <div className="rounded-2xl bg-[#E5EDF7]/65 border border-[#D5E0EE] p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#111827]">
-                <Users className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
-                <span>Companheiros verificados ({companions.length})</span>
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#0F172A]">
+                <TrioMascotStack size={20} />
+                <span>Colegas confirmados na rota ({companions.length})</span>
               </span>
               {scheduledTime && (
-                <span className="text-[11px] font-medium text-[#2563EB]">
+                <span className="text-[11px] font-semibold text-[#2563EB]">
                   Saída {scheduledTime}
                 </span>
               )}
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {companions.slice(0, 4).map((c) => (
+              {companions.slice(0, 4).map((c, idx) => (
                 <span
                   key={c.id}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#E2E8F0] text-[11px] font-medium text-[#334155]"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#D5E0EE] text-[11px] font-medium text-[#0F172A] shadow-2xs"
                 >
+                  <TrioCharacterAvatar variant={pickTrioVariant(idx)} size={16} />
                   <span>{c.name.split(' ')[0]}</span>
-                  <span className="text-[#64748B]">• {c.departureTime}</span>
+                  <span className="text-[#475569]">• {c.departureTime}</span>
                 </span>
               ))}
             </div>
@@ -376,7 +380,7 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
             <button
               type="button"
               onClick={() => onSwitchMode('schedule')}
-              className="min-h-[44px] flex-1 px-4 rounded-full bg-white hover:bg-[#F8FAFC] border border-[#DCE7F7] text-xs font-semibold text-[#111827] inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="min-h-[44px] flex-1 px-4 rounded-full bg-white hover:bg-[#E5EDF7]/70 border border-[#D5E0EE] text-xs font-semibold text-[#0F172A] inline-flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Clock className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
               <span>{scheduledTime ? `Mudar saída (${scheduledTime})` : 'Marcar horário'}</span>

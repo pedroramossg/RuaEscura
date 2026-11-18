@@ -65,18 +65,23 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
   };
 
   const selectThemeClass = isNightMap
-    ? 'bg-[#0B1120]/90 text-[#F8FAFC] border-[#1E293B] focus:border-[#60A5FA]'
-    : 'bg-white/95 text-[#111827] border-[#E5EAF4] focus:border-[#2563EB]';
+    ? 'bg-[#0F172A]/90 text-[#F8FAFC] border-white/15 focus:border-[#5EC2F3]'
+    : 'bg-white/95 text-[#0F172A] border-[#D5E0EE] focus:border-[#2563EB]';
 
   return (
     <div className="absolute top-3 inset-x-3 z-30 pointer-events-none flex flex-col gap-2 max-w-2xl mx-auto">
-      {/* Row 1: Origin -> Swap -> Destination + Emergency Shortcut */}
+      {/* Liquid Glass Top Dock: Origin/Swap/Destination + Wrapped Filter & Map Mode Pills */}
       <LiquidGlassSurface
         variant="control"
         dark={isNightMap}
-        className="pointer-events-auto p-2 flex flex-col gap-2"
+        className={`pointer-events-auto p-2.5 flex flex-col gap-2 backdrop-blur-xl ${
+          isNightMap
+            ? '!bg-[#0B1120]/90 !border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.45)]'
+            : '!bg-white/92 !border-[#D5E0EE] shadow-[0_10px_28px_rgba(15,23,42,0.10)]'
+        }`}
       >
-        <div className="flex items-center gap-1.5">
+        {/* Row 1: Origin -> Swap -> Destination + Emergency Shortcut */}
+        <div className="flex items-center gap-1.5 min-w-0">
           <div className="flex-1 min-w-0">
             <label htmlFor="map-origin-select" className="sr-only">
               Origem
@@ -86,7 +91,7 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
               aria-label="Origem"
               value={activeOriginId}
               onChange={handleOriginChange}
-              className={`w-full min-h-[44px] h-11 px-3 rounded-xl border text-sm font-medium truncate outline-none transition-colors cursor-pointer ${selectThemeClass}`}
+              className={`w-full min-h-[44px] h-11 px-2.5 sm:px-3 rounded-xl border text-[13px] sm:text-sm font-medium truncate outline-none transition-colors cursor-pointer ${selectThemeClass}`}
             >
               {UFSC_LANDMARKS.map((node) => (
                 <option key={node.id} value={node.id}>
@@ -100,10 +105,10 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
             type="button"
             onClick={onSwapEndpoints}
             aria-label="Trocar origem e destino"
-            className={`min-h-[44px] min-w-[44px] w-11 h-11 rounded-full shrink-0 inline-flex items-center justify-center border transition-all duration-120 active:scale-[0.95] cursor-pointer ${
+            className={`min-h-[44px] min-w-[44px] w-11 h-11 rounded-full shrink-0 inline-flex items-center justify-center border transition-all duration-150 active:scale-[0.95] cursor-pointer ${
               isNightMap
-                ? 'bg-[#111A2E] text-[#60A5FA] border-[#1E293B] hover:bg-[#1E293B]'
-                : 'bg-[#F8FAFC] text-[#2563EB] border-[#E5EAF4] hover:bg-[#EFF6FF]'
+                ? 'bg-[#132033] text-[#5EC2F3] border-white/15 hover:bg-[#1E293B]'
+                : 'bg-[#F8FAFC] text-[#2563EB] border-[#D5E0EE] hover:bg-[#EFF6FF]'
             }`}
           >
             <ArrowLeftRight className="w-4 h-4" aria-hidden="true" />
@@ -118,7 +123,7 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
               aria-label="Destino"
               value={activeDestinationId}
               onChange={handleDestinationChange}
-              className={`w-full min-h-[44px] h-11 px-3 rounded-xl border text-sm font-medium truncate outline-none transition-colors cursor-pointer ${selectThemeClass}`}
+              className={`w-full min-h-[44px] h-11 px-2.5 sm:px-3 rounded-xl border text-[13px] sm:text-sm font-medium truncate outline-none transition-colors cursor-pointer ${selectThemeClass}`}
             >
               {UFSC_LANDMARKS.map((node) => (
                 <option key={node.id} value={node.id}>
@@ -134,10 +139,10 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
               onClick={onOpenReportsShortcut}
               aria-label="Abrir canal de emergência e denúncias"
               title="Emergência e Denúncias"
-              className={`min-h-[44px] min-w-[44px] w-11 h-11 rounded-full shrink-0 inline-flex items-center justify-center border transition-all duration-120 active:scale-[0.95] cursor-pointer ${
+              className={`min-h-[44px] min-w-[44px] w-11 h-11 rounded-full shrink-0 inline-flex items-center justify-center border transition-all duration-150 active:scale-[0.95] cursor-pointer ${
                 isNightMap
-                  ? 'bg-[#FF3B30]/20 text-[#FF3B30] border-[#FF3B30]/40 hover:bg-[#FF3B30]/30'
-                  : 'bg-[#D70015]/10 text-[#D70015] border-[#D70015]/25 hover:bg-[#D70015]/15'
+                  ? 'bg-[#EF4444]/20 text-[#FCA5A5] border-[#EF4444]/40 hover:bg-[#EF4444]/30'
+                  : 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA] hover:bg-[#FEE2E2]'
               }`}
             >
               <ShieldAlert className="w-4 h-4" aria-hidden="true" />
@@ -145,16 +150,16 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
           )}
         </div>
 
-        {/* Row 2: Night Toggle, Map Style Toggle & Horizontal Layer Filter Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        {/* Row 2: Wrapped Apple-style Pill Controls (Zero Right-Edge Clipping on 360px-402px) */}
+        <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             onClick={onToggleNightMap}
             aria-pressed={isNightMap}
-            className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold shrink-0 inline-flex items-center gap-1.5 border transition-all duration-120 active:scale-[0.97] cursor-pointer ${
+            className={`min-h-[38px] px-3 py-1.5 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 border transition-all duration-150 active:scale-[0.97] cursor-pointer whitespace-nowrap ${
               isNightMap
-                ? 'bg-[#60A5FA] text-[#0B1120] border-[#60A5FA]'
-                : 'bg-[#111827] text-white border-[#111827]'
+                ? 'bg-[#5EC2F3] text-[#0F172A] border-[#5EC2F3] shadow-[0_2px_10px_rgba(94,194,243,0.3)]'
+                : 'bg-[#0F172A] text-white border-[#0F172A] shadow-[0_2px_8px_rgba(15,23,42,0.18)]'
             }`}
           >
             <span>{isNightMap ? '☀ Mapa Claro' : '☾ Luz Noturna'}</span>
@@ -165,22 +170,24 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
               type="button"
               onClick={onToggleMapStyle}
               aria-pressed={mapStyle === 'satellite'}
-              className={`min-h-[44px] px-3 rounded-full text-xs font-medium shrink-0 inline-flex items-center gap-1.5 border transition-all duration-120 active:scale-[0.97] cursor-pointer ${
+              className={`min-h-[38px] px-3 py-1.5 rounded-full text-xs font-medium inline-flex items-center gap-1.5 border transition-all duration-150 active:scale-[0.97] cursor-pointer whitespace-nowrap ${
                 mapStyle === 'satellite'
-                  ? 'bg-[#2563EB] text-white border-[#2563EB]'
+                  ? isNightMap
+                    ? 'bg-[#5EC2F3] text-[#0F172A] border-[#5EC2F3]'
+                    : 'bg-[#2563EB] text-white border-[#2563EB]'
                   : isNightMap
-                    ? 'bg-[#111A2E]/85 text-[#F8FAFC] border-[#1E293B] hover:border-[#60A5FA]'
-                    : 'bg-white/95 text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]'
+                    ? 'bg-[#132033]/90 text-[#F8FAFC] border-white/15 hover:border-[#5EC2F3]/60'
+                    : 'bg-[#F8FAFC] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]/60'
               }`}
             >
               {mapStyle === 'satellite' ? (
                 <>
-                  <MapIcon className="w-3.5 h-3.5" aria-hidden="true" />
+                  <MapIcon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                   <span>Ruas</span>
                 </>
               ) : (
                 <>
-                  <Satellite className="w-3.5 h-3.5" aria-hidden="true" />
+                  <Satellite className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                   <span>Satélite</span>
                 </>
               )}
@@ -195,17 +202,17 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
                 type="button"
                 onClick={() => onToggleFilter(key)}
                 aria-pressed={active}
-                className={`min-h-[44px] px-3 rounded-full text-xs font-medium shrink-0 inline-flex items-center gap-1.5 border transition-all duration-120 active:scale-[0.97] cursor-pointer ${
+                className={`min-h-[38px] px-3 py-1.5 rounded-full text-xs font-medium inline-flex items-center gap-1.5 border transition-all duration-150 active:scale-[0.97] cursor-pointer whitespace-nowrap ${
                   active
                     ? isNightMap
-                      ? 'bg-[#F8FAFC] text-[#0B1120] border-[#F8FAFC]'
-                      : 'bg-[#2563EB] text-white border-[#2563EB]'
+                      ? 'bg-[#5EC2F3] text-[#0F172A] border-[#5EC2F3] font-semibold shadow-[0_2px_10px_rgba(94,194,243,0.28)]'
+                      : 'bg-[#2563EB] text-white border-[#2563EB] font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]'
                     : isNightMap
-                      ? 'bg-[#111A2E]/80 text-[#94A3B8] border-[#1E293B] hover:text-[#F8FAFC]'
-                      : 'bg-white/90 text-[#4B5563] border-[#E5EAF4] hover:text-[#111827]'
+                      ? 'bg-[#132033]/85 text-[#94A3B8] border-white/15 hover:text-[#F8FAFC] hover:border-white/30'
+                      : 'bg-[#F8FAFC] text-[#475569] border-[#D5E0EE] hover:text-[#0F172A] hover:border-[#94A3B8]'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+                <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                 <span>{label}</span>
               </button>
             );

@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import type {
   PersistedCampusState,
   LampPost,
@@ -6,6 +14,7 @@ import type {
   EdgeRatingSummary,
   IncidentReport,
   CompanionMatch,
+  GroupMember,
   ChatMessage,
   GovBrSession,
   RouteMode,
@@ -20,8 +29,50 @@ import {
   ReportSubmissionSchema,
   ChatMessageSchema,
   ScheduledDepartureSchema,
+  WalkingGroupCreationSchema,
+  CompanionMatchSchema,
 } from '../security/schemas';
+import { pickTrioVariant } from '../components/mascot/TrioMascotBadge';
 import { useHaptics } from './useHaptics';
+
+const SYNC_CHANNEL_NAME = 'rua-escura-campus-sync';
+const LANDMARK_LABEL_BY_ID = new Map(UFSC_LANDMARKS.map((l) => [l.id, l.shortName]));
+
+function createMessageId(): string {
+  return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function buildContextualReply(
+  userText: string,
+  responderName: string,
+  routeLabel: string
+): string {
+  const lower = userText.toLowerCase();
+  const firstName = responderName.split(' ')[0] || 'Colega';
+  if (lower.includes('saio') || lower.includes('min') || lower.includes('cheg')) {
+    return `Fechado! Já estou saindo também — te encontro em poucos minutos no trajeto (${routeLabel}).`;
+  }
+  if (lower.includes('bu') || lower.includes('entrada') || lower.includes('ru') || lower.includes('ctc')) {
+    return `Combinado! Passo ali na entrada combinada seguindo por ${routeLabel}. Estou de mochila escura.`;
+  }
+  if (lower.includes('escuro') || lower.includes('poste') || lower.includes('luz')) {
+    return `Boa, vamos pela via mais iluminada mesmo. Se vermos poste apagado já registramos no app.`;
+  }
+  if (lower.includes('?') || lower.includes('vamos') || lower.includes('bora') || lower.includes('oi')) {
+    return `Bora sim! Aqui é ${firstName}, já deixei a rota ${routeLabel} aberta pra irmos juntos.`;
+  }
+  return `Recebido! Seguindo juntos por ${routeLabel} fica bem mais tranquilo.`;
+}
+
+export interface CreateWalkingGroupInput {
+  title: string;
+  originId: string;
+  destinationId: string;
+  departureTime: string;
+  memberIds: string[];
+}
 
 export interface CampusStoreContextType {
   // State
@@ -37,6 +88,8 @@ export interface CampusStoreContextType {
   reports: IncidentReport[];
   companionMatches: CompanionMatch[];
   chatMessages: Record<string, ChatMessage[]>;
+  typingByChannel: Record<string, string[]>;
+  readByChannel: Record<string, Record<string, string>>;
   activeOriginId: string;
   activeDestinationId: string;
   routeMode: RouteMode;
@@ -67,7 +120,11 @@ export interface CampusStoreContextType {
     photoThumbnailUrl?: string;
   }) => { success: boolean; error?: string; report?: IncidentReport };
   toggleJoinCompanion: (companionId: string) => void;
+  createWalkingGroup: (
+    input: CreateWalkingGroupInput
+  ) => { success: boolean; error?: string; group?: CompanionMatch };
   sendChatMessage: (companionId: string, text: string) => { success: boolean; error?: string };
+  reactToChatMessage: (channelId: string, messageId: string, emoji: string) => void;
   setRouteEndpoints: (originId: string, destinationId: string) => void;
   swapEndpoints: () => void;
   setRouteMode: (mode: RouteMode) => void;
@@ -93,8 +150,132 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     if (initialState) return initialState;
     return loadCampusState();
   });
+  const [typingByChannel, setTypingByChannel] = useState<Record<string, string[]>>({});
+  const [readByChannel, setReadByChannel] = useState<Record<string, Record<string, string>>>({});
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const haptics = useHaptics();
+  const tabIdRef = useRef(createMessageId());
+  const syncChannelRef = useRef<BroadcastChannel | null>(null);
+  const timersRef = useRef<number[]>([]);
+
+  const broadcastSync = useCallback(
+    (
+      message:
+        | { type: 'chat-message'; companionId: string; chatMessage: ChatMessage }
+        | { type: 'group-created'; group: CompanionMatch; initialMessages: ChatMessage[] }
+        | { type: 'chat-reaction'; channelId: string; messageId: string; emoji: string; reactorId: string }
+    ) => {
+      try {
+        syncChannelRef.current?.postMessage({ ...message, tabId: tabIdRef.current });
+      } catch {
+        // Channel may be closed in test teardown
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === 'rua_escura_campus_state_v1' && event.newValue && !initialState) {
+        setState(loadCampusState());
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      channel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+      syncChannelRef.current = channel;
+      channel.onmessage = (event: MessageEvent) => {
+        const data = event.data;
+        if (!data || typeof data !== 'object' || data.tabId === tabIdRef.current) return;
+
+        if (data.type === 'chat-message' && typeof data.companionId === 'string' && data.chatMessage) {
+          const parsed = ChatMessageSchema.safeParse(data.chatMessage);
+          if (!parsed.success) return;
+          const incoming = data.chatMessage as ChatMessage;
+          setState((prev) => {
+            const existing = prev.chatMessages[data.companionId] || [];
+            if (existing.some((m) => m.id === incoming.id)) return prev;
+            const next = {
+              ...prev,
+              chatMessages: {
+                ...prev.chatMessages,
+                [data.companionId]: [...existing, incoming],
+              },
+            };
+            if (!initialState) saveCampusState(next);
+            return next;
+          });
+        } else if (data.type === 'group-created' && data.group) {
+          const parsedGroup = CompanionMatchSchema.safeParse(data.group);
+          if (!parsedGroup.success) return;
+          const incomingGroup = parsedGroup.data;
+          const initialMsgs = Array.isArray(data.initialMessages)
+            ? (data.initialMessages as ChatMessage[])
+            : [];
+          setState((prev) => {
+            if (prev.companionMatches.some((g) => g.id === incomingGroup.id)) return prev;
+            const next = {
+              ...prev,
+              companionMatches: [incomingGroup, ...prev.companionMatches],
+              chatMessages: {
+                ...prev.chatMessages,
+                [incomingGroup.id]: initialMsgs,
+              },
+            };
+            if (!initialState) saveCampusState(next);
+            return next;
+          });
+        } else if (
+          data.type === 'chat-reaction' &&
+          typeof data.channelId === 'string' &&
+          typeof data.messageId === 'string' &&
+          typeof data.emoji === 'string' &&
+          typeof data.reactorId === 'string'
+        ) {
+          setState((prev) => {
+            const list = prev.chatMessages[data.channelId];
+            if (!list) return prev;
+            const updated = list.map((msg) => {
+              if (msg.id !== data.messageId) return msg;
+              const currentReactions = msg.reactions ?? {};
+              const users = currentReactions[data.emoji] ?? [];
+              const nextUsers = users.includes(data.reactorId)
+                ? users.filter((id) => id !== data.reactorId)
+                : [...users, data.reactorId];
+              const nextReactions = { ...currentReactions };
+              if (nextUsers.length === 0) {
+                delete nextReactions[data.emoji];
+              } else {
+                nextReactions[data.emoji] = nextUsers;
+              }
+              return { ...msg, reactions: nextReactions };
+            });
+            const next = {
+              ...prev,
+              chatMessages: {
+                ...prev.chatMessages,
+                [data.channelId]: updated,
+              },
+            };
+            if (!initialState) saveCampusState(next);
+            return next;
+          });
+        }
+      };
+    }
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      channel?.close();
+      syncChannelRef.current = null;
+      timersRef.current.forEach((id) => window.clearTimeout(id));
+      timersRef.current = [];
+    };
+  }, [initialState]);
 
   const updateState = useCallback(
     (updater: (prev: PersistedCampusState) => PersistedCampusState) => {
@@ -264,10 +445,102 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     [updateState, haptics]
   );
 
+  const createWalkingGroup = useCallback(
+    (
+      input: CreateWalkingGroupInput
+    ): { success: boolean; error?: string; group?: CompanionMatch } => {
+      const validation = WalkingGroupCreationSchema.safeParse(input);
+      if (!validation.success) {
+        haptics.trigger('error');
+        return {
+          success: false,
+          error: validation.error.errors[0]?.message ?? 'Dados do grupo inválidos',
+        };
+      }
+
+      const { title, originId, destinationId, departureTime, memberIds } = validation.data;
+      const originLabel = LANDMARK_LABEL_BY_ID.get(originId) ?? originId.toUpperCase();
+      const destLabel = LANDMARK_LABEL_BY_ID.get(destinationId) ?? destinationId.toUpperCase();
+      const routeLabel = `${originLabel} → ${destLabel}`;
+
+      const snapshotPeers = stateRef.current.companionMatches.filter((c) => !c.isGroup);
+      const selectedPeers = snapshotPeers.filter((c) => memberIds.includes(c.id));
+      const fallbackPeer = snapshotPeers[0];
+      const finalPeers = selectedPeers.length > 0 ? selectedPeers : fallbackPeer ? [fallbackPeer] : [];
+
+      const members: GroupMember[] = finalPeers.map((peer, index) => ({
+        id: peer.id,
+        name: peer.name,
+        initials: peer.initials,
+        mascotVariant: pickTrioVariant(index),
+      }));
+
+      const groupId = `grp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      const currentUserName = stateRef.current.userSession?.name ?? 'Você';
+      const newGroup: CompanionMatch = {
+        id: groupId,
+        name: members.map((m) => m.name.split(' ')[0]).join(', ') || currentUserName,
+        initials: title.slice(0, 2).toUpperCase(),
+        ufscAffiliation: `${members.length + 1} colegas • ${routeLabel}`,
+        isGovBrVerified: true,
+        originId,
+        destinationId,
+        departureTime,
+        currentStatus: 'aguardando',
+        isUserJoined: true,
+        isGroup: true,
+        groupTitle: title,
+        members,
+      };
+
+      const welcomeResponder = members[0];
+      const welcomeMessages: ChatMessage[] = [
+        {
+          id: createMessageId(),
+          senderId: 'system',
+          senderName: 'Grupo criado',
+          text: `${currentUserName} criou o grupo "${title}" (${routeLabel} • saída ${departureTime}).`,
+          timestamp: new Date().toISOString(),
+          isSystem: true,
+        },
+        ...(welcomeResponder
+          ? [
+              {
+                id: createMessageId(),
+                senderId: welcomeResponder.id,
+                senderName: welcomeResponder.name,
+                text: `Oi pessoal! Confirmado para ${departureTime} no trajeto ${routeLabel}.`,
+                timestamp: new Date().toISOString(),
+              },
+            ]
+          : []),
+      ];
+
+      updateState((prev) => ({
+        ...prev,
+        companionMatches: [newGroup, ...prev.companionMatches],
+        chatMessages: {
+          ...prev.chatMessages,
+          [groupId]: welcomeMessages,
+        },
+      }));
+
+      broadcastSync({
+        type: 'group-created',
+        group: newGroup,
+        initialMessages: welcomeMessages,
+      });
+
+      haptics.trigger('success');
+      return { success: true, group: newGroup };
+    },
+    [updateState, broadcastSync, haptics]
+  );
+
   const sendChatMessage = useCallback(
     (companionId: string, text: string): { success: boolean; error?: string } => {
-      const senderId = state.userSession ? 'user-current' : 'demo-user';
-      const senderName = state.userSession?.name ?? 'Você';
+      const senderId = stateRef.current.userSession ? 'user-current' : 'demo-user';
+      const senderName = stateRef.current.userSession?.name ?? 'Você';
 
       const validation = ChatMessageSchema.safeParse({
         senderId,
@@ -283,13 +556,8 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
         };
       }
 
-      const msgId =
-        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-          ? crypto.randomUUID()
-          : `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-
       const newMsg: ChatMessage = {
-        id: msgId,
+        id: createMessageId(),
         senderId,
         senderName,
         text: validation.data.text,
@@ -304,10 +572,120 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
         },
       }));
 
+      broadcastSync({
+        type: 'chat-message',
+        companionId,
+        chatMessage: newMsg,
+      });
+
+      // Bidirectional peer / group member reply simulation with typing dots + read receipt
+      const channelEntity = stateRef.current.companionMatches.find((c) => c.id === companionId);
+      if (channelEntity) {
+        const pool =
+          channelEntity.members && channelEntity.members.length > 0
+            ? channelEntity.members.map((m) => ({ id: m.id, name: m.name }))
+            : [{ id: channelEntity.id, name: channelEntity.name }];
+        const existingCount = (stateRef.current.chatMessages[companionId] || []).length;
+        const responder = pool[existingCount % pool.length] ?? pool[0];
+
+        if (responder) {
+          setTypingByChannel((prev) => ({
+            ...prev,
+            [companionId]: [responder.id],
+          }));
+
+          const channelRouteLabel = `${LANDMARK_LABEL_BY_ID.get(channelEntity.originId) ?? channelEntity.originId.toUpperCase()} → ${LANDMARK_LABEL_BY_ID.get(channelEntity.destinationId) ?? channelEntity.destinationId.toUpperCase()}`;
+
+          const timerId = window.setTimeout(() => {
+            const replyMsg: ChatMessage = {
+              id: createMessageId(),
+              senderId: responder.id,
+              senderName: responder.name,
+              text: buildContextualReply(
+                validation.data.text,
+                responder.name,
+                channelRouteLabel
+              ),
+              timestamp: new Date().toISOString(),
+            };
+
+            updateState((prev) => ({
+              ...prev,
+              chatMessages: {
+                ...prev.chatMessages,
+                [companionId]: [...(prev.chatMessages[companionId] || []), replyMsg],
+              },
+            }));
+
+            setTypingByChannel((prev) => ({
+              ...prev,
+              [companionId]: [],
+            }));
+
+            setReadByChannel((prev) => ({
+              ...prev,
+              [companionId]: {
+                ...(prev[companionId] || {}),
+                [responder.id]: newMsg.id,
+              },
+            }));
+
+            broadcastSync({
+              type: 'chat-message',
+              companionId,
+              chatMessage: replyMsg,
+            });
+          }, 550);
+
+          timersRef.current.push(timerId);
+        }
+      }
+
       haptics.trigger('light');
       return { success: true };
     },
-    [state.userSession, updateState, haptics]
+    [updateState, broadcastSync, haptics]
+  );
+
+  const reactToChatMessage = useCallback(
+    (channelId: string, messageId: string, emoji: string) => {
+      const reactorId = stateRef.current.userSession ? 'user-current' : 'demo-user';
+      updateState((prev) => {
+        const list = prev.chatMessages[channelId];
+        if (!list) return prev;
+        const updated = list.map((msg) => {
+          if (msg.id !== messageId) return msg;
+          const currentReactions = msg.reactions ?? {};
+          const users = currentReactions[emoji] ?? [];
+          const nextUsers = users.includes(reactorId)
+            ? users.filter((id) => id !== reactorId)
+            : [...users, reactorId];
+          const nextReactions = { ...currentReactions };
+          if (nextUsers.length === 0) {
+            delete nextReactions[emoji];
+          } else {
+            nextReactions[emoji] = nextUsers;
+          }
+          return { ...msg, reactions: nextReactions };
+        });
+        return {
+          ...prev,
+          chatMessages: {
+            ...prev.chatMessages,
+            [channelId]: updated,
+          },
+        };
+      });
+      broadcastSync({
+        type: 'chat-reaction',
+        channelId,
+        messageId,
+        emoji,
+        reactorId,
+      });
+      haptics.trigger('selection');
+    },
+    [updateState, broadcastSync, haptics]
   );
 
   const setRouteEndpoints = useCallback(
@@ -446,6 +824,8 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     reports: state.reports,
     companionMatches: state.companionMatches,
     chatMessages: state.chatMessages,
+    typingByChannel,
+    readByChannel,
     activeOriginId: state.activeOriginId,
     activeDestinationId: state.activeDestinationId,
     routeMode: state.routeMode,
@@ -460,7 +840,9 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     rateEdgeLighting,
     submitReport,
     toggleJoinCompanion,
+    createWalkingGroup,
     sendChatMessage,
+    reactToChatMessage,
     setRouteEndpoints,
     swapEndpoints,
     setRouteMode,

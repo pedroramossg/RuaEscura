@@ -22,6 +22,7 @@ import type { ReportCategory, ReportStatus } from '../../types/campus';
 import { PillButton } from '../ui/PillButton';
 import { VirtualizedList } from '../ui/VirtualizedList';
 import { DropletMascot, DROPLET_ALL_STATES } from '../mascot/DropletMascot';
+import { TrioCharacterAvatar, TrioMascotStack } from '../mascot/TrioMascotBadge';
 
 type DropletState = (typeof DROPLET_ALL_STATES)[number];
 
@@ -62,13 +63,13 @@ const CATEGORY_META: Record<
     label: 'Manutenção / calçada',
     shortLabel: 'Manutenção',
     Icon: Wrench,
-    badgeClass: 'bg-[#f3f3f4] text-[#46444a] border-[#dfe3e6]',
+    badgeClass: 'bg-[#E5EDF7] text-[#334155] border-[#D5E0EE]',
   },
   outro: {
     label: 'Outro incidente',
     shortLabel: 'Outro',
     Icon: AlertTriangle,
-    badgeClass: 'bg-[#f3f3f4] text-[#46444a] border-[#dfe3e6]',
+    badgeClass: 'bg-[#E5EDF7] text-[#334155] border-[#D5E0EE]',
   },
 };
 
@@ -83,12 +84,12 @@ const REPORT_STATUS_META: Record<
   pendente: {
     label: 'Pendente',
     Icon: Clock,
-    badgeClass: 'bg-[#D97706]/12 text-[#92400E] border-[#D97706]/30',
+    badgeClass: 'bg-[#F7C648]/20 text-[#92400E] border-[#F7C648]/50',
   },
   em_analise: {
     label: 'Em análise',
     Icon: Search,
-    badgeClass: 'bg-[#131314]/8 text-[#131314] border-[#dfe3e6]',
+    badgeClass: 'bg-[#5EC2F3]/20 text-[#0F172A] border-[#5EC2F3]/45',
   },
   resolvido: {
     label: 'Resolvido',
@@ -266,46 +267,79 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
   return (
     <section
       aria-label="Denúncias e emergência"
-      className="min-h-screen bg-gradient-to-b from-[#E5ECFF] via-[#F2F6FF] to-[#F6F8FC] text-[#111827] px-4 pt-5 pb-28 sm:px-6"
+      className="relative overflow-hidden min-h-screen bg-[#EAEFF6] text-[#0F172A] px-4 pt-5 pb-28 sm:px-6"
     >
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <header className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-[#4B5563]">
-              Canal seguro e anônimo UFSC
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#111827]">
-              Denúncias & Emergência
-            </h1>
-            <p className="text-sm text-[#4B5563]">
-              Registre ocorrências de iluminação ou risco no campus com remoção automática de EXIF.
+      {/* Subtle WelcomeBack-inspired Sky Sunburst Wash */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 overflow-hidden"
+        style={{
+          background: 'linear-gradient(180deg, #D7ECFF 0%, #E3F0FC 52%, #EAEFF6 100%)',
+        }}
+      >
+        <div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[170%] h-full opacity-55"
+          style={{
+            background:
+              'repeating-conic-gradient(from 138deg at 50% 0%, rgba(255,255,255,0.42) 0deg 8deg, rgba(168,214,255,0.18) 8deg 19deg)',
+            maskImage:
+              'radial-gradient(ellipse 90% 92% at 50% 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,0) 88%)',
+            WebkitMaskImage:
+              'radial-gradient(ellipse 90% 92% at 50% 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,0) 88%)',
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-2xl mx-auto space-y-5">
+        {/* Crisp Header Card + Trio Safety Tip */}
+        <header className="bg-white border border-[#D5E0EE] rounded-[24px] p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] space-y-3.5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#2563EB]">
+                  Canal seguro e anônimo UFSC
+                </p>
+                <TrioMascotStack size={20} />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#0F172A]">
+                Denúncias & Emergência
+              </h1>
+              <p className="text-sm text-[#475569]">
+                Registre ocorrências de iluminação ou risco no campus com remoção automática de EXIF.
+              </p>
+            </div>
+            <DropletMascot
+              state={isEmergencyDialogOpen ? 'alert' : mascotMood}
+              expression={
+                isEmergencyDialogOpen
+                  ? 'effraye'
+                  : mascotMood === 'notify'
+                    ? 'fier'
+                    : 'attentif'
+              }
+              tremble={isEmergencyDialogOpen}
+              inkColor={isEmergencyDialogOpen ? '#D70015' : '#2563EB'}
+              paperColor="#FFFFFF"
+              notifColor="#10B981"
+              size={52}
+              interactive
+              ariaLabel="Mascote de apoio a denúncias"
+              className="shrink-0"
+            />
+          </div>
+
+          <div className="rounded-2xl bg-[#E5EDF7]/75 border border-[#D5E0EE] px-3.5 py-2.5 flex items-center gap-2.5">
+            <TrioCharacterAvatar variant="pink" size={24} />
+            <p className="text-xs text-[#334155]">
+              <span className="font-semibold text-[#0F172A]">Dica de segurança:</span> denúncias confidenciais ocultam sua identidade e recalibram o mapa na hora.
             </p>
           </div>
-          <DropletMascot
-            state={isEmergencyDialogOpen ? 'alert' : mascotMood}
-            expression={
-              isEmergencyDialogOpen
-                ? 'effraye'
-                : mascotMood === 'notify'
-                  ? 'fier'
-                  : 'attentif'
-            }
-            tremble={isEmergencyDialogOpen}
-            inkColor={isEmergencyDialogOpen ? '#D70015' : '#2563EB'}
-            paperColor="#FFFFFF"
-            notifColor="#10B981"
-            size={64}
-            interactive
-            ariaLabel="Mascote de apoio a denúncias"
-            className="shrink-0"
-          />
         </header>
 
         {/* Emergency Safety Card (Explicit Dialog Confirmation Required — Zero Accidental Dialing) */}
         <section
           aria-labelledby="reports-emergency-heading"
-          className="bg-white border border-[#D70015]/30 rounded-[24px] p-5 space-y-4 shadow-2xs"
+          className="bg-white border border-[#D70015]/30 rounded-[24px] p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-start gap-3.5 min-w-0 flex-1">
@@ -315,11 +349,11 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               <div className="min-w-0">
                 <h2
                   id="reports-emergency-heading"
-                  className="text-lg font-medium text-[#131314]"
+                  className="text-lg font-semibold text-[#0F172A]"
                 >
                   Ajuda imediata no campus
                 </h2>
-                <p className="text-sm text-[#46444a] mt-0.5 leading-relaxed">
+                <p className="text-sm text-[#475569] mt-0.5 leading-relaxed">
                   Segurança Institucional UFSC (Trindade 24h) ou Polícia Militar 190. Requer confirmação explícita antes de acionar.
                 </p>
               </div>
@@ -329,7 +363,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               ref={emergencyTriggerRef}
               type="button"
               onClick={() => setIsEmergencyDialogOpen(true)}
-              className="w-full sm:w-auto min-h-[44px] px-5 rounded-full bg-[#D70015] text-white text-sm font-medium inline-flex items-center justify-center gap-2 hover:bg-[#b50012] active:scale-[0.97] transition-all cursor-pointer shrink-0"
+              className="w-full sm:w-auto min-h-[44px] px-5 rounded-full bg-[#D70015] text-white text-sm font-semibold inline-flex items-center justify-center gap-2 hover:bg-[#b50012] active:scale-[0.97] transition-all cursor-pointer shrink-0"
             >
               <PhoneCall className="w-4 h-4" aria-hidden="true" />
               <span>Emergência UFSC / 190</span>
@@ -339,7 +373,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
           {emergencyConfirmedAt && (
             <div
               role="note"
-              className="p-3 rounded-2xl bg-[#D70015]/8 border border-[#D70015]/25 text-xs text-[#131314] flex items-center gap-2"
+              className="p-3 rounded-2xl bg-[#D70015]/8 border border-[#D70015]/25 text-xs text-[#0F172A] flex items-center gap-2"
             >
               <CheckCircle2 className="w-4 h-4 text-[#D70015] shrink-0" aria-hidden="true" />
               <span>
@@ -352,20 +386,15 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
         {/* Section 1: Validated Incident Report Form */}
         <section
           aria-labelledby="reports-form-heading"
-          className="bg-white border border-[#E5EAF4] rounded-[24px] p-5 space-y-5 shadow-2xs"
+          className="bg-white border border-[#D5E0EE] rounded-[24px] p-5 space-y-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
         >
-          <div className="flex items-start gap-4">
-            <div
-              aria-hidden="true"
-              className="w-10 h-10 rounded-full bg-[#2563EB] text-white text-sm font-medium flex items-center justify-center shrink-0"
-            >
-              1
-            </div>
+          <div className="flex items-start gap-3.5">
+            <TrioCharacterAvatar variant="blue" size={38} className="mt-0.5" />
             <div className="min-w-0 flex-1">
-              <h2 id="reports-form-heading" className="text-lg font-medium text-[#111827]">
+              <h2 id="reports-form-heading" className="text-lg font-semibold text-[#0F172A]">
                 Registrar ocorrência
               </h2>
-              <p className="text-sm text-[#4B5563] mt-0.5">
+              <p className="text-sm text-[#475569] mt-0.5">
                 Entradas validadas contra scripts; dados sensíveis nunca são expostos no feed.
               </p>
             </div>
@@ -376,7 +405,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
             <div>
               <label
                 htmlFor="report-category"
-                className="block text-xs font-medium text-[#6B7280] mb-1.5"
+                className="block text-xs font-medium text-[#475569] mb-1.5"
               >
                 Categoria da ocorrência
               </label>
@@ -385,7 +414,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 aria-label="Categoria da denúncia"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ReportCategory)}
-                className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#E5EAF4] bg-[#F8FAFC] text-sm text-[#111827] focus:outline-2 focus:outline-[#2563EB] cursor-pointer"
+                className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#D5E0EE] bg-[#E5EDF7]/65 text-sm text-[#0F172A] focus:outline-2 focus:outline-[#2563EB] cursor-pointer"
               >
                 {(Object.keys(CATEGORY_META) as ReportCategory[]).map((key) => (
                   <option key={key} value={key}>
@@ -399,7 +428,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
             <div className="space-y-2">
               <label
                 htmlFor="report-location"
-                className="block text-xs font-medium text-[#6B7280]"
+                className="block text-xs font-medium text-[#475569]"
               >
                 Local no campus
               </label>
@@ -413,7 +442,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                   if (formError) setFormError(null);
                 }}
                 placeholder="Ex: Trilha do Bosque, entrada da BU"
-                className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#E5EAF4] bg-[#F8FAFC] text-sm text-[#111827] placeholder:text-[#6B7280] focus:outline-2 focus:outline-[#2563EB]"
+                className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#D5E0EE] bg-[#E5EDF7]/65 text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-2 focus:outline-[#2563EB]"
               />
               <div className="flex flex-wrap gap-1.5">
                 {QUICK_LOCATIONS.map((loc) => (
@@ -424,7 +453,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                       setLocation(loc);
                       if (formError) setFormError(null);
                     }}
-                    className="min-h-[44px] px-3 rounded-full bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E5EAF4] text-xs font-medium text-[#374151] cursor-pointer"
+                    className="min-h-[44px] px-3 rounded-full bg-[#E5EDF7]/75 hover:bg-[#D7ECFF] border border-[#D5E0EE] text-xs font-medium text-[#0F172A] cursor-pointer"
                   >
                     {loc}
                   </button>
@@ -437,11 +466,11 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               <div className="flex items-center justify-between mb-1.5">
                 <label
                   htmlFor="report-description"
-                  className="block text-xs font-medium text-[#6B7280]"
+                  className="block text-xs font-medium text-[#475569]"
                 >
                   Descrição
                 </label>
-                <span className="text-xs text-[#6B7280]">{description.length}/500</span>
+                <span className="text-xs text-[#475569]">{description.length}/500</span>
               </div>
               <textarea
                 id="report-description"
@@ -453,17 +482,17 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                   if (formError) setFormError(null);
                 }}
                 placeholder="Descreva o ponto escuro, poste danificado ou situação observada (10 a 500 caracteres)"
-                className="w-full min-h-[96px] p-3.5 rounded-xl border border-[#E5EAF4] bg-[#F8FAFC] text-sm text-[#111827] placeholder:text-[#6B7280] focus:outline-2 focus:outline-[#2563EB]"
+                className="w-full min-h-[96px] p-3.5 rounded-xl border border-[#D5E0EE] bg-[#E5EDF7]/65 text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-2 focus:outline-[#2563EB]"
               />
             </div>
 
             {/* Confidentiality Switch */}
-            <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4]">
+            <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#E5EDF7]/65 border border-[#D5E0EE]">
               <div className="flex items-center gap-2.5 min-w-0">
                 <Lock className="w-4 h-4 text-[#10B981] shrink-0" aria-hidden="true" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#111827]">Denúncia confidencial</p>
-                  <p className="text-xs text-[#6B7280]">
+                  <p className="text-sm font-semibold text-[#0F172A]">Denúncia confidencial</p>
+                  <p className="text-xs text-[#475569]">
                     Oculta sua identidade no feed comunitário
                   </p>
                 </div>
@@ -487,7 +516,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
             <div className="space-y-2">
               <label
                 htmlFor="report-evidence-file"
-                className="block text-xs font-medium text-[#66646d]"
+                className="block text-xs font-medium text-[#475569]"
               >
                 Anexar foto de evidência (opcional • JPEG, PNG ou WebP até 5 MB)
               </label>
@@ -495,7 +524,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="min-h-[44px] px-4 rounded-full border border-[#dfe3e6] bg-[#f3f3f4] hover:bg-[#e7e7e8] active:scale-[0.97] text-xs sm:text-sm font-medium text-[#131314] inline-flex items-center gap-2 transition-all cursor-pointer"
+                  className="min-h-[44px] px-4 rounded-full border border-[#D5E0EE] bg-[#E5EDF7]/75 hover:bg-[#DCE6F4] active:scale-[0.97] text-xs sm:text-sm font-semibold text-[#0F172A] inline-flex items-center gap-2 transition-all cursor-pointer"
                 >
                   <Camera className="w-4 h-4" aria-hidden="true" />
                   <span>
@@ -517,7 +546,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                   <button
                     type="button"
                     onClick={handleRemovePhoto}
-                    className="min-h-[44px] px-3.5 rounded-full border border-[#dfe3e6] text-xs font-medium text-[#D70015] inline-flex items-center gap-1.5 hover:bg-red-50 cursor-pointer"
+                    className="min-h-[44px] px-3.5 rounded-full border border-[#D5E0EE] bg-white text-xs font-medium text-[#D70015] inline-flex items-center gap-1.5 hover:bg-red-50 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>Remover foto</span>
@@ -526,19 +555,19 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               </div>
 
               {photoThumbnailUrl && (
-                <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#FEF1CF] border border-[#D8C89E]">
+                <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#E5EDF7]/75 border border-[#D5E0EE]">
                   <img
                     src={photoThumbnailUrl}
                     alt="Prévia da evidência com EXIF removido"
                     loading="lazy"
                     decoding="async"
-                    className="w-16 h-16 rounded-xl object-cover border border-[#D8C89E] shrink-0"
+                    className="w-16 h-16 rounded-xl object-cover border border-[#D5E0EE] shrink-0"
                   />
-                  <div className="text-xs text-[#2E3856]">
-                    <p className="font-medium text-[#15803d]">
+                  <div className="text-xs text-[#0F172A]">
+                    <p className="font-semibold text-[#047857]">
                       Metadados EXIF removidos com segurança
                     </p>
-                    <p className="text-[#4D5775]">
+                    <p className="text-[#475569]">
                       Miniatura WebP/JPEG re-codificada localmente antes do envio.
                     </p>
                   </div>
@@ -571,33 +600,32 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
 
         {/* Section 2: Chronological Community Report Feed */}
         <section aria-labelledby="reports-feed-heading" className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div
-              aria-hidden="true"
-              className="w-10 h-10 rounded-full bg-[#2563EB] text-white text-sm font-medium flex items-center justify-center shrink-0"
-            >
-              2
-            </div>
+          <div className="flex items-center gap-3.5">
+            <TrioCharacterAvatar variant="gold" size={38} />
             <div>
-              <h2 id="reports-feed-heading" className="text-lg font-medium text-[#111827]">
+              <h2 id="reports-feed-heading" className="text-lg font-semibold text-[#0F172A]">
                 Feed comunitário ({sortedFilteredReports.length})
               </h2>
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-xs text-[#475569]">
                 Registros em ordem cronológica, com identidade preservada.
               </p>
             </div>
           </div>
 
           {/* Category Filter Chips */}
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar denúncias">
+          <div
+            className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-[#E5EDF7] border border-[#D5E0EE]"
+            role="group"
+            aria-label="Filtrar denúncias"
+          >
             <button
               type="button"
               onClick={() => setFeedFilter('all')}
               aria-pressed={feedFilter === 'all'}
-              className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97] cursor-pointer ${
+              className={`min-h-[40px] px-3.5 rounded-xl text-xs font-semibold border transition-all active:scale-[0.97] cursor-pointer ${
                 feedFilter === 'all'
-                  ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                  : 'bg-white text-[#4B5563] border-[#E5EAF4] hover:text-[#111827]'
+                  ? 'bg-white text-[#0F172A] border-[#D5E0EE] shadow-[0_2px_6px_rgba(15,23,42,0.08)]'
+                  : 'bg-transparent text-[#475569] border-transparent hover:text-[#0F172A]'
               }`}
             >
               Todas
@@ -610,10 +638,10 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                   type="button"
                   onClick={() => setFeedFilter(cat)}
                   aria-pressed={active}
-                  className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97] cursor-pointer ${
+                  className={`min-h-[40px] px-3.5 rounded-xl text-xs font-semibold border transition-all active:scale-[0.97] cursor-pointer ${
                     active
-                      ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                      : 'bg-white text-[#4B5563] border-[#E5EAF4] hover:text-[#111827]'
+                      ? 'bg-white text-[#0F172A] border-[#D5E0EE] shadow-[0_2px_6px_rgba(15,23,42,0.08)]'
+                      : 'bg-transparent text-[#475569] border-transparent hover:text-[#0F172A]'
                   }`}
                 >
                   {CATEGORY_META[cat].shortLabel}
@@ -630,7 +658,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
             listClassName="space-y-3"
             loadMoreLabel="Carregar mais denúncias"
             emptyState={
-              <div className="bg-white border border-[#E5EAF4] rounded-[24px] p-5 text-sm text-[#6B7280]">
+              <div className="bg-white border border-[#D5E0EE] rounded-[24px] p-5 text-sm text-[#475569] shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
                 Nenhuma denúncia registrada para esta categoria.
               </div>
             }
@@ -646,7 +674,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 );
 
               return (
-                <article className="bg-white border border-[#E5EAF4] rounded-2xl p-4 space-y-2.5 shadow-2xs">
+                <article className="bg-white border border-[#D5E0EE] rounded-2xl p-4 space-y-2.5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span
@@ -664,16 +692,16 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                       </span>
                     </div>
 
-                    <span className="text-xs text-[#6B7280]">
+                    <span className="text-xs text-[#475569]">
                       {formatReportDate(report.createdAt)}
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="text-base font-medium text-[#111827]">
+                    <h3 className="text-base font-semibold text-[#0F172A]">
                       {report.locationName}
                     </h3>
-                    <p className="text-sm text-[#4B5563] mt-1 leading-relaxed">
+                    <p className="text-sm text-[#475569] mt-1 leading-relaxed">
                       {report.description}
                     </p>
                   </div>
@@ -684,11 +712,11 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                       alt={`Evidência em ${report.locationName}`}
                       loading="lazy"
                       decoding="async"
-                      className="w-24 h-24 rounded-xl object-cover border border-[#E5EAF4]"
+                      className="w-24 h-24 rounded-xl object-cover border border-[#D5E0EE]"
                     />
                   )}
 
-                  <div className="pt-1 flex items-center gap-1.5 text-xs text-[#6B7280]">
+                  <div className="pt-1 flex items-center gap-1.5 text-xs text-[#475569]">
                     {report.isConfidential ? (
                       <>
                         <Lock className="w-3.5 h-3.5 text-[#10B981]" aria-hidden="true" />
@@ -711,9 +739,9 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="emergency-dialog-title"
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0B1226]/70"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0F172A]/65 backdrop-blur-xs"
         >
-          <div className="w-full max-w-md bg-[#FFF9EA] text-[#0B1226] rounded-3xl p-6 border border-[#D8C89E] shadow-2xl space-y-5">
+          <div className="w-full max-w-md bg-white text-[#0F172A] rounded-3xl p-6 border border-[#D5E0EE] shadow-2xl space-y-5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-full bg-[#D70015]/12 text-[#D70015] flex items-center justify-center shrink-0">
@@ -721,7 +749,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 </div>
                 <h2
                   id="emergency-dialog-title"
-                  className="text-lg font-medium text-[#0B1226]"
+                  className="text-lg font-semibold text-[#0F172A]"
                 >
                   Confirmar acionamento de emergência
                 </h2>
@@ -731,24 +759,24 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 type="button"
                 aria-label="Fechar diálogo de emergência"
                 onClick={handleCloseEmergencyDialog}
-                className="min-w-[44px] min-h-[44px] -mt-1 -mr-1 rounded-full inline-flex items-center justify-center text-[#2E3856] hover:bg-[#FEF1CF] active:scale-[0.97] transition-all cursor-pointer"
+                className="min-w-[44px] min-h-[44px] -mt-1 -mr-1 rounded-full inline-flex items-center justify-center text-[#475569] hover:bg-[#E5EDF7] active:scale-[0.97] transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
-            <div className="space-y-2.5 rounded-2xl bg-[#FEF1CF] border border-[#D8C89E] p-4">
+            <div className="space-y-2.5 rounded-2xl bg-[#E5EDF7]/75 border border-[#D5E0EE] p-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-[#0B1226]">Segurança UFSC (24h)</span>
+                <span className="font-medium text-[#0F172A]">Segurança UFSC (24h)</span>
                 <span className="font-semibold text-[#D70015]">(48) 3721-9555</span>
               </div>
-              <div className="flex items-center justify-between text-sm pt-2 border-t border-[#D8C89E]">
-                <span className="font-medium text-[#0B1226]">Polícia Militar</span>
+              <div className="flex items-center justify-between text-sm pt-2 border-t border-[#D5E0EE]">
+                <span className="font-medium text-[#0F172A]">Polícia Militar</span>
                 <span className="font-semibold text-[#D70015]">190</span>
               </div>
             </div>
 
-            <p className="text-xs text-[#2E3856] leading-relaxed">
+            <p className="text-xs text-[#475569] leading-relaxed">
               Para evitar acionamentos acidentais, nenhuma ligação é disparada automaticamente. Ao confirmar, o app registra um alerta simulado de demonstração para os canais oficiais acima.
             </p>
 
@@ -756,14 +784,14 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               <button
                 type="button"
                 onClick={handleCloseEmergencyDialog}
-                className="flex-1 min-h-[44px] px-4 rounded-full border border-[#D8C89E] bg-[#FFF9EA] text-sm font-medium text-[#0B1226] hover:bg-[#FEF1CF] active:scale-[0.97] transition-all cursor-pointer"
+                className="flex-1 min-h-[44px] px-4 rounded-full border border-[#D5E0EE] bg-[#E5EDF7]/70 text-sm font-semibold text-[#0F172A] hover:bg-[#DCE6F4] active:scale-[0.97] transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleConfirmEmergency}
-                className="flex-1 min-h-[44px] px-4 rounded-full bg-[#D70015] text-white text-sm font-medium hover:bg-[#b50012] active:scale-[0.97] transition-all cursor-pointer"
+                className="flex-1 min-h-[44px] px-4 rounded-full bg-[#D70015] text-white text-sm font-semibold hover:bg-[#b50012] active:scale-[0.97] transition-all cursor-pointer"
               >
                 Confirmar alerta simulado
               </button>

@@ -15,6 +15,7 @@ import type { LampPostStatus } from '../../types/campus';
 import { PillButton } from '../ui/PillButton';
 import { VirtualizedList } from '../ui/VirtualizedList';
 import { DropletMascot } from '../mascot/DropletMascot';
+import { TrioCharacterAvatar, TrioMascotStack } from '../mascot/TrioMascotBadge';
 
 export interface LightsTabProps {
   onOpenMap: () => void;
@@ -161,39 +162,75 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
   return (
     <section
       aria-label="Monitoramento de postes e QR Code"
-      className="min-h-screen bg-gradient-to-b from-[#E5ECFF] via-[#F2F6FF] to-[#F6F8FC] text-[#111827] px-4 pt-5 pb-28 sm:px-6"
+      className="relative overflow-hidden min-h-screen bg-[#EAEFF6] text-[#0F172A] px-4 pt-5 pb-28 sm:px-6"
     >
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Editorial Header */}
-        <header className="space-y-1">
-          <p className="text-xs font-medium text-[#4B5563]">
-            Monitoramento colaborativo UFSC
-          </p>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#111827]">
-            Postes & QR Code
-          </h1>
-          <p className="text-sm text-[#4B5563]">
-            {counts.aceso} acesos • {counts.oscilando} oscilando • {counts.queimado} queimados
-          </p>
+      {/* Subtle WelcomeBack-inspired Sky Sunburst Wash */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 overflow-hidden"
+        style={{
+          background: 'linear-gradient(180deg, #D7ECFF 0%, #E3F0FC 52%, #EAEFF6 100%)',
+        }}
+      >
+        <div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[170%] h-full opacity-55"
+          style={{
+            background:
+              'repeating-conic-gradient(from 138deg at 50% 0%, rgba(255,255,255,0.42) 0deg 8deg, rgba(168,214,255,0.18) 8deg 19deg)',
+            maskImage:
+              'radial-gradient(ellipse 90% 92% at 50% 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,0) 88%)',
+            WebkitMaskImage:
+              'radial-gradient(ellipse 90% 92% at 50% 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,0) 88%)',
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-2xl mx-auto space-y-5">
+        {/* Crisp Header Card with Trio Identity */}
+        <header className="bg-white border border-[#D5E0EE] rounded-[24px] p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1 min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#2563EB]">
+                Monitoramento colaborativo UFSC
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#0F172A]">
+                Postes & QR Code
+              </h1>
+              <p className="text-sm text-[#475569]">
+                {counts.aceso} acesos • {counts.oscilando} oscilando • {counts.queimado} queimados
+              </p>
+            </div>
+            <TrioMascotStack size={26} className="shrink-0 mt-1" />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#E5EDF7] text-[#0F172A] border border-[#D5E0EE]">
+              <span className="w-2 h-2 rounded-full bg-[#5EC2F3]" aria-hidden="true" />
+              <span>{counts.aceso} operando</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#E5EDF7] text-[#0F172A] border border-[#D5E0EE]">
+              <span className="w-2 h-2 rounded-full bg-[#F7C648]" aria-hidden="true" />
+              <span>{counts.oscilando} em alerta</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#E5EDF7] text-[#0F172A] border border-[#D5E0EE]">
+              <span className="w-2 h-2 rounded-full bg-[#EE86BF]" aria-hidden="true" />
+              <span>{counts.queimado} em desvio</span>
+            </span>
+          </div>
         </header>
 
         {/* Section 1: Interactive QR Code Scanner Simulator */}
         <section
           aria-labelledby="lights-scanner-heading"
-          className="bg-white border border-[#E5EAF4] rounded-[24px] p-5 space-y-5 shadow-2xs"
+          className="bg-white border border-[#D5E0EE] rounded-[24px] p-5 space-y-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
         >
-          <div className="flex items-start gap-4">
-            <div
-              aria-hidden="true"
-              className="w-10 h-10 rounded-full bg-[#2563EB] text-white text-sm font-medium flex items-center justify-center shrink-0"
-            >
-              1
-            </div>
+          <div className="flex items-start gap-3.5">
+            <TrioCharacterAvatar variant="blue" size={38} className="mt-0.5" />
             <div className="min-w-0 flex-1">
-              <h2 id="lights-scanner-heading" className="text-lg font-medium text-[#111827]">
+              <h2 id="lights-scanner-heading" className="text-lg font-semibold text-[#0F172A]">
                 Leitor QR do poste
               </h2>
-              <p className="text-sm text-[#4B5563] mt-0.5">
+              <p className="text-sm text-[#475569] mt-0.5">
                 Selecione uma etiqueta QR do campus ou digite o código do poste para atualizar em 1 toque.
               </p>
             </div>
@@ -201,7 +238,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
 
           {/* Stylized QR Viewfinder with Reactive Droplet Mascot */}
           {selectedPost && (
-            <div className="rounded-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white p-4 relative overflow-hidden">
+            <div className="rounded-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white p-4 relative overflow-hidden shadow-sm">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-12 h-12 rounded-2xl border border-white/25 bg-white/10 flex items-center justify-center shrink-0">
@@ -257,7 +294,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
 
           {/* Quick-Select Seeded QR Pills */}
           <div className="space-y-2">
-            <span className="block text-xs font-medium text-[#6B7280]">
+            <span className="block text-xs font-medium text-[#475569]">
               Simular leitura rápida no campus
             </span>
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
@@ -270,10 +307,10 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     type="button"
                     onClick={() => handleSelectQuickQr(post.id)}
                     aria-pressed={isSelected}
-                    className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border inline-flex items-center gap-1.5 shrink-0 transition-all active:scale-[0.97] cursor-pointer ${
+                    className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 shrink-0 transition-all active:scale-[0.97] cursor-pointer ${
                       isSelected
-                        ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                        : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]'
+                        ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-xs'
+                        : 'bg-[#E5EDF7]/75 text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
                     }`}
                   >
                     <StatusIcon className="w-3.5 h-3.5" aria-hidden="true" />
@@ -288,7 +325,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
           <form onSubmit={handleQrScanSubmit} className="space-y-2">
             <label
               htmlFor="qr-code-input"
-              className="block text-xs font-medium text-[#6B7280]"
+              className="block text-xs font-medium text-[#475569]"
             >
               Código QR do poste
             </label>
@@ -303,11 +340,11 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                   if (qrError) setQrError(null);
                 }}
                 placeholder="Ex: POSTE-BU-01"
-                className="flex-1 min-w-0 min-h-[44px] px-3.5 rounded-xl border border-[#E5EAF4] bg-[#F8FAFC] text-sm text-[#111827] placeholder:text-[#6B7280] focus:outline-2 focus:outline-[#2563EB]"
+                className="flex-1 min-w-0 min-h-[44px] px-3.5 rounded-xl border border-[#D5E0EE] bg-[#E5EDF7]/65 text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-2 focus:outline-[#2563EB]"
               />
               <button
                 type="submit"
-                className="min-h-[44px] px-5 rounded-full bg-[#2563EB] text-white text-sm font-medium hover:bg-[#1D4ED8] active:scale-[0.97] transition-all cursor-pointer shrink-0"
+                className="min-h-[44px] px-5 rounded-full bg-[#2563EB] text-white text-sm font-semibold hover:bg-[#1D4ED8] active:scale-[0.97] transition-all cursor-pointer shrink-0"
               >
                 Ler QR
               </button>
@@ -325,12 +362,12 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
 
           {/* Instant 1-Tap Status Controls */}
           {selectedPost && (
-            <div className="pt-4 border-t border-[#E5EAF4] space-y-3">
+            <div className="pt-4 border-t border-[#E5EDF7] space-y-3">
               <div>
-                <h3 className="text-base font-medium text-[#111827]">
+                <h3 className="text-base font-semibold text-[#0F172A]">
                   Atualizar status de {selectedPost.id}
                 </h3>
-                <p className="text-xs text-[#6B7280] mt-0.5">{selectedPost.name}</p>
+                <p className="text-xs text-[#475569] mt-0.5">{selectedPost.name}</p>
               </div>
 
               <div
@@ -348,10 +385,10 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                       type="button"
                       onClick={() => handleStatusChange(status)}
                       aria-pressed={isCurrent}
-                      className={`min-h-[44px] px-2.5 py-2 rounded-2xl border text-xs sm:text-sm font-medium inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
+                      className={`min-h-[44px] px-2.5 py-2 rounded-2xl border text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
                         isCurrent
                           ? meta.activeBtnClass
-                          : 'bg-[#F8FAFC] text-[#111827] border-[#E5EAF4] hover:border-[#2563EB]'
+                          : 'bg-[#E5EDF7]/75 text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
                       }`}
                     >
                       <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -364,12 +401,12 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
           )}
 
           {/* Optimistic Route Recalculation Banner + Single Prominent CTA */}
-          <div className="rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="rounded-2xl bg-[#E5EDF7]/75 border border-[#D5E0EE] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="min-w-0 space-y-0.5">
-              <p className="text-xs font-medium text-[#111827]">
+              <p className="text-xs font-semibold text-[#0F172A]">
                 {statusFeedback ?? `Corredor ${originShort} → ${destShort}`}
               </p>
-              <p className="text-xs text-[#4B5563]">
+              <p className="text-xs text-[#475569]">
                 Rota iluminada atual: {brightestRoute.illuminationPercentage}% •{' '}
                 {brightestRoute.hasDarkWarning
                   ? 'Desvio ou alerta de trecho escuro ativo'
@@ -381,7 +418,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
               variant="lime"
               size="compact"
               onClick={onOpenMap}
-              className="shrink-0 gap-1.5 font-medium"
+              className="shrink-0 gap-1.5 font-semibold"
             >
               <span>Ver rota no Mapa</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -392,20 +429,15 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
         {/* Section 2: Filterable UFSC Lamp Post Directory */}
         <section
           aria-labelledby="lights-directory-heading"
-          className="bg-white border border-[#E5EAF4] rounded-[24px] p-5 space-y-4 shadow-2xs"
+          className="bg-white border border-[#D5E0EE] rounded-[24px] p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
         >
-          <div className="flex items-start gap-4">
-            <div
-              aria-hidden="true"
-              className="w-10 h-10 rounded-full bg-[#2563EB] text-white text-sm font-medium flex items-center justify-center shrink-0"
-            >
-              2
-            </div>
+          <div className="flex items-start gap-3.5">
+            <TrioCharacterAvatar variant="gold" size={38} className="mt-0.5" />
             <div className="min-w-0 flex-1">
-              <h2 id="lights-directory-heading" className="text-lg font-medium text-[#111827]">
+              <h2 id="lights-directory-heading" className="text-lg font-semibold text-[#0F172A]">
                 Diretório de postes UFSC
               </h2>
-              <p className="text-sm text-[#4B5563] mt-0.5">
+              <p className="text-sm text-[#475569] mt-0.5">
                 Toque em qualquer poste para selecionar e atualizar sua situação.
               </p>
             </div>
@@ -413,8 +445,8 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
 
           {/* Search & Status Filter Chips */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E5EAF4] rounded-full px-3.5">
-              <Search className="w-4 h-4 text-[#6B7280] shrink-0" aria-hidden="true" />
+            <div className="flex items-center gap-2 bg-[#E5EDF7]/65 border border-[#D5E0EE] rounded-full px-3.5">
+              <Search className="w-4 h-4 text-[#64748B] shrink-0" aria-hidden="true" />
               <label htmlFor="lights-directory-search" className="sr-only">
                 Filtrar postes no diretório
               </label>
@@ -425,11 +457,15 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                 value={directorySearch}
                 onChange={(e) => setDirectorySearch(e.target.value)}
                 placeholder="Buscar por código ou local (ex: BU, Bosque)"
-                className="flex-1 min-h-[44px] bg-transparent text-sm text-[#111827] placeholder:text-[#6B7280] focus:outline-none"
+                className="flex-1 min-h-[44px] bg-transparent text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none"
               />
             </div>
 
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por status">
+            <div
+              className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-[#E5EDF7] border border-[#D5E0EE]"
+              role="group"
+              aria-label="Filtrar por status"
+            >
               {(
                 [
                   { id: 'all', label: `Todos (${posts.length})` },
@@ -445,10 +481,10 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     type="button"
                     onClick={() => setDirectoryFilter(chip.id)}
                     aria-pressed={active}
-                    className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97] cursor-pointer ${
+                    className={`min-h-[40px] px-3.5 rounded-xl text-xs font-semibold border transition-all active:scale-[0.97] cursor-pointer ${
                       active
-                        ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                        : 'bg-[#F8FAFC] text-[#4B5563] border-[#E5EAF4] hover:text-[#111827]'
+                        ? 'bg-white text-[#0F172A] border-[#D5E0EE] shadow-[0_2px_6px_rgba(15,23,42,0.08)]'
+                        : 'bg-transparent text-[#475569] border-transparent hover:text-[#0F172A]'
                     }`}
                   >
                     {chip.label}
@@ -464,10 +500,10 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
             pageSize={6}
             getItemKey={(post) => post.id}
             ariaLabel="Lista de postes da UFSC"
-            listClassName="divide-y divide-[#E5EAF4] border-t border-[#E5EAF4]"
+            listClassName="divide-y divide-[#E5EDF7] border-t border-[#E5EDF7]"
             loadMoreLabel="Mostrar mais postes"
             emptyState={
-              <p className="text-sm text-[#6B7280] py-4 border-t border-[#E5EAF4]">
+              <p className="text-sm text-[#475569] py-4 border-t border-[#E5EDF7]">
                 Nenhum poste encontrado para este filtro.
               </p>
             }
@@ -483,14 +519,16 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     onClick={() => handleSelectQuickQr(post.id)}
                     aria-label={`Selecionar ${post.id} — ${post.name} (${meta.label})`}
                     className={`w-full min-h-[44px] px-3 py-2.5 rounded-2xl text-left flex items-center justify-between gap-3 transition-all active:scale-[0.98] cursor-pointer ${
-                      isSelected ? 'bg-[#EFF6FF]' : 'hover:bg-[#F8FAFC]'
+                      isSelected
+                        ? 'bg-[#D7ECFF]/75 border border-[#5EC2F3]/50'
+                        : 'hover:bg-[#E5EDF7]/60'
                     }`}
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-[#111827] truncate">
+                      <p className="text-sm font-semibold text-[#0F172A] truncate">
                         {post.name}
                       </p>
-                      <p className="text-xs text-[#6B7280] mt-0.5">
+                      <p className="text-xs text-[#475569] mt-0.5">
                         {post.id} • Atualizado às {formatPostTime(post.lastUpdated)}
                       </p>
                     </div>

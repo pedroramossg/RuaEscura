@@ -183,7 +183,14 @@ const IncidentReportSchema = z.object({
   photoThumbnailUrl: SafePhotoThumbnailSchema.optional(),
 });
 
-const CompanionMatchSchema = z.object({
+const GroupMemberSchema = z.object({
+  id: z.string(),
+  name: z.string().refine(isSafeText, 'Nome de integrante inválido'),
+  initials: z.string().refine(isSafeText, 'Iniciais inválidas'),
+  mascotVariant: z.enum(['blue', 'gold', 'pink']),
+});
+
+export const CompanionMatchSchema = z.object({
   id: z.string(),
   name: z.string().refine(isSafeText, 'Nome contém caracteres inválidos'),
   initials: z.string().refine(isSafeText, 'Iniciais contêm caracteres inválidos'),
@@ -194,6 +201,24 @@ const CompanionMatchSchema = z.object({
   departureTime: z.string(),
   currentStatus: z.enum(['aguardando', 'a_caminho', 'concluido']),
   isUserJoined: z.boolean().optional(),
+  isGroup: z.boolean().optional(),
+  groupTitle: z.string().refine(isSafeText, 'Título do grupo contém caracteres inválidos').optional(),
+  members: z.array(GroupMemberSchema).optional(),
+});
+
+export const WalkingGroupCreationSchema = z.object({
+  title: z
+    .string({ required_error: 'Nome do grupo é obrigatório' })
+    .trim()
+    .min(3, 'Nome do grupo deve ter ao menos 3 caracteres')
+    .max(60, 'Nome do grupo excede 60 caracteres')
+    .refine(isSafeText, 'Nome do grupo contém caracteres inválidos (<, >)'),
+  originId: z.string().min(1),
+  destinationId: z.string().min(1),
+  departureTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Horário inválido (use HH:MM)'),
+  memberIds: z.array(z.string()).min(1, 'Selecione ao menos 1 colega para o grupo'),
 });
 
 const GovBrSessionSchema = z.object({
@@ -233,6 +258,7 @@ export const PersistedCampusStateSchema: z.ZodType<PersistedCampusState> = z
           text: z.string().refine(isSafeText, 'Mensagem contém caracteres inválidos ou scripts (<, >, javascript:)'),
           timestamp: z.string(),
           isSystem: z.boolean().optional(),
+          reactions: z.record(z.string(), z.array(z.string())).optional(),
         })
       )
     ),
