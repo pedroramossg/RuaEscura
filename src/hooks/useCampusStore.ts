@@ -19,6 +19,7 @@ import {
   LightRatingSchema,
   ReportSubmissionSchema,
   ChatMessageSchema,
+  ScheduledDepartureSchema,
 } from '../security/schemas';
 import { useHaptics } from './useHaptics';
 
@@ -39,6 +40,10 @@ export interface CampusStoreContextType {
   activeOriginId: string;
   activeDestinationId: string;
   routeMode: RouteMode;
+  scheduledDeparture?: {
+    time: string;
+    updatedAt: string;
+  };
 
   // Computed routes
   brightestRoute: RouteResult;
@@ -66,6 +71,7 @@ export interface CampusStoreContextType {
   setRouteEndpoints: (originId: string, destinationId: string) => void;
   swapEndpoints: () => void;
   setRouteMode: (mode: RouteMode) => void;
+  scheduleDeparture: (time: string) => { success: boolean; error?: string };
   toggleNightMap: () => void;
   setHapticsEnabled: (enabled: boolean) => void;
   resetSessionOnly: () => void;
@@ -370,6 +376,27 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     haptics.trigger('warning');
   }, [updateState, haptics]);
 
+  const scheduleDeparture = useCallback(
+    (time: string): { success: boolean; error?: string } => {
+      const updatedAt = new Date().toISOString();
+      const validation = ScheduledDepartureSchema.safeParse({ time, updatedAt });
+      if (!validation.success) {
+        haptics.trigger('error');
+        return {
+          success: false,
+          error: validation.error.errors[0]?.message ?? 'Horário inválido',
+        };
+      }
+      updateState((prev) => ({
+        ...prev,
+        scheduledDeparture: validation.data,
+      }));
+      haptics.trigger('success');
+      return { success: true };
+    },
+    [updateState, haptics]
+  );
+
   const brightestRoute = useMemo(() => {
     return findRoute(
       state.activeOriginId,
@@ -422,6 +449,7 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     activeOriginId: state.activeOriginId,
     activeDestinationId: state.activeDestinationId,
     routeMode: state.routeMode,
+    scheduledDeparture: state.scheduledDeparture,
 
     brightestRoute,
     fastestRoute,
@@ -436,6 +464,7 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     setRouteEndpoints,
     swapEndpoints,
     setRouteMode,
+    scheduleDeparture,
     toggleNightMap,
     setHapticsEnabled,
     resetSessionOnly,

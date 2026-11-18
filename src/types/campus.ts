@@ -111,4 +111,8 @@ export interface PersistedCampusState {
   activeOriginId: string;
   activeDestinationId: string;
   routeMode: RouteMode;
+  scheduledDeparture?: {
+    time: string;
+    updatedAt: string;
+  };
 }

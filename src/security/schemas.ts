@@ -203,6 +203,13 @@ const GovBrSessionSchema = z.object({
   verifiedAt: z.string(),
 });
 
+export const ScheduledDepartureSchema = z.object({
+  time: z
+    .string({ required_error: 'Horário de saída é obrigatório' })
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Formato de horário inválido (use HH:MM)'),
+  updatedAt: z.string(),
+});
+
 export const PersistedCampusStateSchema: z.ZodType<PersistedCampusState> = z
   .object({
     version: z.number().int().positive(),
@@ -232,6 +239,7 @@ export const PersistedCampusStateSchema: z.ZodType<PersistedCampusState> = z
     activeOriginId: z.string(),
     activeDestinationId: z.string(),
     routeMode: z.enum(['brightest', 'fastest']),
+    scheduledDeparture: ScheduledDepartureSchema.optional(),
   })
   .refine(
     (data) => {

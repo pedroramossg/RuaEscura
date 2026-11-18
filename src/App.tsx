@@ -158,7 +158,7 @@ export function AppShell() {
         {toastMessage && (
           <div
             role="status"
-            className="max-w-md w-fit px-4 py-2.5 rounded-full bg-[#111827] text-white text-xs sm:text-sm font-medium shadow-lg border border-white/15"
+            className="t-toast is-open max-w-md w-fit px-4 py-2.5 rounded-full bg-[#111827] text-white text-xs sm:text-sm font-medium shadow-lg border border-white/15"
           >
             {toastMessage}
           </div>

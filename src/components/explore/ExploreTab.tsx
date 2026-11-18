@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useCampusStore } from '../../hooks/useCampusStore';
 import { useDebounce } from '../../hooks/useDebounce';
-import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { UFSC_EDGES, UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { findRoute } from '../../engine/routing';
@@ -22,6 +21,8 @@ import { LightRatingSchema } from '../../security/schemas';
 import { PillButton } from '../ui/PillButton';
 import { DropletMascot } from '../mascot/DropletMascot';
 import { getRouteMascotMood } from '../../mascot/moods';
+import { RouteStatusCard } from './RouteStatusCard';
+import { ExploreSheetMode, ScheduleAndDetailsSheet } from './ScheduleAndDetailsSheet';
 
 export interface ExploreTabProps {
   onOpenMap: () => void;
@@ -113,7 +114,10 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
     activeOriginId,
     activeDestinationId,
     brightestRoute,
+    scheduledDeparture,
     setRouteEndpoints,
+    swapEndpoints,
+    scheduleDeparture,
     rateEdgeLighting,
   } = useCampusStore();
 
@@ -125,6 +129,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
   const [selectedEdgeId, setSelectedEdgeId] = useState<string>('edge-bu-reitoria');
   const [lastRatedScore, setLastRatedScore] = useState<number | null>(null);
   const [ratingError, setRatingError] = useState<string | null>(null);
+  const [sheetMode, setSheetMode] = useState<ExploreSheetMode>(null);
 
   const landmarkMap = useMemo(
     () => new Map(UFSC_LANDMARKS.map((n) => [n.id, n])),
@@ -133,9 +138,12 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
 
   const firstName = userSession?.name?.trim().split(/\s+/)[0] || 'Estudante';
   const initials = getInitials(userSession?.name);
-  const originShort = landmarkMap.get(activeOriginId)?.shortName ?? activeOriginId.toUpperCase();
-  const destShort =
-    landmarkMap.get(activeDestinationId)?.shortName ?? activeDestinationId.toUpperCase();
+  const originNode = landmarkMap.get(activeOriginId);
+  const destNode = landmarkMap.get(activeDestinationId);
+  const originShort = originNode?.shortName ?? activeOriginId.toUpperCase();
+  const destShort = destNode?.shortName ?? activeDestinationId.toUpperCase();
+  const originName = originNode?.name ?? originShort;
+  const destName = destNode?.name ?? destShort;
 
   const litPostsCount = useMemo(
     () => posts.filter((p) => p.status === 'aceso').length,
@@ -150,14 +158,10 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
     [posts]
   );
 
-  const campusLightPct = posts.length
-    ? Math.round((litPostsCount / posts.length) * 100)
-    : 100;
-
-  const targetHeroPct =
-    heroMode === 'corridor' ? brightestRoute.illuminationPercentage : campusLightPct;
-  const animatedHeroPct = useAnimatedNumber(targetHeroPct, 540);
-  const animatedMinutes = useAnimatedNumber(brightestRoute.estimatedMinutes, 420);
+  const routeLitPostsCount = useMemo(
+    () => brightestRoute.posts.filter((p) => p.status === 'aceso').length,
+    [brightestRoute.posts]
+  );
 
   const routeMood = useMemo(
     () => getRouteMascotMood(brightestRoute, originShort, destShort),
@@ -267,33 +271,43 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
 
   const heroGradientClass =
     routeMood.tone === 'danger'
-      ? 'from-[#F97316] via-[#FDBA74] via-60% to-white'
-      : 'from-[#2F7CF6] via-[#7EB6FA] via-65% to-white';
+      ? 'from-[#FFEDD5] via-[#FFF7ED] via-60% to-white'
+      : 'from-[#E2EEFF] via-[#F2F7FF] via-65% to-white';
 
   const markerPercent = Math.min(96, Math.max(4, brightestRoute.illuminationPercentage));
+
+  const openProfileClean = () => {
+    setSheetMode(null);
+    onOpenProfile();
+  };
+
+  const openMapClean = () => {
+    setSheetMode(null);
+    onOpenMap();
+  };
 
   return (
     <section
       aria-label="Explorar campus UFSC Trindade"
       className="min-h-screen bg-white text-[#111827] pb-28"
     >
-      {/* Top Immersive Sky-Blue Telemetry Stage (Reference 4f402bbc) */}
-      <div className={`bg-gradient-to-b ${heroGradientClass} px-4 pt-5 pb-7 sm:px-6 transition-colors duration-300`}>
-        <div className="max-w-2xl mx-auto space-y-5">
+      {/* Top Light Atmospheric Stage + Light-Mode FlightStatusCard Hero */}
+      <div className={`bg-gradient-to-b ${heroGradientClass} px-4 pt-5 pb-6 sm:px-6 transition-colors duration-300`}>
+        <div className="max-w-2xl mx-auto space-y-4">
           {/* Compact Top Greeting + Gov.br Pill + Profile Avatar */}
-          <header className="flex items-center justify-between gap-3 text-white">
+          <header className="flex items-center justify-between gap-3 text-[#111827]">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
+                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#111827]">
                   Olá, {firstName}
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/22 backdrop-blur-md text-white border border-white/25">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/85 backdrop-blur-md text-[#1D4ED8] border border-[#BFDBFE] shadow-2xs">
                   <ShieldCheck className="w-3 h-3" aria-hidden="true" />
                   <span>Gov.br</span>
                 </span>
               </div>
-              <p className="text-xs text-white/85 truncate mt-0.5">
-                UFSC Trindade • {timeSlot}
+              <p className="text-xs text-[#475569] truncate mt-0.5">
+                UFSC Trindade • {scheduledDeparture ? `Saída ${scheduledDeparture.time}` : timeSlot}
                 {userSession?.affiliation ? ` • ${userSession.affiliation}` : ''}
               </p>
             </div>
@@ -301,9 +315,9 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             <button
               ref={profileTriggerRef}
               type="button"
-              onClick={onOpenProfile}
+              onClick={openProfileClean}
               aria-label="Abrir perfil e privacidade"
-              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/22 backdrop-blur-md text-white text-sm font-semibold flex items-center justify-center shrink-0 border border-white/35 hover:bg-white/32 enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/90 backdrop-blur-md text-[#111827] text-sm font-semibold flex items-center justify-center shrink-0 border border-[#CBD5E1] shadow-xs hover:bg-white enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
             >
               {initials}
             </button>
@@ -314,7 +328,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             <div
               role="group"
               aria-label="Modo de leitura do painel"
-              className="inline-flex items-center p-1 rounded-full bg-white/20 backdrop-blur-md border border-white/25"
+              className="inline-flex items-center p-1 rounded-full bg-white/80 backdrop-blur-md border border-[#DCE7F7] shadow-2xs"
             >
               {(
                 [
@@ -330,7 +344,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                     aria-pressed={isActive}
                     onClick={() => setHeroMode(tab.id)}
                     className={`relative min-h-[36px] px-4 rounded-full text-xs font-medium transition-colors duration-150 cursor-pointer ${
-                      isActive ? 'text-[#111827]' : 'text-white/90 hover:text-white'
+                      isActive ? 'text-white' : 'text-[#475569] hover:text-[#111827]'
                     }`}
                   >
                     {isActive && (
@@ -341,7 +355,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                             ? { duration: 0.01 }
                             : { type: 'spring', duration: 0.3, bounce: 0 }
                         }
-                        className="absolute inset-0 rounded-full bg-white shadow-xs"
+                        className="absolute inset-0 rounded-full bg-[#111827] shadow-xs"
                         aria-hidden="true"
                       />
                     )}
@@ -352,77 +366,99 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             </div>
           </div>
 
-          {/* Oversized Animated Telemetry Metric */}
-          <motion.div {...enter(0.05)} className="text-center space-y-1 py-1">
-            <div className="text-6xl sm:text-7xl font-semibold tracking-tight text-white tabular-nums leading-none drop-shadow-xs">
-              {animatedHeroPct}%
-            </div>
-            <p className="text-sm font-medium text-white/90">
-              {heroMode === 'corridor'
-                ? `Seu corredor agora • ${originShort} → ${destShort}`
-                : `Rede UFSC monitorada • ${litPostsCount}/${posts.length} postes acesos`}
-            </p>
-          </motion.div>
-
-          {/* 3 Frosted Glass Telemetry Tiles (Reference 4f402bbc) */}
-          <motion.div {...enter(0.12)} className="grid grid-cols-3 gap-2.5">
-            <button
-              type="button"
-              onClick={onOpenMap}
-              className="rounded-2xl bg-white/25 backdrop-blur-md border border-white/35 px-3 py-3 text-center hover:bg-white/35 enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+          {/* Hero Switch: Light-Mode RouteStatusCard (Componentry FlightStatusCard) vs Campus Network */}
+          {heroMode === 'corridor' ? (
+            <RouteStatusCard
+              originShort={originShort}
+              destShort={destShort}
+              originName={originName}
+              destName={destName}
+              estimatedMinutes={brightestRoute.estimatedMinutes}
+              distanceMeters={brightestRoute.distanceMeters}
+              litPostsCount={routeLitPostsCount}
+              totalPostsCount={brightestRoute.posts.length}
+              companionsCount={companionMatches.length}
+              hasDarkWarning={brightestRoute.hasDarkWarning}
+              progress={brightestRoute.illuminationPercentage}
+              scheduledTime={scheduledDeparture?.time}
+              timeSlot={timeSlot}
+              onSwapRoute={() => {
+                swapEndpoints();
+                onNotify?.(`Sentido invertido: ${destShort} → ${originShort}.`);
+              }}
+              onOpenSchedule={() => setSheetMode('schedule')}
+              onOpenDetails={() => setSheetMode('details')}
+            />
+          ) : (
+            <motion.div
+              {...enter(0.05)}
+              className="rounded-[28px] bg-white border border-[#DCE7F7] p-5 shadow-sm space-y-4"
             >
-              <p className="text-[11px] font-medium text-[#1E293B]/80">
-                {heroMode === 'corridor' ? 'Duração' : 'Acesos'}
-              </p>
-              <p className="text-lg font-semibold text-[#111827] mt-0.5 tabular-nums">
-                {heroMode === 'corridor' ? `~${animatedMinutes} min` : litPostsCount}
-              </p>
-              <p className="text-[11px] text-[#334155]">
-                {heroMode === 'corridor' ? `${brightestRoute.distanceMeters} m` : 'operando'}
-              </p>
-            </button>
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#2563EB]">
+                    Rede UFSC Trindade
+                  </p>
+                  <p className="text-base font-semibold text-[#111827] mt-0.5">
+                    {litPostsCount} de {posts.length} postes ativos agora
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSheetMode('schedule')}
+                  className="min-h-[44px] px-3.5 rounded-full bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#DCE7F7] text-xs font-semibold text-[#111827] inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Clock className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
+                  <span>{scheduledDeparture?.time ? `Saída ${scheduledDeparture.time}` : 'Marcar horário'}</span>
+                </button>
+              </div>
 
-            <button
-              type="button"
-              onClick={onOpenLights}
-              className="rounded-2xl bg-white/25 backdrop-blur-md border border-white/35 px-3 py-3 text-center hover:bg-white/35 enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
-            >
-              <p className="text-[11px] font-medium text-[#1E293B]/80">
-                {heroMode === 'corridor' ? 'Postes' : 'Oscilando'}
-              </p>
-              <p className="text-lg font-semibold text-[#111827] mt-0.5 tabular-nums">
-                {heroMode === 'corridor'
-                  ? `${litPostsCount}/${posts.length}`
-                  : oscillatingPostsCount}
-              </p>
-              <p className="text-[11px] text-[#334155]">
-                {heroMode === 'corridor' ? 'ativos agora' : 'em alerta'}
-              </p>
-            </button>
+              <div className="grid grid-cols-3 gap-2.5">
+                <button
+                  type="button"
+                  onClick={onOpenLights}
+                  className="rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] px-3 py-3 text-center hover:bg-[#D1FAE5] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+                >
+                  <p className="text-[11px] font-medium text-[#065F46]">Acesos</p>
+                  <p className="text-lg font-semibold text-[#047857] mt-0.5 tabular-nums">
+                    {litPostsCount}
+                  </p>
+                  <p className="text-[11px] text-[#065F46]">operando</p>
+                </button>
 
-            <button
-              type="button"
-              onClick={onOpenMap}
-              className="rounded-2xl bg-white/25 backdrop-blur-md border border-white/35 px-3 py-3 text-center hover:bg-white/35 enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
-            >
-              <p className="text-[11px] font-medium text-[#1E293B]/80">
-                {heroMode === 'corridor' ? 'Colegas' : 'Queimados'}
-              </p>
-              <p className="text-lg font-semibold text-[#111827] mt-0.5 tabular-nums">
-                {heroMode === 'corridor' ? companionMatches.length : burnedPostsCount}
-              </p>
-              <p className="text-[11px] text-[#334155]">
-                {heroMode === 'corridor' ? 'via Gov.br' : 'desviando'}
-              </p>
-            </button>
-          </motion.div>
+                <button
+                  type="button"
+                  onClick={onOpenLights}
+                  className="rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] px-3 py-3 text-center hover:bg-[#FEF3C7] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+                >
+                  <p className="text-[11px] font-medium text-[#92400E]">Oscilando</p>
+                  <p className="text-lg font-semibold text-[#B45309] mt-0.5 tabular-nums">
+                    {oscillatingPostsCount}
+                  </p>
+                  <p className="text-[11px] text-[#92400E]">em alerta</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onOpenReports}
+                  className="rounded-2xl bg-[#FEF2F2] border border-[#FECACA] px-3 py-3 text-center hover:bg-[#FEE2E2] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+                >
+                  <p className="text-[11px] font-medium text-[#991B1B]">Queimados</p>
+                  <p className="text-lg font-semibold text-[#B91C1C] mt-0.5 tabular-nums">
+                    {burnedPostsCount}
+                  </p>
+                  <p className="text-[11px] text-[#991B1B]">desviando</p>
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Single Prominent Primary CTA + Clean Quick Search */}
-          <motion.div {...enter(0.18)} className="space-y-3 pt-1">
+          <motion.div {...enter(0.14)} className="space-y-3 pt-1">
             <PillButton
               variant="lime"
               size="compact"
-              onClick={onOpenMap}
+              onClick={openMapClean}
               className="w-full font-semibold gap-2 shadow-md"
             >
               <span>Abrir rota no Mapa</span>
@@ -544,9 +580,13 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xl font-semibold text-[#111827] tabular-nums">
-                {brightestRoute.illuminationPercentage}%
-              </span>
+              <button
+                type="button"
+                onClick={() => setSheetMode('details')}
+                className="min-h-[36px] px-3 rounded-full bg-white border border-[#DCE7F7] text-xs font-semibold text-[#111827] tabular-nums hover:bg-[#F1F5F9] cursor-pointer"
+              >
+                {routeLitPostsCount}/{brightestRoute.posts.length} postes
+              </button>
               <DropletMascot
                 state={routeMood.state}
                 expression={routeMood.expression}
@@ -835,7 +875,10 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                       </button>
                     </div>
                     <p className="text-xs sm:text-sm text-[#4B5563] mt-1">
-                      {companionMatches.length} estudantes verificados via Gov.br com saída entre{' '}
+                      {companionMatches.length === 1
+                        ? '1 estudante verificado'
+                        : `${companionMatches.length} estudantes verificados`}{' '}
+                      via Gov.br com saída entre{' '}
                       {companionMatches[0]?.departureTime ?? '21:30'} e 22:00.
                     </p>
                   </div>
@@ -845,6 +888,26 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
           )}
         </AnimatePresence>
       </div>
+
+      {/* Single-Sheet Schedule Departure & Route Details UIArc Bottom Sheet */}
+      <ScheduleAndDetailsSheet
+        mode={sheetMode}
+        onClose={() => setSheetMode(null)}
+        onSwitchMode={(next) => setSheetMode(next)}
+        originShort={originShort}
+        destShort={destShort}
+        route={brightestRoute}
+        edgeRatings={edgeRatings}
+        companions={companionMatches}
+        scheduledTime={scheduledDeparture?.time}
+        onConfirmDeparture={(timeHHMM) => {
+          const res = scheduleDeparture(timeHHMM);
+          if (res.success) {
+            onNotify?.(`Saída marcada para ${timeHHMM} (${originShort} → ${destShort}).`);
+          }
+        }}
+        onOpenMap={openMapClean}
+      />
     </section>
   );
 };
