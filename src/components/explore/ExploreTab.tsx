@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { Suspense, lazy, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowRight,
@@ -22,7 +22,11 @@ import { PillButton } from '../ui/PillButton';
 import { DropletMascot } from '../mascot/DropletMascot';
 import { getRouteMascotMood } from '../../mascot/moods';
 import { RouteStatusCard } from './RouteStatusCard';
-import { ExploreSheetMode, ScheduleAndDetailsSheet } from './ScheduleAndDetailsSheet';
+import type { ExploreSheetMode } from './ScheduleAndDetailsSheet';
+
+const ScheduleAndDetailsSheet = lazy(() =>
+  import('./ScheduleAndDetailsSheet').then((m) => ({ default: m.ScheduleAndDetailsSheet }))
+);
 
 export interface ExploreTabProps {
   onOpenMap: () => void;
@@ -890,24 +894,28 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
       </div>
 
       {/* Single-Sheet Schedule Departure & Route Details UIArc Bottom Sheet */}
-      <ScheduleAndDetailsSheet
-        mode={sheetMode}
-        onClose={() => setSheetMode(null)}
-        onSwitchMode={(next) => setSheetMode(next)}
-        originShort={originShort}
-        destShort={destShort}
-        route={brightestRoute}
-        edgeRatings={edgeRatings}
-        companions={companionMatches}
-        scheduledTime={scheduledDeparture?.time}
-        onConfirmDeparture={(timeHHMM) => {
-          const res = scheduleDeparture(timeHHMM);
-          if (res.success) {
-            onNotify?.(`Saída marcada para ${timeHHMM} (${originShort} → ${destShort}).`);
-          }
-        }}
-        onOpenMap={openMapClean}
-      />
+      {sheetMode !== null && (
+        <Suspense fallback={null}>
+          <ScheduleAndDetailsSheet
+            mode={sheetMode}
+            onClose={() => setSheetMode(null)}
+            onSwitchMode={(next) => setSheetMode(next)}
+            originShort={originShort}
+            destShort={destShort}
+            route={brightestRoute}
+            edgeRatings={edgeRatings}
+            companions={companionMatches}
+            scheduledTime={scheduledDeparture?.time}
+            onConfirmDeparture={(timeHHMM) => {
+              const res = scheduleDeparture(timeHHMM);
+              if (res.success) {
+                onNotify?.(`Saída marcada para ${timeHHMM} (${originShort} → ${destShort}).`);
+              }
+            }}
+            onOpenMap={openMapClean}
+          />
+        </Suspense>
+      )}
     </section>
   );
 };

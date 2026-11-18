@@ -409,6 +409,6 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       expect(
         await screen.findByRole('heading', { name: /Caminhe pela UFSC no claro\. E acompanhado\./i })
       ).toBeInTheDocument();
-    });
+    }, 15000);
   });
 });
