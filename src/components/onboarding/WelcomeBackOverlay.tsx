@@ -2,6 +2,7 @@ import React, { useId, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import ufscLogo from '../../assets/ufsc-logo.webp';
 import type { TabId } from '../ui/FloatingTabBar';
 
 export interface WelcomeBackOverlayProps {
@@ -71,24 +72,24 @@ export const WelcomeBackOverlay: React.FC<WelcomeBackOverlayProps> = ({
     prefersReducedMotion
       ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
       : {
-          initial: { opacity: 0, y, filter: 'blur(4px)' },
-          animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
-          transition: { duration: 0.4, delay, ease: EASE_OUT },
-        };
+        initial: { opacity: 0, y, filter: 'blur(4px)' },
+        animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
+        transition: { duration: 0.4, delay, ease: EASE_OUT },
+      };
 
   const floatLoop = (duration: number, delay = 0) =>
     prefersReducedMotion
       ? undefined
       : {
-          y: [0, -5, 0],
-          scale: [1, 1.015, 1],
-          transition: {
-            duration,
-            delay,
-            repeat: Infinity,
-            ease: 'easeInOut' as const,
-          },
-        };
+        y: [0, -5, 0],
+        scale: [1, 1.015, 1],
+        transition: {
+          duration,
+          delay,
+          repeat: Infinity,
+          ease: 'easeInOut' as const,
+        },
+      };
 
   return (
     <motion.div
@@ -149,25 +150,18 @@ export const WelcomeBackOverlay: React.FC<WelcomeBackOverlayProps> = ({
 
         <div
           role="img"
-          aria-label={`RuaEscura • Turno ${timeSlot}`}
-          title={`RuaEscura • ${timeSlot}`}
+          aria-label={`UFSC • RuaEscura • Turno ${timeSlot}`}
+          title={`UFSC • RuaEscura • ${timeSlot}`}
           className="flex items-center justify-center px-2 py-1"
         >
-          <svg
-            width="38"
-            height="28"
-            viewBox="0 0 40 30"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M5.5 24.5C11.5 23.5 17.5 16.5 17.8 8.8C18 4.2 13.8 3.8 13.2 8.8C12.5 15 16.6 22.8 22.4 23.2C27.8 23.6 31 15.8 30.2 8.8C29.6 4.2 25.3 4.2 24.8 9.2C24.2 15.2 27.8 23 34.5 24.2"
-              stroke="#1E293B"
-              strokeWidth="2.1"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <img
+            src={ufscLogo}
+            alt=""
+            width={119}
+            height={160}
+            decoding="async"
+            className="h-11 sm:h-12 w-auto object-contain select-none pointer-events-none"
+          />
         </div>
 
         <button
@@ -192,11 +186,9 @@ export const WelcomeBackOverlay: React.FC<WelcomeBackOverlayProps> = ({
         </button>
       </header>
 
-      {/* Generous Open White Mid-Canvas Spacer */}
-      <div className="flex-1 min-h-14" aria-hidden="true" />
 
       {/* Lower-Third Greeting & Single Sleek CTA */}
-      <main className="relative z-20 px-6 pb-2 flex flex-col items-center text-center max-w-md mx-auto w-full">
+      <main className="relative z-20 px-6 pb-2 flex flex-col items-center text-center max-w-md mx-auto w-full mt-30">
         <motion.div {...enterText(0.05, 14)} className="space-y-1.5">
           <h1 className="text-[40px] sm:text-[46px] font-semibold tracking-[-0.03em] leading-[1.06] text-[#454954]">
             {greeting}, {firstName}
@@ -241,62 +233,62 @@ export const WelcomeBackOverlay: React.FC<WelcomeBackOverlayProps> = ({
             className="w-full h-full"
           >
             <motion.div animate={floatLoop(4.2, 0)} className="relative w-full h-full">
-            <div
-              aria-hidden="true"
-              className="absolute inset-1 rounded-full opacity-55 blur-xl"
-              style={{
-                background: 'radial-gradient(circle at 55% 45%, #87D7FA 0%, #5EC2F3 58%, transparent 78%)',
-              }}
-            />
-            <svg viewBox="0 0 220 250" className="relative w-full h-full overflow-visible" aria-hidden="true">
-              <defs>
-                <linearGradient id={`${uid}-blue-grad`} x1="0%" y1="0%" x2="85%" y2="95%">
-                  <stop offset="0%" stopColor="#87D7FA" />
-                  <stop offset="100%" stopColor="#5EC2F3" />
-                </linearGradient>
-                <filter id={`${uid}-blue-blur`} x="-15%" y="-15%" width="130%" height="130%">
-                  <feGaussianBlur stdDeviation="6.5" />
-                </filter>
-              </defs>
-
-              <ellipse
-                cx="104"
-                cy="126"
-                rx="88"
-                ry="108"
-                fill={`url(#${uid}-blue-grad)`}
-                filter={`url(#${uid}-blue-blur)`}
+              <div
+                aria-hidden="true"
+                className="absolute inset-1 rounded-full opacity-55 blur-xl"
+                style={{
+                  background: 'radial-gradient(circle at 55% 45%, #87D7FA 0%, #5EC2F3 58%, transparent 78%)',
+                }}
               />
+              <svg viewBox="0 0 220 250" className="relative w-full h-full overflow-visible" aria-hidden="true">
+                <defs>
+                  <linearGradient id={`${uid}-blue-grad`} x1="0%" y1="0%" x2="85%" y2="95%">
+                    <stop offset="0%" stopColor="#87D7FA" />
+                    <stop offset="100%" stopColor="#5EC2F3" />
+                  </linearGradient>
+                  <filter id={`${uid}-blue-blur`} x="-15%" y="-15%" width="130%" height="130%">
+                    <feGaussianBlur stdDeviation="6.5" />
+                  </filter>
+                </defs>
 
-              {/* Crisp dark slanted teardrop eyes with 4-point white star sparkles */}
-              <motion.g style={prefersReducedMotion ? undefined : { x: gazeX, y: gazeY }}>
-                {/* Subtle freckles */}
-                <circle cx="122" cy="144" r="2.1" fill="#3299D4" opacity="0.35" />
-                <circle cx="134" cy="152" r="1.7" fill="#3299D4" opacity="0.3" />
-                <circle cx="114" cy="150" r="1.6" fill="#3299D4" opacity="0.28" />
+                <ellipse
+                  cx="104"
+                  cy="126"
+                  rx="88"
+                  ry="108"
+                  fill={`url(#${uid}-blue-grad)`}
+                  filter={`url(#${uid}-blue-blur)`}
+                />
 
-                {/* Upper-left eye */}
-                <path
-                  d="M112 82 C124 72 142 76 146 90 C148 99 136 106 124 101 C113 97 107 88 112 82 Z"
-                  fill="#0F172A"
-                />
-                {/* Lower-right eye */}
-                <path
-                  d="M144 112 C158 106 172 116 170 132 C168 144 154 149 145 141 C136 133 136 117 144 112 Z"
-                  fill="#0F172A"
-                />
-                {/* 4-point star sparkles */}
-                <path
-                  d="M138 76 L140.1 82.4 L146.5 84.5 L140.1 86.6 L138 93 L135.9 86.6 L129.5 84.5 L135.9 82.4 Z"
-                  fill="#FFFFFF"
-                />
-                <path
-                  d="M163 113 L164.9 118.6 L170.5 120.5 L164.9 122.4 L163 128 L161.1 122.4 L155.5 120.5 L161.1 118.6 Z"
-                  fill="#FFFFFF"
-                />
-              </motion.g>
-            </svg>
-          </motion.div>
+                {/* Crisp dark slanted teardrop eyes with 4-point white star sparkles */}
+                <motion.g style={prefersReducedMotion ? undefined : { x: gazeX, y: gazeY }}>
+                  {/* Subtle freckles */}
+                  <circle cx="122" cy="144" r="2.1" fill="#3299D4" opacity="0.35" />
+                  <circle cx="134" cy="152" r="1.7" fill="#3299D4" opacity="0.3" />
+                  <circle cx="114" cy="150" r="1.6" fill="#3299D4" opacity="0.28" />
+
+                  {/* Upper-left eye */}
+                  <path
+                    d="M112 82 C124 72 142 76 146 90 C148 99 136 106 124 101 C113 97 107 88 112 82 Z"
+                    fill="#0F172A"
+                  />
+                  {/* Lower-right eye */}
+                  <path
+                    d="M144 112 C158 106 172 116 170 132 C168 144 154 149 145 141 C136 133 136 117 144 112 Z"
+                    fill="#0F172A"
+                  />
+                  {/* 4-point star sparkles */}
+                  <path
+                    d="M138 76 L140.1 82.4 L146.5 84.5 L140.1 86.6 L138 93 L135.9 86.6 L129.5 84.5 L135.9 82.4 Z"
+                    fill="#FFFFFF"
+                  />
+                  <path
+                    d="M163 113 L164.9 118.6 L170.5 120.5 L164.9 122.4 L163 128 L161.1 122.4 L155.5 120.5 L161.1 118.6 Z"
+                    fill="#FFFFFF"
+                  />
+                </motion.g>
+              </svg>
+            </motion.div>
           </motion.div>
         </motion.button>
 
@@ -317,54 +309,54 @@ export const WelcomeBackOverlay: React.FC<WelcomeBackOverlayProps> = ({
             className="w-full h-full"
           >
             <motion.div animate={floatLoop(4.8, 0.4)} className="relative w-full h-full">
-            <div
-              aria-hidden="true"
-              className="absolute inset-x-2 -top-2 bottom-0 rounded-full opacity-55 blur-xl"
-              style={{
-                background: 'radial-gradient(ellipse at 50% 48%, #FFE270 0%, #F7C648 56%, transparent 78%)',
-              }}
-            />
-            <svg viewBox="0 0 280 190" className="relative w-full h-full overflow-visible" aria-hidden="true">
-              <defs>
-                <radialGradient id={`${uid}-gold-grad`} cx="50%" cy="46%" r="58%">
-                  <stop offset="0%" stopColor="#FFE270" />
-                  <stop offset="72%" stopColor="#FAD158" />
-                  <stop offset="100%" stopColor="#F7C648" />
-                </radialGradient>
-                <filter id={`${uid}-gold-blur`} x="-15%" y="-15%" width="130%" height="130%">
-                  <feGaussianBlur stdDeviation="7" />
-                </filter>
-              </defs>
-
-              <ellipse
-                cx="140"
-                cy="126"
-                rx="124"
-                ry="104"
-                fill={`url(#${uid}-gold-grad)`}
-                filter={`url(#${uid}-gold-blur)`}
+              <div
+                aria-hidden="true"
+                className="absolute inset-x-2 -top-2 bottom-0 rounded-full opacity-55 blur-xl"
+                style={{
+                  background: 'radial-gradient(ellipse at 50% 48%, #FFE270 0%, #F7C648 56%, transparent 78%)',
+                }}
               />
+              <svg viewBox="0 0 280 190" className="relative w-full h-full overflow-visible" aria-hidden="true">
+                <defs>
+                  <radialGradient id={`${uid}-gold-grad`} cx="50%" cy="46%" r="58%">
+                    <stop offset="0%" stopColor="#FFE270" />
+                    <stop offset="72%" stopColor="#FAD158" />
+                    <stop offset="100%" stopColor="#F7C648" />
+                  </radialGradient>
+                  <filter id={`${uid}-gold-blur`} x="-15%" y="-15%" width="130%" height="130%">
+                    <feGaussianBlur stdDeviation="7" />
+                  </filter>
+                </defs>
 
-              {/* Sharp joyful closed-arch eyes and wide smiling mouth */}
-              <motion.g style={prefersReducedMotion ? undefined : { x: gazeX, y: gazeY }}>
-                <path
-                  d="M102 68 C104 51 130 51 132 68 C124 65.5 110 65.5 102 68 Z"
-                  fill="#0F172A"
+                <ellipse
+                  cx="140"
+                  cy="126"
+                  rx="124"
+                  ry="104"
+                  fill={`url(#${uid}-gold-grad)`}
+                  filter={`url(#${uid}-gold-blur)`}
                 />
-                <path
-                  d="M148 68 C150 51 176 51 178 68 C170 65.5 156 65.5 148 68 Z"
-                  fill="#0F172A"
-                />
-                <path
-                  d="M102 90 C121 107 159 107 178 90"
-                  fill="none"
-                  stroke="#0F172A"
-                  strokeWidth="6.5"
-                  strokeLinecap="round"
-                />
-              </motion.g>
-            </svg>
-          </motion.div>
+
+                {/* Sharp joyful closed-arch eyes and wide smiling mouth */}
+                <motion.g style={prefersReducedMotion ? undefined : { x: gazeX, y: gazeY }}>
+                  <path
+                    d="M102 68 C104 51 130 51 132 68 C124 65.5 110 65.5 102 68 Z"
+                    fill="#0F172A"
+                  />
+                  <path
+                    d="M148 68 C150 51 176 51 178 68 C170 65.5 156 65.5 148 68 Z"
+                    fill="#0F172A"
+                  />
+                  <path
+                    d="M102 90 C121 107 159 107 178 90"
+                    fill="none"
+                    stroke="#0F172A"
+                    strokeWidth="6.5"
+                    strokeLinecap="round"
+                  />
+                </motion.g>
+              </svg>
+            </motion.div>
           </motion.div>
         </motion.button>
 
@@ -385,46 +377,46 @@ export const WelcomeBackOverlay: React.FC<WelcomeBackOverlayProps> = ({
             className="w-full h-full"
           >
             <motion.div animate={floatLoop(4.5, 0.25)} className="relative w-full h-full">
-            <div
-              aria-hidden="true"
-              className="absolute inset-1 rounded-full opacity-55 blur-xl"
-              style={{
-                background: 'radial-gradient(circle at 45% 45%, #F5A4CE 0%, #EE86BF 58%, transparent 78%)',
-              }}
-            />
-            <svg viewBox="0 0 220 250" className="relative w-full h-full overflow-visible" aria-hidden="true">
-              <defs>
-                <linearGradient id={`${uid}-pink-grad`} x1="100%" y1="0%" x2="15%" y2="95%">
-                  <stop offset="0%" stopColor="#F5A4CE" />
-                  <stop offset="100%" stopColor="#EE86BF" />
-                </linearGradient>
-                <filter id={`${uid}-pink-blur`} x="-15%" y="-15%" width="130%" height="130%">
-                  <feGaussianBlur stdDeviation="6.5" />
-                </filter>
-              </defs>
-
-              <ellipse
-                cx="124"
-                cy="126"
-                rx="88"
-                ry="108"
-                fill={`url(#${uid}-pink-grad)`}
-                filter={`url(#${uid}-pink-blur)`}
+              <div
+                aria-hidden="true"
+                className="absolute inset-1 rounded-full opacity-55 blur-xl"
+                style={{
+                  background: 'radial-gradient(circle at 45% 45%, #F5A4CE 0%, #EE86BF 58%, transparent 78%)',
+                }}
               />
+              <svg viewBox="0 0 220 250" className="relative w-full h-full overflow-visible" aria-hidden="true">
+                <defs>
+                  <linearGradient id={`${uid}-pink-grad`} x1="100%" y1="0%" x2="15%" y2="95%">
+                    <stop offset="0%" stopColor="#F5A4CE" />
+                    <stop offset="100%" stopColor="#EE86BF" />
+                  </linearGradient>
+                  <filter id={`${uid}-pink-blur`} x="-15%" y="-15%" width="130%" height="130%">
+                    <feGaussianBlur stdDeviation="6.5" />
+                  </filter>
+                </defs>
 
-              {/* Sharp dark curved cheerful eyes tilted warmly toward center */}
-              <motion.g style={prefersReducedMotion ? undefined : { x: gazeX, y: gazeY }}>
-                <path
-                  d="M96 86 C80 86 73 102 82 110 C87 114 93 107 98 102 C104 96 105 86 96 86 Z"
-                  fill="#0F172A"
+                <ellipse
+                  cx="124"
+                  cy="126"
+                  rx="88"
+                  ry="108"
+                  fill={`url(#${uid}-pink-grad)`}
+                  filter={`url(#${uid}-pink-blur)`}
                 />
-                <path
-                  d="M72 118 C57 119 52 135 61 144 C67 150 75 144 78 136 C81 128 80 118 72 118 Z"
-                  fill="#0F172A"
-                />
-              </motion.g>
-            </svg>
-          </motion.div>
+
+                {/* Sharp dark curved cheerful eyes tilted warmly toward center */}
+                <motion.g style={prefersReducedMotion ? undefined : { x: gazeX, y: gazeY }}>
+                  <path
+                    d="M96 86 C80 86 73 102 82 110 C87 114 93 107 98 102 C104 96 105 86 96 86 Z"
+                    fill="#0F172A"
+                  />
+                  <path
+                    d="M72 118 C57 119 52 135 61 144 C67 150 75 144 78 136 C81 128 80 118 72 118 Z"
+                    fill="#0F172A"
+                  />
+                </motion.g>
+              </svg>
+            </motion.div>
           </motion.div>
         </motion.button>
       </div>
