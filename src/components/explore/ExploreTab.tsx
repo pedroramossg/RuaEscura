@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowRight,
@@ -286,6 +286,23 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
 
   const markerPercent = Math.min(96, Math.max(4, brightestRoute.illuminationPercentage));
 
+  const [isScrolled, setIsScrolled] = useState(
+    () => typeof window !== 'undefined' && window.scrollY > 64
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onScroll = () => {
+      const next = window.scrollY > 64;
+      setIsScrolled((prev) => (prev === next ? prev : next));
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, []);
+
   const openProfileClean = () => {
     setSheetMode(null);
     onOpenProfile();
@@ -301,10 +318,45 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
       aria-label="Explorar campus UFSC Trindade"
       className="min-h-screen bg-[var(--bg-grouped)] text-[var(--label-primary)] pb-28"
     >
+      {/* Collapsed Compact Liquid Glass Bar (shown only when scrolled past 64px) */}
+      {isScrolled && (
+        <div
+          className="fixed top-0 inset-x-0 z-30 border-b border-[var(--separator)] transition-opacity duration-200"
+          style={{
+            paddingTop: 'max(0.5rem, env(safe-area-inset-top))',
+            backgroundColor: 'var(--glass-surface)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          }}
+        >
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 h-11 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <div className="min-w-0" />
+            <span
+              aria-hidden="true"
+              className="text-[17px] font-semibold tracking-tight text-[var(--label-primary)] truncate text-center"
+            >
+              Olá, {firstName}
+            </span>
+            <div className="flex items-center justify-end min-w-0">
+              <button
+                type="button"
+                onClick={openProfileClean}
+                aria-label="Abrir perfil e privacidade"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 -mr-1.5 rounded-full flex items-center justify-center shrink-0 enabled:active:scale-[0.96] transition-transform duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary)]"
+              >
+                <span className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] text-[var(--label-primary)] text-xs font-semibold flex items-center justify-center border border-[var(--separator)] shadow-xs">
+                  {initials}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top WelcomeBack-Inspired Sky Sunburst Wash + RouteStatusCard Hero */}
       <div
-        className="relative overflow-hidden px-4 pt-5 pb-6 sm:px-6 transition-colors duration-300"
-        style={heroBackdropStyle}
+        className="relative overflow-hidden px-4 pb-6 sm:px-6 transition-colors duration-300"
+        style={{ ...heroBackdropStyle, paddingTop: 'max(1.25rem, env(safe-area-inset-top))' }}
       >
         <div
           aria-hidden="true"

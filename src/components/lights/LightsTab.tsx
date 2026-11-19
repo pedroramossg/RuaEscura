@@ -13,6 +13,7 @@ import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { QrCodeInputSchema } from '../../security/schemas';
 import type { LampPostStatus } from '../../types/campus';
 import { PillButton } from '../ui/PillButton';
+import { IosNavHeader } from '../ui/IosNavHeader';
 import { VirtualizedList } from '../ui/VirtualizedList';
 import { DropletMascot } from '../mascot/DropletMascot';
 import { TrioCharacterAvatar, TrioMascotStack } from '../mascot/TrioMascotBadge';
@@ -162,7 +163,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
   return (
     <section
       aria-label="Monitoramento de postes e QR Code"
-      className="relative overflow-hidden min-h-screen bg-[var(--bg-grouped)] text-[var(--label-primary)] px-4 pt-5 pb-28 sm:px-6"
+      className="relative overflow-x-clip min-h-screen bg-[var(--bg-grouped)] text-[var(--label-primary)] pb-28"
     >
       {/* Subtle WelcomeBack-inspired Sky Sunburst Wash */}
       <div
@@ -186,39 +187,32 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
         />
       </div>
 
-      <div className="relative z-10 max-w-2xl mx-auto space-y-5">
-        {/* Crisp Header Card with Trio Identity */}
-        <header className="ios-grouped-section p-5 space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1 min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent-primary)]">
-                Monitoramento colaborativo UFSC
-              </p>
-              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--label-primary)]">
-                Postes & QR Code
-              </h1>
-              <p className="text-sm text-[var(--label-secondary)]">
-                {counts.aceso} acesos • {counts.oscilando} oscilando • {counts.queimado} queimados
-              </p>
-            </div>
-            <TrioMascotStack size={26} className="shrink-0 mt-1" />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--bg-fill-secondary)] text-[var(--label-primary)] border border-[var(--separator)]">
+      {/* Native iOS 26 Sticky Liquid Glass Bar + Large Title Header */}
+      <IosNavHeader
+        kicker="Monitoramento colaborativo UFSC"
+        title="Postes & QR Code"
+        subtitle={`${counts.aceso} acesos • ${counts.oscilando} oscilando • ${counts.queimado} queimados`}
+        titleAccessory={<TrioMascotStack size={26} className="shrink-0" />}
+        compactTrailing={<TrioMascotStack size={18} className="shrink-0" />}
+        footer={
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--bg-elevated)]/85 text-[var(--label-primary)] border border-[var(--separator)]">
               <span className="w-2 h-2 rounded-full bg-[#5EC2F3]" aria-hidden="true" />
               <span>{counts.aceso} operando</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--bg-fill-secondary)] text-[var(--label-primary)] border border-[var(--separator)]">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--bg-elevated)]/85 text-[var(--label-primary)] border border-[var(--separator)]">
               <span className="w-2 h-2 rounded-full bg-[#F7C648]" aria-hidden="true" />
               <span>{counts.oscilando} em alerta</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--bg-fill-secondary)] text-[var(--label-primary)] border border-[var(--separator)]">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--bg-elevated)]/85 text-[var(--label-primary)] border border-[var(--separator)]">
               <span className="w-2 h-2 rounded-full bg-[#EE86BF]" aria-hidden="true" />
               <span>{counts.queimado} em desvio</span>
             </span>
           </div>
-        </header>
+        }
+      />
+
+      <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 space-y-5">
 
         {/* Section 1: Interactive QR Code Scanner Simulator */}
         <section

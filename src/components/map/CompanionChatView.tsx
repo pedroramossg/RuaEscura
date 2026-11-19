@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, CheckCircle2, Clock, Users } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, Clock, Users } from 'lucide-react';
 import type { ChatMessage, CompanionMatch } from '../../types/campus';
 import { ChatMessageSchema } from '../../security/schemas';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
@@ -183,20 +183,20 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
 
   return (
     <div className="flex flex-col gap-3 pt-1 pb-2" data-testid="companion-chat-view">
-      {/* Header with >= 44px Voltar button, Trio Avatar(s) & Join toggle */}
-      <div className={`flex items-center justify-between gap-2 pb-3 border-b ${borderClass}`}>
-        <div className="flex items-center gap-2.5 min-w-0">
+      {/* iOS 26 Sheet NavigationBar: Liquid Glass Chevron Back, Trio Identity & Join Pill */}
+      <header className={`flex items-center justify-between gap-2 pb-3 border-b ${borderClass}`}>
+        <div className="flex items-center gap-2 min-w-0">
           <button
             type="button"
             onClick={onBack}
             aria-label="Voltar para rota e colegas"
-            className={`min-h-[44px] min-w-[44px] px-3 rounded-full inline-flex items-center gap-1.5 text-sm font-medium border transition-colors active:scale-[0.97] cursor-pointer shrink-0 ${
+            className={`min-h-[44px] min-w-[44px] pl-1.5 pr-3 rounded-full inline-flex items-center gap-0.5 text-[15px] font-medium backdrop-blur-md transition-[transform,background-color] duration-150 active:scale-[0.96] cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
               isDark
-                ? 'bg-[#111C34] text-[#F8FAFC] border-[#1E293B] hover:border-[#5EC2F3]'
-                : 'bg-[#FFFFFF] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
+                ? 'bg-white/10 text-[#60A5FA] hover:bg-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]'
+                : 'bg-[#2563EB]/[0.09] text-[#2563EB] hover:bg-[#2563EB]/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]'
             }`}
           >
-            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+            <ChevronLeft className="w-5 h-5 -ml-0.5 shrink-0" aria-hidden="true" />
             <span>Voltar</span>
           </button>
 
@@ -221,13 +221,15 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <h3 className="text-base font-semibold tracking-tight truncate">{displayName}</h3>
+              <h3 className="text-[15px] font-semibold tracking-tight leading-tight truncate">
+                {displayName}
+              </h3>
               {companion.isGroup && (
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium shrink-0 ${
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
                     isDark
-                      ? 'bg-[#5EC2F3]/15 text-[#5EC2F3]'
-                      : 'bg-[#EFF6FF] text-[#2563EB]'
+                      ? 'bg-[#60A5FA]/15 text-[#60A5FA]'
+                      : 'bg-[#2563EB]/10 text-[#2563EB]'
                   }`}
                 >
                   <Users className="w-3 h-3" aria-hidden="true" />
@@ -235,7 +237,7 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
                 </span>
               )}
             </div>
-            <p className={`text-xs truncate ${mutedTextClass}`}>
+            <p className={`text-[11px] leading-snug truncate mt-0.5 ${mutedTextClass}`}>
               {originLabel} → {destLabel} •{' '}
               <Clock className="inline w-3 h-3 -mt-0.5" aria-hidden="true" />{' '}
               {companion.departureTime}
@@ -247,18 +249,18 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
           type="button"
           onClick={handleToggleJoin}
           aria-pressed={Boolean(companion.isUserJoined)}
-          className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold shrink-0 inline-flex items-center gap-1.5 border transition-all active:scale-[0.97] cursor-pointer ${
+          className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold shrink-0 inline-flex items-center gap-1.5 transition-[transform,background-color,color] duration-150 active:scale-[0.96] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
             companion.isUserJoined
-              ? 'bg-[#2563EB] text-white border-[#2563EB]'
+              ? 'bg-[#2563EB] text-white shadow-xs'
               : isDark
-                ? 'bg-[#111C34] text-[#F8FAFC] border-[#1E293B] hover:border-[#5EC2F3]'
-                : 'bg-[#FFFFFF] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
+                ? 'bg-white/10 text-[#F8FAFC] hover:bg-white/15'
+                : 'bg-[#0F172A]/[0.06] text-[#0F172A] hover:bg-[#0F172A]/[0.11]'
           }`}
         >
           {companion.isUserJoined && <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />}
           <span>{companion.isUserJoined ? 'No grupo' : 'Entrar'}</span>
         </button>
-      </div>
+      </header>
 
       {/* Group Members Strip */}
       {groupMembers.length > 0 && (

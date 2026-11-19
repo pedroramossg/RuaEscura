@@ -20,6 +20,7 @@ import { ReportSubmissionSchema } from '../../security/schemas';
 import { validateEvidenceImage } from '../../security/fileValidation';
 import type { ReportCategory, ReportStatus } from '../../types/campus';
 import { PillButton } from '../ui/PillButton';
+import { IosNavHeader } from '../ui/IosNavHeader';
 import { VirtualizedList } from '../ui/VirtualizedList';
 import { DropletMascot, DROPLET_ALL_STATES } from '../mascot/DropletMascot';
 import { TrioCharacterAvatar, TrioMascotStack } from '../mascot/TrioMascotBadge';
@@ -267,7 +268,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
   return (
     <section
       aria-label="Denúncias e emergência"
-      className="relative overflow-hidden min-h-screen bg-[var(--bg-grouped)] text-[var(--label-primary)] px-4 pt-5 pb-28 sm:px-6"
+      className="relative overflow-x-clip min-h-screen bg-[var(--bg-grouped)] text-[var(--label-primary)] pb-28"
     >
       {/* Subtle WelcomeBack-inspired Sky Sunburst Wash */}
       <div
@@ -291,24 +292,14 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
         />
       </div>
 
-      <div className="relative z-10 max-w-2xl mx-auto space-y-5">
-        {/* Crisp Header Card + Trio Safety Tip */}
-        <header className="ios-grouped-section p-5 space-y-3.5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent-primary)]">
-                  Canal seguro e anônimo UFSC
-                </p>
-                <TrioMascotStack size={20} />
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--label-primary)]">
-                Denúncias & Emergência
-              </h1>
-              <p className="text-sm text-[var(--label-secondary)]">
-                Registre ocorrências de iluminação ou risco no campus com remoção automática de EXIF.
-              </p>
-            </div>
+      {/* Native iOS 26 Sticky Liquid Glass Bar + Large Title Header */}
+      <IosNavHeader
+        kicker="Canal seguro e anônimo UFSC"
+        title="Denúncias & Emergência"
+        subtitle="Registre ocorrências de iluminação ou risco no campus com remoção automática de EXIF."
+        trailing={
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <TrioMascotStack size={20} />
             <DropletMascot
               state={isEmergencyDialogOpen ? 'alert' : mascotMood}
               expression={
@@ -328,14 +319,19 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               className="shrink-0"
             />
           </div>
-
-          <div className="rounded-2xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)] px-3.5 py-2.5 flex items-center gap-2.5">
+        }
+        compactTrailing={<TrioMascotStack size={18} className="shrink-0" />}
+        footer={
+          <div className="rounded-2xl bg-[var(--bg-elevated)]/85 backdrop-blur-sm border border-[var(--separator)] px-3.5 py-2.5 flex items-center gap-2.5">
             <TrioCharacterAvatar variant="pink" size={24} />
             <p className="text-xs text-[var(--label-secondary)]">
               <span className="font-semibold text-[var(--label-primary)]">Dica de segurança:</span> denúncias confidenciais ocultam sua identidade e recalibram o mapa na hora.
             </p>
           </div>
-        </header>
+        }
+      />
+
+      <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 space-y-5">
 
         {/* Emergency Safety Card (Explicit Dialog Confirmation Required — Zero Accidental Dialing) */}
         <section

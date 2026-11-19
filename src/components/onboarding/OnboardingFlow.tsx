@@ -8,7 +8,7 @@ import {
   Sun,
   Users,
   Lightbulb,
-  ArrowLeft,
+  ChevronLeft,
   Sparkles,
 } from 'lucide-react';
 import { useCampusStore } from '../../hooks/useCampusStore';
@@ -640,14 +640,24 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 variants={stepVariants}
                 transition={stepTransition}
               >
+                {/* Top Navigation Row (matches Step 4's top-left iOS Back placement) */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => goToStep(1)}
+                    className="min-h-[44px] inline-flex items-center gap-0.5 pl-1.5 pr-3 py-2 rounded-full text-sm font-medium text-[#2563EB] bg-[#EFF6FF]/90 hover:bg-[#DBEAFE]/80 border border-[#DBEAFE]/80 active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+                  >
+                    <ChevronLeft className="w-5 h-5 -ml-0.5 shrink-0" aria-hidden="true" />
+                    <span>Voltar</span>
+                  </button>
+                  {renderContextPill('bg-[#EFF6FF] text-[#2563EB] border border-[#DBEAFE]')}
+                </div>
+
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="space-y-1.5 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs uppercase tracking-wider font-semibold text-[#4B5563]">
-                        Preferências
-                      </span>
-                      {renderContextPill('bg-[#EFF6FF] text-[#2563EB] border border-[#DBEAFE]')}
-                    </div>
+                    <span className="block text-xs uppercase tracking-wider font-semibold text-[#4B5563]">
+                      Preferências
+                    </span>
                     <h2 className="text-2xl font-semibold tracking-tight text-[#111827]">
                       Seus trajetos e horários frequentes
                     </h2>
@@ -827,21 +837,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   </div>
                 </div>
 
-                {/* Navigation Actions */}
-                <div className="mt-7 flex items-center gap-3">
-                  <button
-                    type="button"
-                    aria-label="Voltar"
-                    onClick={() => goToStep(1)}
-                    className="min-w-[44px] min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#111827] bg-[#F1F5F9] border border-[#E5EAF4] hover:bg-[#E2E8F0] active:scale-[0.96] transition-all cursor-pointer inline-flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
-                  >
-                    <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-                  </button>
-
+                {/* Primary Full-Width Apple Pill CTA */}
+                <div className="mt-7">
                   <PillButton
                     variant="lime"
                     size="compact"
-                    className="flex-1 font-semibold"
+                    className="w-full font-semibold"
                     onClick={() => goToStep(3)}
                   >
                     Ver meu trajeto seguro →
@@ -858,15 +859,24 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 variants={stepVariants}
                 transition={stepTransition}
               >
+                {/* Top Navigation Row (matches Step 2 & Step 4 top-left iOS Back placement) */}
                 <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-[#4B5563]">
-                    Aha! Preview
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => goToStep(2)}
+                    className="min-h-[44px] inline-flex items-center gap-0.5 pl-1.5 pr-3 py-2 rounded-full text-sm font-medium text-[#2563EB] bg-[#EFF6FF]/90 hover:bg-[#DBEAFE]/80 border border-[#DBEAFE]/80 active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+                  >
+                    <ChevronLeft className="w-5 h-5 -ml-0.5 shrink-0" aria-hidden="true" />
+                    <span>Voltar</span>
+                  </button>
                   {renderContextPill('bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0]')}
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
                   <div>
+                    <span className="block text-xs uppercase tracking-wider font-semibold text-[#4B5563] mb-1">
+                      Aha! Preview
+                    </span>
                     <h2 className="text-2xl font-semibold tracking-tight text-[#111827]">
                       Seu corredor inteligente
                     </h2>
@@ -1003,20 +1013,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   Você não precisa caminhar no escuro ou sozinho. Complete a identificação Gov.br para entrar em grupos de caminhada monitorada.
                 </p>
 
-                {/* Navigation Actions */}
-                <div className="mt-7 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => goToStep(2)}
-                    className="min-h-[44px] px-4 py-2 rounded-full text-sm font-medium text-[#111827] bg-[#F1F5F9] border border-[#E5EAF4] hover:bg-[#E2E8F0] active:scale-[0.96] transition-all cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
-                  >
-                    Voltar
-                  </button>
-
+                {/* Primary Full-Width Apple Pill CTA */}
+                <div className="mt-7">
                   <PillButton
                     variant="lime"
                     size="compact"
-                    className="flex-1 font-semibold !text-sm !px-4 whitespace-nowrap"
+                    className="w-full font-semibold !text-sm !px-4 whitespace-nowrap"
                     onClick={() => goToStep(4)}
                   >
                     Validar acesso Gov.br →
