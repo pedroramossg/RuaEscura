@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence, type Transition } from 'motion/react';
 import { ChevronLeft } from 'lucide-react';
+import { useCampusStore } from '../../hooks/useCampusStore';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { useHaptics } from '../../hooks/useHaptics';
 
@@ -18,7 +19,6 @@ interface IntroBeat {
   highlightTone?: 'periwinkle' | 'luminous';
   body?: string;
   bodyEmphasis?: 'luminous' | 'muted';
-  dotColor: string;
 }
 
 const APPLE_EASE = [0.23, 1, 0.32, 1] as const;
@@ -29,21 +29,18 @@ const INTRO_BEATS: readonly IntroBeat[] = [
     kicker: 'Seja bem-vindo!',
     body: 'Te apresentamos o Rua Escura. Sua caminhada mais segura pela UFSC começa aqui.',
     bodyEmphasis: 'muted',
-    dotColor: '#5EC2F3',
   },
   {
     id: 1,
     kicker: 'Você já se sentiu',
     highlight: 'inseguro(a) na UFSC?',
     highlightTone: 'periwinkle',
-    dotColor: '#F7C648',
   },
   {
     id: 2,
     kicker: 'Você frequentemente sente',
     highlight: 'medo ao andar à noite?',
     highlightTone: 'periwinkle',
-    dotColor: '#EE86BF',
   },
   {
     id: 3,
@@ -52,14 +49,12 @@ const INTRO_BEATS: readonly IntroBeat[] = [
     highlightTone: 'luminous',
     body: 'Rotas iluminadas em tempo real, postes monitorados pela comunidade e caminhada em grupo pela UFSC Trindade.',
     bodyEmphasis: 'muted',
-    dotColor: '#5EC2F3',
   },
   {
     id: 4,
     kicker: 'A chave para andar tranquilo(a)?',
     body: 'Caminhos iluminados, alertas reais da comunidade e nunca voltar sozinho(a).',
     bodyEmphasis: 'luminous',
-    dotColor: '#F7C648',
   },
 ] as const;
 
@@ -67,6 +62,7 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
   onFinishIntro,
   onJumpToGovBr,
 }) => {
+  const { darkMode } = useCampusStore();
   const [beatIndex, setBeatIndex] = useState<BeatIndex>(0);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { trigger } = useHaptics();
@@ -107,29 +103,52 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
 
   const visibleBeats = INTRO_BEATS.slice(0, beatIndex + 1);
 
+  const primaryCtaClass = darkMode
+    ? 'w-full min-h-[54px] px-6 rounded-full bg-white text-[#0A0A0A] text-[17px] font-semibold tracking-[-0.014em] hover:bg-white/92 active:scale-[0.98] transition-all cursor-pointer shadow-[0_8px_30px_rgba(255,255,255,0.14)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5EC2F3]'
+    : 'w-full min-h-[54px] px-6 rounded-full bg-[#111827] text-white text-[17px] font-semibold tracking-[-0.014em] hover:bg-[#1F2937] active:scale-[0.98] transition-all cursor-pointer shadow-[0_10px_26px_rgba(17,24,39,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]';
+
+  const secondaryCtaClass = darkMode
+    ? 'w-full min-h-[48px] px-5 rounded-full bg-white/[0.12] text-white border border-white/[0.16] text-[15px] font-medium tracking-[-0.012em] hover:bg-white/[0.18] active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5EC2F3]'
+    : 'w-full min-h-[48px] px-5 rounded-full bg-[#F1F5F9] text-[#0F172A] text-[15px] font-medium tracking-[-0.012em] hover:bg-[#E2E8F0] active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]';
+
+  const navLinkClass = darkMode
+    ? 'text-white/65 hover:text-white focus-visible:outline-[#5EC2F3]'
+    : 'text-[#0F172A]/65 hover:text-[#0F172A] focus-visible:outline-[#2563EB]';
+
+  const kickerClass = darkMode ? 'text-white/70' : 'text-[#475569]';
+  const bodyClass = darkMode ? 'text-white/78' : 'text-[#475569]';
+  const luminousTextClass = darkMode ? 'text-white' : 'text-[#0F172A]';
+  const periwinkleTextClass = darkMode ? 'text-[#81A8F8]' : 'text-[#2563EB]';
+
   return (
     <section
       aria-label="Introdução Rua Escura"
-      className="relative flex flex-col justify-between w-full min-h-[100dvh] bg-[#000000] text-white overflow-hidden select-none"
+      className={`relative flex flex-col justify-between w-full min-h-[100dvh] overflow-hidden select-none transition-colors duration-300 ${
+        darkMode ? 'bg-[#0A0A0A] text-white' : 'bg-[#FFFFFF] text-[#0F172A]'
+      }`}
       style={{
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
         paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
       }}
     >
-      {/* Subtle OLED ambient top hairline gradient so receded stack melts cleanly into pure black */}
+      {/* Subtle top fade gradient so receded stack melts cleanly into canvas */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#000000] via-[#000000]/80 to-transparent z-10"
+        className={`pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b to-transparent z-10 transition-colors duration-300 ${
+          darkMode
+            ? 'from-[#0A0A0A] via-[#0A0A0A]/90'
+            : 'from-white via-white/90'
+        }`}
       />
 
-      {/* Minimal Top Bar: Back | Trio Progress Dots | Pular */}
+      {/* Minimal Top Bar: Back | Neutral Progress Dots | Pular */}
       <header className="relative z-20 w-full max-w-[440px] mx-auto px-6 flex items-center justify-between">
         <div className="w-[84px] flex items-center justify-start">
           {beatIndex > 0 ? (
             <button
               type="button"
               onClick={handleBack}
-              className="inline-flex items-center gap-1 min-h-[44px] min-w-[44px] -ml-2 px-2 rounded-full text-[15px] font-medium text-white/65 hover:text-white active:scale-[0.97] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
+              className={`inline-flex items-center gap-1 min-h-[44px] min-w-[44px] -ml-2 px-2 rounded-full text-[15px] font-medium active:scale-[0.97] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 ${navLinkClass}`}
             >
               <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>Voltar</span>
@@ -139,7 +158,7 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
           )}
         </div>
 
-        {/* Trio Progress Dots */}
+        {/* Neutral Black / White Progress Dots */}
         <div
           role="progressbar"
           aria-label="Progresso da introdução"
@@ -150,23 +169,20 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
         >
           {INTRO_BEATS.map((beat, idx) => {
             const isActive = idx === beatIndex;
-            const isVisited = idx < beatIndex;
             return (
               <motion.span
                 key={beat.id}
                 layout={!prefersReducedMotion}
                 transition={stackTransition}
-                className="block h-1.5 rounded-full"
-                style={{
-                  width: isActive ? 20 : 6,
-                  backgroundColor:
-                    isActive || isVisited ? beat.dotColor : 'rgba(255, 255, 255, 0.22)',
-                  opacity: isActive ? 1 : isVisited ? 0.55 : 1,
-                  boxShadow:
-                    isActive && !prefersReducedMotion
-                      ? `0 0 12px ${beat.dotColor}66`
-                      : 'none',
-                }}
+                className={`block h-1.5 rounded-full transition-colors ${
+                  isActive
+                    ? darkMode
+                      ? 'w-6 bg-white'
+                      : 'w-6 bg-[#111827]'
+                    : darkMode
+                      ? 'w-1.5 bg-white/25'
+                      : 'w-1.5 bg-[#111827]/20'
+                }`}
               />
             );
           })}
@@ -176,7 +192,7 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
           <button
             type="button"
             onClick={handleFinish}
-            className="inline-flex items-center justify-end min-h-[44px] min-w-[44px] -mr-2 px-2 rounded-full text-[15px] font-medium text-white/55 hover:text-white active:scale-[0.97] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
+            className={`inline-flex items-center justify-end min-h-[44px] min-w-[44px] -mr-2 px-2 rounded-full text-[15px] font-medium active:scale-[0.97] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 ${navLinkClass}`}
           >
             Pular
           </button>
@@ -241,20 +257,22 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
                   <div>
                     {isActive ? (
                       <h1
-                        className="text-[34px] sm:text-[40px] leading-[1.1] font-bold tracking-[-0.03em] text-white"
-                        style={{
-                          textShadow: '0 0 28px rgba(255, 255, 255, 0.24)',
-                        }}
+                        className={`text-[34px] sm:text-[40px] leading-[1.1] font-bold tracking-[-0.03em] ${luminousTextClass}`}
+                        style={
+                          darkMode
+                            ? { textShadow: '0 0 28px rgba(255, 255, 255, 0.24)' }
+                            : undefined
+                        }
                       >
                         {beat.kicker}
                       </h1>
                     ) : (
-                      <p className="text-[28px] sm:text-[32px] leading-[1.12] font-bold tracking-[-0.03em] text-white">
+                      <p className={`text-[28px] sm:text-[32px] leading-[1.12] font-bold tracking-[-0.03em] ${luminousTextClass}`}>
                         {beat.kicker}
                       </p>
                     )}
                     {beat.body && (
-                      <p className="mt-3.5 text-[19px] sm:text-[21px] leading-[1.42] font-normal tracking-[-0.014em] text-white/80 max-w-[34ch]">
+                      <p className={`mt-3.5 text-[19px] sm:text-[21px] leading-[1.42] font-normal tracking-[-0.014em] max-w-[34ch] ${bodyClass}`}>
                         {beat.body}
                       </p>
                     )}
@@ -265,36 +283,40 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
                   <div>
                     {isActive ? (
                       <h1>
-                        <span className="block text-[20px] sm:text-[22px] leading-[1.3] font-medium tracking-[-0.015em] text-white/70 mb-1.5">
+                        <span className={`block text-[20px] sm:text-[22px] leading-[1.3] font-medium tracking-[-0.015em] mb-1.5 ${kickerClass}`}>
                           {beat.kicker}
                         </span>
                         <span
-                          className={
+                          className={`block text-[36px] sm:text-[42px] leading-[1.08] font-bold tracking-tight ${
                             beat.highlightTone === 'luminous'
-                              ? 'block text-[38px] sm:text-[44px] leading-[1.06] font-bold tracking-tight text-white'
-                              : 'block text-[36px] sm:text-[42px] leading-[1.08] font-bold tracking-tight text-[#81A8F8]'
+                              ? luminousTextClass
+                              : periwinkleTextClass
+                          }`}
+                          style={
+                            darkMode
+                              ? {
+                                  textShadow:
+                                    beat.highlightTone === 'luminous'
+                                      ? '0 0 32px rgba(255, 255, 255, 0.34), 0 0 12px rgba(255, 255, 255, 0.16)'
+                                      : '0 0 28px rgba(129, 168, 248, 0.36)',
+                                }
+                              : undefined
                           }
-                          style={{
-                            textShadow:
-                              beat.highlightTone === 'luminous'
-                                ? '0 0 32px rgba(255, 255, 255, 0.34), 0 0 12px rgba(255, 255, 255, 0.16)'
-                                : '0 0 28px rgba(129, 168, 248, 0.36)',
-                          }}
                         >
                           {beat.highlight}
                         </span>
                       </h1>
                     ) : (
                       <div>
-                        <p className="text-[18px] sm:text-[20px] leading-[1.3] font-medium tracking-[-0.015em] text-white/70 mb-1">
+                        <p className={`text-[18px] sm:text-[20px] leading-[1.3] font-medium tracking-[-0.015em] mb-1 ${kickerClass}`}>
                           {beat.kicker}
                         </p>
                         <p
-                          className={
+                          className={`text-[30px] sm:text-[34px] leading-[1.08] font-bold tracking-tight ${
                             beat.highlightTone === 'luminous'
-                              ? 'text-[32px] sm:text-[36px] leading-[1.08] font-bold tracking-tight text-white'
-                              : 'text-[30px] sm:text-[34px] leading-[1.08] font-bold tracking-tight text-[#81A8F8]'
-                          }
+                              ? luminousTextClass
+                              : periwinkleTextClass
+                          }`}
                         >
                           {beat.highlight}
                         </p>
@@ -302,7 +324,7 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
                     )}
 
                     {beat.body && isActive && (
-                      <p className="mt-4 text-[17px] sm:text-[18px] leading-[1.48] font-normal tracking-[-0.012em] text-white/72 max-w-[36ch]">
+                      <p className={`mt-4 text-[17px] sm:text-[18px] leading-[1.48] font-normal tracking-[-0.012em] max-w-[36ch] ${bodyClass}`}>
                         {beat.body}
                       </p>
                     )}
@@ -313,25 +335,29 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
                   <div>
                     {isActive ? (
                       <h1>
-                        <span className="block text-[20px] sm:text-[22px] leading-[1.3] font-medium tracking-[-0.015em] text-white/70 mb-2">
+                        <span className={`block text-[20px] sm:text-[22px] leading-[1.3] font-medium tracking-[-0.015em] mb-2 ${kickerClass}`}>
                           {beat.kicker}
                         </span>
                         <span
-                          className="block text-[28px] sm:text-[34px] leading-[1.18] font-bold tracking-[-0.026em] text-white"
-                          style={{
-                            textShadow:
-                              '0 0 30px rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 255, 255, 0.14)',
-                          }}
+                          className={`block text-[28px] sm:text-[34px] leading-[1.18] font-bold tracking-[-0.026em] ${luminousTextClass}`}
+                          style={
+                            darkMode
+                              ? {
+                                  textShadow:
+                                    '0 0 30px rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 255, 255, 0.14)',
+                                }
+                              : undefined
+                          }
                         >
                           {beat.body}
                         </span>
                       </h1>
                     ) : (
                       <div>
-                        <p className="text-[18px] font-medium text-white/70 mb-1">
+                        <p className={`text-[18px] font-medium mb-1 ${kickerClass}`}>
                           {beat.kicker}
                         </p>
-                        <p className="text-[26px] font-bold text-white">{beat.body}</p>
+                        <p className={`text-[26px] font-bold ${luminousTextClass}`}>{beat.body}</p>
                       </div>
                     )}
                   </div>
@@ -352,20 +378,12 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
               transition={ctaTransition}
-              className="flex flex-col items-center gap-2"
+              className="flex flex-col items-center gap-2.5"
             >
-              <button
-                type="button"
-                onClick={advanceBeat}
-                className="w-full min-h-[54px] px-6 rounded-full bg-white text-[#000000] text-[17px] font-semibold tracking-[-0.014em] hover:bg-white/92 active:scale-[0.98] transition-all cursor-pointer shadow-[0_8px_30px_rgba(255,255,255,0.16)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
-              >
+              <button type="button" onClick={advanceBeat} className={primaryCtaClass}>
                 Olá!
               </button>
-              <button
-                type="button"
-                onClick={handleJumpGovBr}
-                className="min-h-[44px] px-4 rounded-full text-[15px] font-medium text-white/62 hover:text-white active:scale-[0.98] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
-              >
+              <button type="button" onClick={handleJumpGovBr} className={secondaryCtaClass}>
                 Já tenho conta Gov.br
               </button>
             </motion.div>
@@ -378,20 +396,12 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
               transition={ctaTransition}
-              className="flex flex-col items-center gap-2"
+              className="flex flex-col items-center gap-2.5"
             >
-              <button
-                type="button"
-                onClick={advanceBeat}
-                className="w-full min-h-[54px] px-6 rounded-full bg-white text-[#000000] text-[17px] font-semibold tracking-[-0.014em] hover:bg-white/92 active:scale-[0.98] transition-all cursor-pointer shadow-[0_8px_30px_rgba(255,255,255,0.16)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
-              >
+              <button type="button" onClick={advanceBeat} className={primaryCtaClass}>
                 Sim, já senti.
               </button>
-              <button
-                type="button"
-                onClick={advanceBeat}
-                className="min-h-[44px] px-4 rounded-full text-[15px] font-medium text-white/62 hover:text-white active:scale-[0.98] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
-              >
+              <button type="button" onClick={advanceBeat} className={secondaryCtaClass}>
                 Às vezes
               </button>
             </motion.div>
@@ -406,17 +416,13 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
               transition={ctaTransition}
               className="grid grid-cols-2 gap-3 pb-2"
             >
-              <button
-                type="button"
-                onClick={advanceBeat}
-                className="w-full min-h-[54px] px-5 rounded-full bg-white text-[#000000] text-[17px] font-semibold tracking-[-0.014em] hover:bg-white/92 active:scale-[0.98] transition-all cursor-pointer shadow-[0_8px_30px_rgba(255,255,255,0.16)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
-              >
+              <button type="button" onClick={advanceBeat} className={primaryCtaClass}>
                 Sim
               </button>
               <button
                 type="button"
                 onClick={advanceBeat}
-                className="w-full min-h-[54px] px-5 rounded-full bg-white/[0.12] text-white border border-white/[0.16] text-[17px] font-semibold tracking-[-0.014em] hover:bg-white/[0.18] active:scale-[0.98] transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
+                className={`${secondaryCtaClass} min-h-[54px] text-[17px] font-semibold`}
               >
                 Não
               </button>
@@ -432,11 +438,7 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
               transition={ctaTransition}
               className="flex flex-col items-center pb-2"
             >
-              <button
-                type="button"
-                onClick={advanceBeat}
-                className="w-full min-h-[54px] px-6 rounded-full bg-white text-[#000000] text-[17px] font-semibold tracking-[-0.014em] hover:bg-white/92 active:scale-[0.98] transition-all cursor-pointer shadow-[0_8px_30px_rgba(255,255,255,0.16)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
-              >
+              <button type="button" onClick={advanceBeat} className={primaryCtaClass}>
                 Qual é a chave?
               </button>
             </motion.div>
@@ -451,11 +453,7 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
               transition={ctaTransition}
               className="flex flex-col items-center pb-2"
             >
-              <button
-                type="button"
-                onClick={handleFinish}
-                className="w-full min-h-[54px] px-6 rounded-full bg-white text-[#000000] text-[17px] font-semibold tracking-[-0.014em] hover:bg-white/92 active:scale-[0.98] transition-all cursor-pointer shadow-[0_8px_30px_rgba(255,255,255,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#81A8F8]"
-              >
+              <button type="button" onClick={handleFinish} className={primaryCtaClass}>
                 Começar meu cadastro
               </button>
             </motion.div>
