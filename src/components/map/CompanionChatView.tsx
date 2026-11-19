@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { CheckCircle2, ChevronLeft, Clock, Users } from 'lucide-react';
+import { CheckCircle2, ChevronLeft } from 'lucide-react';
 import type { ChatMessage, CompanionMatch } from '../../types/campus';
 import { ChatMessageSchema } from '../../security/schemas';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
@@ -57,7 +57,8 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
   onToggleJoin,
 }) => {
   const store = useCampusStore();
-  const isDark = isNightMap ?? dark ?? store.isNightMap ?? false;
+  // Sync with both global app darkMode and map isNightMap (RouteSheet passes isNightMap even when false).
+  const isDark = dark ?? Boolean(isNightMap || store.darkMode || store.isNightMap);
   const messages = messagesProp ?? store.chatMessages[companion.id] ?? [];
   const currentUserId = store.userSession ? 'user-current' : 'demo-user';
   const currentUserName = store.userSession?.name ?? 'Você';
@@ -71,7 +72,22 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
     companion.destinationId;
 
   const displayName = companion.groupTitle || companion.name;
-  const groupMembers = companion.isGroup && companion.members ? companion.members : [];
+  const groupMembers = useMemo(
+    () => (companion.isGroup && companion.members ? companion.members : []),
+    [companion.isGroup, companion.members]
+  );
+
+  const headerSubtitle = useMemo(() => {
+    const routeSummary = `${originLabel} → ${destLabel} • ${companion.departureTime}`;
+    if (groupMembers.length === 0) return routeSummary;
+    const names = groupMembers
+      .slice(0, 3)
+      .map((member) => member.name.split(' ')[0])
+      .join(', ');
+    return `${names} • ${routeSummary}`;
+  }, [companion.departureTime, destLabel, groupMembers, originLabel]);
+
+  const avatarVariant = groupMembers[0]?.mascotVariant ?? getVariantForId(companion.id);
 
   const participants = useMemo<ArcChatParticipant[]>(() => {
     const map = new Map<string, ArcChatParticipant>();
@@ -177,70 +193,40 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
     }
   };
 
-  const borderClass = isDark ? 'border-[#1E293B]' : 'border-[#D5E0EE]';
-  const mutedTextClass = isDark ? 'text-[#94A3B8]' : 'text-[#475569]';
-  const surfaceClass = isDark ? 'bg-[#0F172A] border-[#1E293B]' : 'bg-[#FFFFFF] border-[#D5E0EE]';
+  const headerBorderClass = isDark ? 'border-white/10' : 'border-[rgba(15,23,42,0.08)]';
+  const titleTextClass = isDark ? 'text-[#E9EDEF]' : 'text-[#111B21]';
+  const mutedTextClass = isDark ? 'text-[#8696A0]' : 'text-[#54656F]';
+  const chatSurfaceClass = isDark
+    ? 'bg-[#0B141A] border-white/10'
+    : 'bg-[#EFEAE2] border-[rgba(15,23,42,0.08)]';
 
   return (
-    <div className="flex flex-col gap-3 pt-1 pb-2" data-testid="companion-chat-view">
-      {/* iOS 26 Sheet NavigationBar: Liquid Glass Chevron Back, Trio Identity & Join Pill */}
-      <header className={`flex items-center justify-between gap-2 pb-3 border-b ${borderClass}`}>
+    <div className="flex flex-col gap-2.5 pt-1 pb-2" data-testid="companion-chat-view">
+      {/* WhatsApp-Inspired Single Header: Borderless Back Link, Avatar, Title/Subtitle & Join Pill */}
+      <header className={`flex items-center justify-between gap-2 pb-2.5 border-b ${headerBorderClass}`}>
         <div className="flex items-center gap-2 min-w-0">
           <button
             type="button"
             onClick={onBack}
             aria-label="Voltar para rota e colegas"
-            className={`min-h-[44px] min-w-[44px] pl-1.5 pr-3 rounded-full inline-flex items-center gap-0.5 text-[15px] font-medium backdrop-blur-md transition-[transform,background-color] duration-150 active:scale-[0.96] cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
+            className={`min-h-[44px] pl-1 pr-2 -ml-1 rounded-lg inline-flex items-center gap-0.5 text-[15px] font-medium transition-colors duration-150 active:opacity-70 cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008069] ${
               isDark
-                ? 'bg-white/10 text-[#60A5FA] hover:bg-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]'
-                : 'bg-[#2563EB]/[0.09] text-[#2563EB] hover:bg-[#2563EB]/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]'
+                ? 'text-[#00A884] hover:bg-white/[0.06]'
+                : 'text-[#008069] hover:bg-black/[0.04]'
             }`}
           >
-            <ChevronLeft className="w-5 h-5 -ml-0.5 shrink-0" aria-hidden="true" />
+            <ChevronLeft className="w-5 h-5 shrink-0" aria-hidden="true" />
             <span>Voltar</span>
           </button>
 
-          {groupMembers.length > 0 ? (
-            <span className="inline-flex items-center -space-x-2 shrink-0" aria-hidden="true">
-              {groupMembers.slice(0, 3).map((member, idx) => (
-                <TrioCharacterAvatar
-                  key={member.id}
-                  variant={member.mascotVariant}
-                  size={28}
-                  className={idx === 1 ? 'z-10' : ''}
-                />
-              ))}
-            </span>
-          ) : (
-            <TrioCharacterAvatar
-              variant={getVariantForId(companion.id)}
-              size={34}
-              className="shrink-0"
-            />
-          )}
+          <TrioCharacterAvatar variant={avatarVariant} size={36} className="shrink-0" />
 
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-[15px] font-semibold tracking-tight leading-tight truncate">
-                {displayName}
-              </h3>
-              {companion.isGroup && (
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
-                    isDark
-                      ? 'bg-[#60A5FA]/15 text-[#60A5FA]'
-                      : 'bg-[#2563EB]/10 text-[#2563EB]'
-                  }`}
-                >
-                  <Users className="w-3 h-3" aria-hidden="true" />
-                  <span>{groupMembers.length + 1}</span>
-                </span>
-              )}
-            </div>
+            <h3 className={`text-[15px] font-semibold tracking-tight leading-tight truncate ${titleTextClass}`}>
+              {displayName}
+            </h3>
             <p className={`text-[11px] leading-snug truncate mt-0.5 ${mutedTextClass}`}>
-              {originLabel} → {destLabel} •{' '}
-              <Clock className="inline w-3 h-3 -mt-0.5" aria-hidden="true" />{' '}
-              {companion.departureTime}
+              {headerSubtitle}
             </p>
           </div>
         </div>
@@ -249,12 +235,14 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
           type="button"
           onClick={handleToggleJoin}
           aria-pressed={Boolean(companion.isUserJoined)}
-          className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold shrink-0 inline-flex items-center gap-1.5 transition-[transform,background-color,color] duration-150 active:scale-[0.96] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
+          className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold shrink-0 inline-flex items-center gap-1.5 transition-[transform,background-color,color] duration-150 active:scale-[0.96] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008069] ${
             companion.isUserJoined
-              ? 'bg-[#2563EB] text-white shadow-xs'
+              ? isDark
+                ? 'bg-[#00A884] text-[#0B141A]'
+                : 'bg-[#008069] text-white'
               : isDark
-                ? 'bg-white/10 text-[#F8FAFC] hover:bg-white/15'
-                : 'bg-[#0F172A]/[0.06] text-[#0F172A] hover:bg-[#0F172A]/[0.11]'
+                ? 'bg-[#202C33] text-[#E9EDEF] hover:bg-[#2A3942]'
+                : 'bg-[#0F172A]/[0.06] text-[#111B21] hover:bg-[#0F172A]/[0.10]'
           }`}
         >
           {companion.isUserJoined && <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />}
@@ -262,66 +250,32 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
         </button>
       </header>
 
-      {/* Group Members Strip */}
-      {groupMembers.length > 0 && (
-        <div
-          aria-label="Integrantes do grupo"
-          className="flex items-center gap-1.5 overflow-x-auto pb-0.5"
-        >
-          {companion.isUserJoined && (
-            <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border shrink-0 ${
-                isDark
-                  ? 'bg-[#2563EB]/20 text-[#93C5FD] border-[#2563EB]/40'
-                  : 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'
-              }`}
-            >
-              <TrioCharacterAvatar variant="blue" size={18} />
-              <span>Você</span>
-            </span>
-          )}
-          {groupMembers.map((member) => (
-            <span
-              key={member.id}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border shrink-0 ${
-                isDark
-                  ? 'bg-[#111C34] text-[#E2E8F0] border-[#1E293B]'
-                  : 'bg-[#FFFFFF] text-[#0F172A] border-[#D5E0EE]'
-              }`}
-            >
-              <TrioCharacterAvatar variant={member.mascotVariant} size={18} />
-              <span>{member.name.split(' ')[0]}</span>
-            </span>
-          ))}
-        </div>
-      )}
+      {/* WhatsApp-Style ChatThread Surface */}
+      <div className={`flex flex-col rounded-2xl border overflow-hidden min-h-[260px] max-h-[48vh] ${chatSurfaceClass}`}>
+        {systemNotices.length > 0 && (
+          <div className="flex flex-col items-center gap-1 px-3 pt-2.5">
+            {systemNotices.map((notice) => (
+              <p
+                key={notice.id}
+                role="status"
+                className={`text-[11px] text-center px-3 py-1 rounded-lg ${
+                  isDark
+                    ? 'bg-[#182229] text-[#8696A0]'
+                    : 'bg-white/85 text-[#54656F] shadow-[0_1px_1px_rgba(11,20,26,0.06)]'
+                }`}
+              >
+                {notice.text}
+              </p>
+            ))}
+          </div>
+        )}
 
-      {/* System Notices (e.g. group created status) */}
-      {systemNotices.length > 0 && (
-        <div className="space-y-1">
-          {systemNotices.map((notice) => (
-            <p
-              key={notice.id}
-              role="status"
-              className={`text-xs text-center px-3 py-1.5 rounded-xl border ${
-                isDark
-                  ? 'bg-[#111C34] text-[#CBD5E1] border-[#1E293B]'
-                  : 'bg-[#F8FAFC] text-[#475569] border-[#E5ECF6]'
-              }`}
-            >
-              {notice.text}
-            </p>
-          ))}
-        </div>
-      )}
-
-      {/* UIArc ChatThread */}
-      <div className={`flex flex-col rounded-2xl border overflow-hidden min-h-[250px] max-h-[46vh] ${surfaceClass}`}>
         {arcMessages.length === 0 && (
-          <p className={`text-xs text-center px-4 pt-3 pb-1 ${mutedTextClass}`}>
+          <p className={`text-[11px] text-center px-4 pt-2.5 pb-1 ${mutedTextClass}`}>
             Combine o ponto de encontro iluminado com {displayName}.
           </p>
         )}
+
         <ChatThread
           participants={participants}
           currentUserId={currentUserId}
@@ -352,17 +306,17 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
         </p>
       )}
 
-      {/* Quick-Reply Safe Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+      {/* Slim Horizontal Quick-Reply Chips */}
+      <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {QUICK_REPLIES.map((chip) => (
           <button
             key={chip}
             type="button"
             onClick={() => submitText(chip)}
-            className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium shrink-0 border transition-colors active:scale-[0.97] cursor-pointer ${
+            className={`min-h-[44px] px-3.5 rounded-full text-xs font-medium shrink-0 transition-colors active:scale-[0.97] cursor-pointer ${
               isDark
-                ? 'bg-[#111C34] text-[#F8FAFC] border-[#1E293B] hover:border-[#5EC2F3]'
-                : 'bg-[#FFFFFF] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
+                ? 'bg-[#202C33] text-[#E9EDEF] hover:bg-[#2A3942]'
+                : 'bg-[#F0F2F5] text-[#111B21] hover:bg-[#E4E6EB]'
             }`}
           >
             {chip}

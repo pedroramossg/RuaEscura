@@ -141,6 +141,17 @@ const ARRIVE = physical(spring.smooth.visualDuration, 0);
 const DEFAULT_REACTIONS = ['👍', '💡', '🚶', '🙌', '👀'];
 const STICK_DISTANCE = 48;
 const FAR_DISTANCE = 180;
+const LIGHT_AUTHOR_PALETTE = ['#008069', '#1D4ED8', '#7E22CE', '#B45309', '#0F766E'];
+const DARK_AUTHOR_PALETTE = ['#53BDEB', '#25D366', '#D8B4FE', '#FDBA74', '#5EEAD4'];
+
+function getAuthorColor(authorId: string, dark: boolean): string {
+  let hash = 0;
+  for (let i = 0; i < authorId.length; i += 1) {
+    hash = (hash * 31 + authorId.charCodeAt(i)) | 0;
+  }
+  const palette = dark ? DARK_AUTHOR_PALETTE : LIGHT_AUTHOR_PALETTE;
+  return palette[Math.abs(hash) % palette.length] ?? palette[0];
+}
 
 const subscribe = () => () => {};
 function useHydrated() {
@@ -605,7 +616,14 @@ export const ChatThread = forwardRef<ChatThreadHandle, ChatThreadProps>(function
                         <div className={styles.stack}>
                           {first && (
                             <p className={styles.meta}>
-                              {!mine && <span className={styles.author}>{author.name}</span>}
+                              {!mine && (
+                                <span
+                                  className={styles.author}
+                                  style={{ color: getAuthorColor(author.id, dark) }}
+                                >
+                                  {author.name}
+                                </span>
+                              )}
                               <time dateTime={validDate.toISOString()} suppressHydrationWarning>
                                 {hydrated ? time.format(validDate) : ''}
                               </time>
