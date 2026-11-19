@@ -11,10 +11,10 @@ import {
 import { useCampusStore } from '../../hooks/useCampusStore';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { maskCpf } from '../../security/schemas';
-import { getPerfSnapshot } from '../../utils/perfMonitor';
 import { ArcBottomSheet } from '../ui/ArcBottomSheet';
 import { SfIcon } from '../ui/SfIcon';
 import { DropletMascot } from '../mascot/DropletMascot';
+import { PwaInstallTutorialBody } from '../onboarding/PwaInstallGuideSheet';
 
 export interface ProfileSheetProps {
   isOpen: boolean;
@@ -64,9 +64,11 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
   const isDarkSurface = dark ?? (darkMode || isNightMap);
 
   const [confirmReset, setConfirmReset] = useState(false);
+  const [showPwaTutorial, setShowPwaTutorial] = useState(false);
 
   const handleClose = useCallback(() => {
     setConfirmReset(false);
+    setShowPwaTutorial(false);
     onClose();
     window.requestAnimationFrame(() => {
       returnFocusRef?.current?.focus();
@@ -83,7 +85,6 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
   }
 
   const safeCpf = toSafeMaskedCpf(userSession?.cpfMasked);
-  const perf = getPerfSnapshot();
 
   const handleResetSessionOnly = () => {
     setConfirmReset(false);
@@ -108,10 +109,21 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
       dark={isDarkSurface}
       detents={[0.82, 0.94]}
       initialDetent={0}
-      title="Perfil & Privacidade"
-      description="Conta verificada UFSC Trindade"
+      title={showPwaTutorial ? 'Instalar app no celular' : 'Perfil & Privacidade'}
+      description={
+        showPwaTutorial
+          ? 'Tutorial animado para iOS e Android (PWA)'
+          : 'Conta verificada UFSC Trindade'
+      }
       closeLabel="Fechar perfil"
     >
+      {showPwaTutorial ? (
+        <PwaInstallTutorialBody
+          dark={isDarkSurface}
+          onBack={() => setShowPwaTutorial(false)}
+          onNotify={onNotify}
+        />
+      ) : (
       <div className="space-y-5 pt-1 pb-4">
         {/* Identity Card (Mascot + Gov.br Badge + Masked CPF Only) */}
         <div className="ios-grouped-section ios-grouped-divider">
@@ -183,9 +195,6 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               />
               <div>
                 <p className="text-sm font-medium text-[var(--label-primary)]">Modo Escuro</p>
-                <p className="text-xs text-[var(--label-secondary)]">
-                  Tema Opal escuro em Onyx e vidro fosco
-                </p>
               </div>
             </div>
 
@@ -195,9 +204,8 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               aria-checked={darkMode}
               aria-label="Modo Escuro"
               onClick={toggleDarkMode}
-              className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                darkMode ? 'bg-[#2563EB] justify-end' : 'bg-[#64748B]/40 justify-start'
-              }`}
+              className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${darkMode ? 'bg-[#2563EB] justify-end' : 'bg-[#64748B]/40 justify-start'
+                }`}
             >
               <span className="w-7 h-7 rounded-full bg-white shadow-xs transition-transform" />
             </button>
@@ -208,9 +216,6 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               <Moon className="w-4 h-4 text-[var(--accent-primary)] shrink-0" aria-hidden="true" />
               <div>
                 <p className="text-sm font-medium text-[var(--label-primary)]">Luz Noturna no mapa</p>
-                <p className="text-xs text-[var(--label-secondary)]">
-                  Realce escuro com halos nos postes ativos
-                </p>
               </div>
             </div>
 
@@ -220,9 +225,8 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               aria-checked={isNightMap}
               aria-label="Luz Noturna no mapa"
               onClick={toggleNightMap}
-              className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                isNightMap ? 'bg-[#2563EB] justify-end' : 'bg-[#64748B]/40 justify-start'
-              }`}
+              className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${isNightMap ? 'bg-[#2563EB] justify-end' : 'bg-[#64748B]/40 justify-start'
+                }`}
             >
               <span className="w-7 h-7 rounded-full bg-white shadow-xs transition-transform" />
             </button>
@@ -235,9 +239,6 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
                 <p className="text-sm font-medium text-[var(--label-primary)]">
                   Feedback tátil (hápticos)
                 </p>
-                <p className="text-xs text-[var(--label-secondary)]">
-                  Vibração sutil em alertas e atualizações
-                </p>
               </div>
             </div>
 
@@ -247,9 +248,8 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               aria-checked={hapticsEnabled}
               aria-label="Feedback tátil (hápticos)"
               onClick={() => setHapticsEnabled(!hapticsEnabled)}
-              className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                hapticsEnabled ? 'bg-[#2563EB] justify-end' : 'bg-[#64748B]/40 justify-start'
-              }`}
+              className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${hapticsEnabled ? 'bg-[#2563EB] justify-end' : 'bg-[#64748B]/40 justify-start'
+                }`}
             >
               <span className="w-7 h-7 rounded-full bg-white shadow-xs transition-transform" />
             </button>
@@ -257,22 +257,19 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
         </div>
 
         {/* Local Web Vitals & Span Telemetry (Read-only, zero PII) */}
-        <div
-          aria-label="Telemetria local de desempenho"
-          className="ios-grouped-section px-4 py-3 text-xs text-[var(--label-secondary)] flex items-center justify-between gap-2 flex-wrap"
-        >
-          <span>
-            Telemetria RUM:{' '}
-            {typeof perf.vitals.LCP === 'number' ? `LCP ${Math.round(perf.vitals.LCP)}ms` : 'LCP —'} •{' '}
-            {typeof perf.vitals.INP === 'number' ? `INP ${Math.round(perf.vitals.INP)}ms` : 'INP —'}
-          </span>
-          <span className="font-mono text-[11px] text-[var(--label-tertiary)]">
-            {perf.totalRecorded} spans ({perf.slowCount} lentos)
-          </span>
-        </div>
+
 
         {/* Distinct Account Reset vs Full Demo Reset */}
         <div className="ios-grouped-section ios-grouped-divider">
+          <button
+            type="button"
+            onClick={() => setShowPwaTutorial(true)}
+            className="w-full min-h-[48px] px-4 py-3 text-sm font-medium text-[var(--accent-primary)] hover:bg-[var(--bg-fill-secondary)]/60 active:bg-[var(--bg-fill-secondary)] inline-flex items-center justify-start gap-2.5 text-left transition-colors cursor-pointer"
+          >
+            <Smartphone className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span>Instalar app no celular (PWA)</span>
+          </button>
+
           {onOpenWelcomeBack && (
             <button
               type="button"
@@ -327,6 +324,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
           )}
         </div>
       </div>
+      )}
     </ArcBottomSheet>
   );
 };

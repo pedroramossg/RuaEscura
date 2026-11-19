@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" fill="none">
+  <rect width="192" height="192" rx="44" fill="#0B1120" />
+  <circle cx="96" cy="86" r="54" fill="url(#glow)" opacity="0.35" />
+  <path
+    d="M96 34C96 34 52 84.5 52 114C52 138.3 71.7 158 96 158C120.3 158 140 138.3 140 114C140 84.5 96 34 96 34Z"
+    fill="url(#drop)"
+  />
+  <ellipse cx="83" cy="112" rx="5.5" ry="7.2" transform="rotate(-10 83 112)" fill="#0B1120" />
+  <ellipse cx="109" cy="115" rx="5.5" ry="7.2" transform="rotate(-8 109 115)" fill="#0B1120" />
+  <circle cx="85" cy="109" r="1.8" fill="#FFFFFF" />
+  <circle cx="111" cy="112" r="1.8" fill="#FFFFFF" />
+  <circle cx="140" cy="48" r="12" fill="#10B981" />
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="0.4" r="0.6">
+      <stop stop-color="#5EC2F3" />
+      <stop offset="1" stop-color="#0B1120" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="drop" x1="56" y1="44" x2="136" y2="154" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#87D7FA" />
+      <stop offset="1" stop-color="#2563EB" />
+    </linearGradient>
+  </defs>
+</svg>
