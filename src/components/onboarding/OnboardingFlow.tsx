@@ -16,14 +16,15 @@ import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { PillButton } from '../ui/PillButton';
 import { SfIcon } from '../ui/SfIcon';
 import { DropletMascot } from '../mascot/DropletMascot';
-import { TrioCharacterAvatar } from '../mascot/TrioMascotBadge';
 import type { StateId } from '../../mascot/bloub/states';
 import type { ExpressionId } from '../../mascot/bloub/expressions';
 import type { GovBrSession } from '../../types/campus';
 import { findRoute } from '../../engine/routing';
 import { GovBrAuthSchema, maskCpf } from '../../security/schemas';
+import ufscLogo from '../../assets/ufsc-logo.webp';
 import { FocusFlightIntro } from './FocusFlightIntro';
 import { InteractiveCrewSignUp } from './crew/InteractiveCrewSignUp';
+import { WelcomeBackTrioShowcase, useWelcomeBackGaze } from './WelcomeBackTrioShowcase';
 
 const StepSlide = React.forwardRef<
   HTMLDivElement,
@@ -167,7 +168,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const [cpf, setCpf] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [errorShakeKey, setErrorShakeKey] = useState(0);
-  const [gpsStatus, setGpsStatus] = useState<'prompt' | 'granted' | 'fallback'>('prompt');
   const [isVerifying, setIsVerifying] = useState(false);
   const [checklistStep, setChecklistStep] = useState(0);
   const [pendingSession, setPendingSession] = useState<GovBrSession | null>(null);
@@ -186,6 +186,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   }, []);
 
   const prefersReducedMotion = usePrefersReducedMotion();
+  const welcomeGaze = useWelcomeBackGaze(prefersReducedMotion);
 
   useEffect(() => {
     if (prefersReducedMotion || stage !== 'wizard' || step !== 1) return;
@@ -279,23 +280,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         : step === 3
           ? `Trajeto pronto • ${corridorLabel}`
           : `Desbloquear ${corridorLabel}`;
-
-  // Step 4 GPS Pre-permission
-  const requestGps = () => {
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      try {
-        navigator.geolocation.getCurrentPosition(
-          () => setGpsStatus('granted'),
-          () => setGpsStatus('fallback'),
-          { timeout: 3000 }
-        );
-      } catch {
-        setGpsStatus('fallback');
-      }
-    } else {
-      setGpsStatus('fallback');
-    }
-  };
 
   // Demo Gov.br autofill
   const handleAutofillDemo = () => {
@@ -1031,7 +1015,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </StepSlide>
             )}
 
-            {/* STEP 4: INTERACTIVE OGLET-PHYSICS CREW + GOV.BR TRUST GATE */}
+            {/* STEP 4: INTERACTIVE WELCOMEBACK TRIO + GOV.BR TRUST GATE */}
             {step === 4 && (
               <StepSlide
                 key="step-4"
@@ -1057,8 +1041,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   }}
                   error={error}
                   errorShakeKey={errorShakeKey}
-                  gpsStatus={gpsStatus}
-                  onRequestGps={requestGps}
                   isVerifying={isVerifying}
                   checklistStep={checklistStep}
                   corridorLabel={corridorLabel}
@@ -1069,7 +1051,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </StepSlide>
             )}
 
-            {/* STEP 5: "TUDO PRONTO!" ALL-SET CELEBRATION SCREEN (REFERENCE 7) */}
+            {/* STEP 5: "TUDO PRONTO!" — EXACT WELCOMEBACK SUNBURST + CENTERED TRIO SHOWCASE */}
             {step === 5 && (
               <StepSlide
                 key="step-5"
@@ -1078,69 +1060,64 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 transition={stepTransition}
               >
                 <div
-                  className="-mx-5 -my-5 sm:-mx-8 sm:-my-8 px-6 py-8 sm:px-8 sm:py-10 bg-gradient-to-b from-[#D7ECFF] via-[#ECFDF5] to-white text-center relative overflow-hidden"
+                  onPointerMove={welcomeGaze.handlePointerMove}
+                  onPointerLeave={welcomeGaze.handlePointerLeave}
+                  className="-mx-5 -my-5 sm:-mx-8 sm:-my-8 min-h-[540px] flex flex-col justify-between bg-white text-[#454954] relative overflow-hidden select-none"
                   style={{ fontFamily: "'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}
                 >
-                  {/* Soft ambient sky-mint aura glows */}
+                  {/* Radiant sky sunburst wash fading cleanly into pure white */}
                   <div
-                    className="pointer-events-none absolute -top-16 -left-14 w-56 h-56 rounded-full bg-[#5EC2F3]/25 blur-3xl"
                     aria-hidden="true"
-                  />
-                  <div
-                    className="pointer-events-none absolute top-20 -right-14 w-56 h-56 rounded-full bg-[#34D399]/22 blur-3xl"
-                    aria-hidden="true"
-                  />
+                    className="pointer-events-none absolute inset-x-0 top-0 h-[52%] overflow-hidden"
+                    style={{
+                      background:
+                        'linear-gradient(180deg, #CDE7FF 0%, #E8F4FF 56%, #FFFFFF 100%)',
+                    }}
+                  >
+                    <div
+                      className="absolute -top-8 left-1/2 -translate-x-1/2 w-[170%] h-full opacity-90"
+                      style={{
+                        background:
+                          'repeating-conic-gradient(from 138deg at 50% 0%, rgba(255,255,255,0.44) 0deg 8deg, rgba(168,214,255,0.20) 8deg 19deg)',
+                        maskImage:
+                          'radial-gradient(ellipse 90% 92% at 50% 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,0) 88%)',
+                        WebkitMaskImage:
+                          'radial-gradient(ellipse 90% 92% at 50% 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,0) 88%)',
+                      }}
+                    />
+                  </div>
 
-                  <div className="relative z-10 flex flex-col items-center">
-                    {/* Top "Conectado" status pill with active green dot */}
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-white shadow-xs text-xs font-semibold text-[#065F46]">
+                  {/* Top minimal bar with black UFSC crest & emerald-dot Conectado pill */}
+                  <header className="relative z-20 px-6 pt-6 flex items-center justify-between">
+                    <img
+                      src={ufscLogo}
+                      alt="UFSC"
+                      width={119}
+                      height={160}
+                      decoding="async"
+                      className="h-10 w-auto object-contain select-none pointer-events-none"
+                    />
+
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-white shadow-xs text-xs font-semibold text-[#065F46]">
                       <span
                         className="w-2 h-2 rounded-full bg-[#22C55E] shadow-[0_0_0_4px_rgba(34,197,94,0.2)]"
                         aria-hidden="true"
                       />
                       <span>Conectado</span>
                     </div>
+                  </header>
 
-                    {/* Crisp All-Set Heading & Subtitle */}
-                    <h1 className="mt-5 text-3xl sm:text-[32px] font-semibold tracking-tight text-[#0F172A] leading-tight">
+                  {/* Centered crisp typography, masked session pill, and primary Onyx pill CTA */}
+                  <main className="relative z-20 px-6 pt-6 pb-4 flex flex-col items-center text-center">
+                    <h1 className="text-[32px] sm:text-[36px] font-semibold tracking-[-0.03em] leading-[1.08] text-[#454954]">
                       Tudo pronto, {firstName}!
                     </h1>
-                    <p className="mt-2.5 text-sm text-[#475569] leading-relaxed max-w-[300px]">
+                    <p className="mt-2.5 text-sm text-[#64748B] leading-relaxed max-w-[295px]">
                       Seu trajeto iluminado pela UFSC Trindade está pronto para hoje.
                     </p>
 
-                    {/* Centerpiece Frosted Medallion: Happy Trio + Droplet Emblem with Soft Light Halo */}
-                    <div className="relative mt-7 mb-6 flex items-center justify-center">
-                      <div
-                        className="absolute inset-0 scale-125 rounded-full bg-gradient-to-tr from-[#D7ECFF] via-[#FFFFFF] to-[#A7F3D0] blur-2xl opacity-90 pointer-events-none"
-                        aria-hidden="true"
-                      />
-                      <motion.div
-                        initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.92, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={prefersReducedMotion ? { duration: 0.01 } : { duration: 0.42, ease: APPLE_EASE }}
-                        className="relative w-44 h-44 rounded-[36px] bg-white/85 backdrop-blur-xl border border-white shadow-[0_22px_50px_rgba(37,99,235,0.14)] flex flex-col items-center justify-center gap-1"
-                      >
-                        <DropletMascot
-                          state="idle"
-                          expression="heureux"
-                          size={92}
-                          inkColor="#2563EB"
-                          paperColor="#FFFFFF"
-                          notifColor="#22C55E"
-                          ariaLabel="Gotinha celebrando acesso liberado"
-                        />
-                        <div className="flex items-center -space-x-2 -mt-1" aria-hidden="true">
-                          <TrioCharacterAvatar variant="blue" size={32} className="shadow-xs" />
-                          <TrioCharacterAvatar variant="gold" size={34} className="z-10 -translate-y-0.5 shadow-xs" />
-                          <TrioCharacterAvatar variant="pink" size={32} className="shadow-xs" />
-                        </div>
-                      </motion.div>
-                    </div>
-
-                    {/* Verified Masked Session Pill */}
                     {pendingSession && (
-                      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-[#E2E8F0] text-xs font-medium text-[#334155]">
+                      <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-[#E2E8F0] shadow-2xs text-xs font-medium text-[#334155]">
                         <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" aria-hidden="true" />
                         <span>{pendingSession.cpfMasked}</span>
                         <span className="text-[#CBD5E1]" aria-hidden="true">•</span>
@@ -1148,15 +1125,20 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                       </div>
                     )}
 
-                    {/* Primary Apple Pill CTA */}
-                    <button
-                      type="button"
-                      onClick={handleEnterCampus}
-                      className="mt-7 w-full min-h-[50px] px-6 py-3.5 rounded-full bg-[#0F172A] hover:bg-[#1E293B] active:scale-[0.98] text-white text-sm font-semibold shadow-[0_12px_28px_rgba(15,23,42,0.22)] transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
-                    >
-                      Entrar no campus
-                    </button>
-                  </div>
+                    <div className="mt-5">
+                      <button
+                        type="button"
+                        onClick={handleEnterCampus}
+                        className="min-h-[48px] px-7 rounded-full bg-[#111827] hover:bg-[#1F2937] text-white text-sm font-medium inline-flex items-center gap-2 shadow-[0_12px_28px_rgba(17,24,39,0.22)] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111827]"
+                      >
+                        <span>Entrar no campus</span>
+                        <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </main>
+
+                  {/* Exact WelcomeBack Trio mascots centered cleanly across the bottom */}
+                  <WelcomeBackTrioShowcase variant="centered" gaze={welcomeGaze} />
                 </div>
               </StepSlide>
             )}
