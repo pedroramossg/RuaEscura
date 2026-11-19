@@ -43,6 +43,7 @@ export function AppShell() {
   const {
     onboardingCompleted,
     isNightMap,
+    darkMode,
     hapticsEnabled,
     posts,
     reports,
@@ -78,12 +79,8 @@ export function AppShell() {
   }, [onboardingCompleted]);
 
   useEffect(() => {
-    if (isNightMap) {
-      document.documentElement.dataset.theme = 'dark';
-    } else {
-      delete document.documentElement.dataset.theme;
-    }
-  }, [isNightMap]);
+    document.documentElement.dataset.theme = darkMode ? 'dark' : 'light';
+  }, [darkMode]);
 
   const notify = useCallback((message: string) => {
     setToastMessage(message);
@@ -147,13 +144,16 @@ export function AppShell() {
   }
 
   const isMapTab = activeTab === 'mapa';
+  const isDarkSurface = darkMode || (isMapTab && isNightMap);
 
   return (
     <div
       className={`min-h-screen relative transition-colors duration-200 ${
-        isMapTab && isNightMap
-          ? 'bg-[#0B1120] text-[#F8FAFC]'
-          : 'bg-[var(--bg-grouped)] text-[var(--label-primary)]'
+        darkMode
+          ? 'bg-[#0A0A0A] text-[#E5E4E2]'
+          : isMapTab && isNightMap
+            ? 'bg-[#0B1120] text-[#F8FAFC]'
+            : 'bg-[var(--bg-grouped)] text-[var(--label-primary)]'
       }`}
     >
 
@@ -190,8 +190,8 @@ export function AppShell() {
                   : { type: 'spring', stiffness: 420, damping: 32, mass: 0.85 }
               }
               className={`max-w-md w-fit px-4 py-2.5 rounded-full inline-flex items-center gap-2 text-xs sm:text-sm font-medium tracking-[-0.01em] ${
-                isMapTab && isNightMap
-                  ? 'liquid-glass-dark text-[#F8FAFC]'
+                isDarkSurface
+                  ? 'liquid-glass-dark text-[#E5E4E2]'
                   : 'liquid-glass text-[var(--label-primary)]'
               }`}
             >
@@ -256,6 +256,7 @@ export function AppShell() {
         <Suspense fallback={null}>
           <ProfileSheet
             isOpen={true}
+            dark={isDarkSurface}
             onClose={() => setIsProfileOpen(false)}
             onOpenWelcomeBack={() => {
               setIsProfileOpen(false);
@@ -272,7 +273,7 @@ export function AppShell() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         alertCount={alertCount}
-        dark={isMapTab && isNightMap}
+        dark={isDarkSurface}
       />
     </div>
   );

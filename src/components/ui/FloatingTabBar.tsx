@@ -95,15 +95,15 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
           const isActive = activeTab === tab.id;
 
           const activePillClass = dark
-            ? 'bg-[#60A5FA]/18 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]'
+            ? 'bg-[#5EC2F3]/18 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]'
             : 'liquid-glass-tab-active bg-[#2563EB]/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_1px_3px_rgba(37,99,235,0.12)]';
 
           const textStateClass = isActive
             ? dark
-              ? 'text-[#60A5FA]'
+              ? 'text-[#5EC2F3]'
               : 'liquid-glass-tab-active-label text-[#2563EB]'
             : dark
-              ? 'text-[#CBD5E1] hover:text-white hover:bg-white/10'
+              ? 'text-[#9BB0C1] hover:text-[#E5E4E2] hover:bg-white/10'
               : 'text-[var(--label-secondary)] hover:text-[var(--label-primary)] hover:bg-black/[0.04]';
 
           return (
@@ -121,7 +121,7 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
               } [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] enabled:active:scale-[0.96] select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 ${
                 minimized ? 'h-11 w-11 px-0' : 'h-12 px-3.5 sm:px-4'
               } ${
-                dark ? 'focus-visible:outline-[#60A5FA]' : 'focus-visible:outline-[#2563EB]'
+                dark ? 'focus-visible:outline-[#5EC2F3]' : 'focus-visible:outline-[#2563EB]'
               } ${textStateClass}`}
             >
               {isActive && (

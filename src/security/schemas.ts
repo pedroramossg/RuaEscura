@@ -242,6 +242,7 @@ export const PersistedCampusStateSchema: z.ZodType<PersistedCampusState> = z
     selectedBuildings: z.array(z.string()),
     timeSlot: z.string(),
     isNightMap: z.boolean(),
+    darkMode: z.boolean().optional(),
     hapticsEnabled: z.boolean(),
     userSession: GovBrSessionSchema.nullable(),
     posts: z.array(LampPostSchema),

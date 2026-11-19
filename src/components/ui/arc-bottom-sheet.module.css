@@ -87,6 +87,27 @@
   will-change: transform;
 }
 
+.sheet[data-theme="dark"],
+:global([data-theme="dark"]) .sheet {
+  --border: rgba(229, 228, 226, 0.14);
+  --border-strong: rgba(229, 228, 226, 0.28);
+  --surface-raised: rgba(14, 18, 24, 0.88);
+  --surface-muted: rgba(83, 104, 120, 0.24);
+  --foreground: #E5E4E2;
+  --muted: #9BB0C1;
+  --text-secondary: #9BB0C1;
+  --text-muted: #6C8193;
+  --shadow-floating: 0 -20px 52px -8px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  background: linear-gradient(
+    168deg,
+    rgba(83, 104, 120, 0.24) 0%,
+    rgba(14, 18, 24, 0.90) 46%,
+    rgba(10, 10, 10, 0.96) 100%
+  );
+  backdrop-filter: blur(28px) saturate(175%);
+  -webkit-backdrop-filter: blur(28px) saturate(175%);
+}
+
 .header {
   position: relative;
   flex: none;

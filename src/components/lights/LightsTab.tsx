@@ -180,7 +180,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
         }}
       >
         <div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[170%] h-full opacity-55"
+          className="light-only-sunburst absolute -top-10 left-1/2 -translate-x-1/2 w-[170%] h-full opacity-55"
           style={{
             background:
               'repeating-conic-gradient(from 138deg at 50% 0%, rgba(255,255,255,0.42) 0deg 8deg, rgba(168,214,255,0.18) 8deg 19deg)',
@@ -188,6 +188,13 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
               'radial-gradient(ellipse 90% 92% at 50% 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,0) 88%)',
             WebkitMaskImage:
               'radial-gradient(ellipse 90% 92% at 50% 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,0) 88%)',
+          }}
+        />
+        <div
+          className="dark-only-glow absolute -top-12 left-1/2 -translate-x-1/2 w-[140%] h-full"
+          style={{
+            background:
+              'radial-gradient(ellipse 85% 65% at 50% 0%, rgba(83, 104, 120, 0.36) 0%, rgba(94, 194, 243, 0.10) 42%, transparent 78%)',
           }}
         />
       </div>

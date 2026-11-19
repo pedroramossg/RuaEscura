@@ -13,11 +13,13 @@ import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { maskCpf } from '../../security/schemas';
 import { getPerfSnapshot } from '../../utils/perfMonitor';
 import { ArcBottomSheet } from '../ui/ArcBottomSheet';
+import { SfIcon } from '../ui/SfIcon';
 import { DropletMascot } from '../mascot/DropletMascot';
 
 export interface ProfileSheetProps {
   isOpen: boolean;
   onClose: () => void;
+  dark?: boolean;
   onOpenWelcomeBack?: () => void;
   returnFocusRef?: React.RefObject<HTMLButtonElement | null>;
   onNotify?: (message: string) => void;
@@ -40,6 +42,7 @@ function toSafeMaskedCpf(raw?: string | null): string {
 export const ProfileSheet: React.FC<ProfileSheetProps> = ({
   isOpen,
   onClose,
+  dark,
   onOpenWelcomeBack,
   returnFocusRef,
   onNotify,
@@ -49,12 +52,16 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
     selectedBuildings,
     timeSlot,
     isNightMap,
+    darkMode,
     hapticsEnabled,
     toggleNightMap,
+    toggleDarkMode,
     setHapticsEnabled,
     resetSessionOnly,
     resetAllDemoData,
   } = useCampusStore();
+
+  const isDarkSurface = dark ?? (darkMode || isNightMap);
 
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -98,6 +105,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
       onOpenChange={(next) => {
         if (!next) handleClose();
       }}
+      dark={isDarkSurface}
       detents={[0.82, 0.94]}
       initialDetent={0}
       title="Perfil & Privacidade"
@@ -111,7 +119,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
             <DropletMascot
               state={isNightMap ? 'sleep' : 'play'}
               expression={isNightMap ? 'somnolent' : 'heureux'}
-              inkColor="#2563EB"
+              inkColor={isDarkSurface ? '#5EC2F3' : '#2563EB'}
               paperColor="var(--bg-elevated)"
               notifColor="#10B981"
               size={52}
@@ -165,6 +173,36 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
 
         {/* Preferences Toggles */}
         <div className="ios-grouped-section ios-grouped-divider">
+          <div className="px-4 py-3.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <SfIcon
+                name={darkMode ? 'moon' : 'sun'}
+                filled
+                size={16}
+                className="text-[var(--accent-primary)]"
+              />
+              <div>
+                <p className="text-sm font-medium text-[var(--label-primary)]">Modo Escuro</p>
+                <p className="text-xs text-[var(--label-secondary)]">
+                  Tema Opal escuro em Onyx e vidro fosco
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={darkMode}
+              aria-label="Modo Escuro"
+              onClick={toggleDarkMode}
+              className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${
+                darkMode ? 'bg-[#2563EB] justify-end' : 'bg-[#64748B]/40 justify-start'
+              }`}
+            >
+              <span className="w-7 h-7 rounded-full bg-white shadow-xs transition-transform" />
+            </button>
+          </div>
+
           <div className="px-4 py-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <Moon className="w-4 h-4 text-[var(--accent-primary)] shrink-0" aria-hidden="true" />

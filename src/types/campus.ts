@@ -112,6 +112,7 @@ export interface PersistedCampusState {
   selectedBuildings: string[];
   timeSlot: string;
   isNightMap: boolean;
+  darkMode?: boolean;
   hapticsEnabled: boolean;
   userSession: GovBrSession | null;
   posts: LampPost[];

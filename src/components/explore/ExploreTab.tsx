@@ -19,6 +19,7 @@ import { UFSC_EDGES, UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { findRoute } from '../../engine/routing';
 import { LightRatingSchema } from '../../security/schemas';
 import { PillButton } from '../ui/PillButton';
+import { SfIcon } from '../ui/SfIcon';
 import { DropletMascot } from '../mascot/DropletMascot';
 import { TrioCharacterAvatar, TrioMascotStack, pickTrioVariant } from '../mascot/TrioMascotBadge';
 import { getRouteMascotMood } from '../../mascot/moods';
@@ -120,6 +121,8 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
     activeDestinationId,
     brightestRoute,
     scheduledDeparture,
+    darkMode,
+    toggleDarkMode,
     setRouteEndpoints,
     swapEndpoints,
     scheduleDeparture,
@@ -274,8 +277,11 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
           transition: { duration: 0.34, delay, ease: EASE_OUT },
         };
 
-  const heroBackdropStyle: React.CSSProperties =
-    routeMood.tone === 'danger'
+  const heroBackdropStyle: React.CSSProperties = darkMode
+    ? {
+        background: 'linear-gradient(180deg, #0D1620 0%, #0A0A0A 100%)',
+      }
+    : routeMood.tone === 'danger'
       ? {
           background:
             'linear-gradient(180deg, var(--hero-danger-start) 0%, var(--hero-danger-mid) 52%, var(--bg-grouped) 100%)',
@@ -338,7 +344,24 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             >
               Olá, {firstName}
             </span>
-            <div className="flex items-center justify-end min-w-0">
+            <div className="flex items-center justify-end gap-1 min-w-0">
+              <button
+                type="button"
+                onClick={toggleDarkMode}
+                aria-label={darkMode ? 'Ativar modo claro' : 'Ativar modo escuro'}
+                aria-pressed={darkMode}
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center shrink-0 enabled:active:scale-[0.96] transition-transform duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary)]"
+              >
+                <span
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-150 ${
+                    darkMode
+                      ? 'liquid-glass-dark text-[#5EC2F3]'
+                      : 'liquid-glass text-[var(--label-primary)]'
+                  }`}
+                >
+                  <SfIcon name={darkMode ? 'sun' : 'moon'} filled size={18} />
+                </span>
+              </button>
               <button
                 type="button"
                 onClick={openProfileClean}
@@ -361,7 +384,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-[170%] h-72 opacity-60"
+          className="light-only-sunburst pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-[170%] h-72 opacity-60"
           style={{
             background:
               'repeating-conic-gradient(from 138deg at 50% 0%, rgba(255,255,255,0.42) 0deg 8deg, rgba(168,214,255,0.18) 8deg 19deg)',
@@ -371,8 +394,16 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
               'radial-gradient(ellipse 90% 92% at 50% 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,0) 88%)',
           }}
         />
+        <div
+          aria-hidden="true"
+          className="dark-only-glow pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 w-[140%] h-72"
+          style={{
+            background:
+              'radial-gradient(ellipse 85% 65% at 50% 0%, rgba(83, 104, 120, 0.36) 0%, rgba(94, 194, 243, 0.10) 42%, transparent 78%)',
+          }}
+        />
         <div className="relative z-10 max-w-2xl mx-auto space-y-4">
-          {/* Compact Top Greeting + Trio Companion Stack + Profile Avatar */}
+          {/* Compact Top Greeting + Trio Companion Stack + Theme Toggle + Profile Avatar */}
           <header className="flex items-center justify-between gap-3 text-[var(--label-primary)]">
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
@@ -386,15 +417,31 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
               </p>
             </div>
 
-            <button
-              ref={profileTriggerRef}
-              type="button"
-              onClick={openProfileClean}
-              aria-label="Abrir perfil e privacidade"
-              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-[var(--bg-elevated)] text-[var(--label-primary)] text-sm font-semibold flex items-center justify-center shrink-0 border border-[var(--separator)] shadow-[0_2px_8px_rgba(15,23,42,0.08)] hover:bg-[var(--bg-elevated-secondary)] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary)]"
-            >
-              {initials}
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={toggleDarkMode}
+                aria-label={darkMode ? 'Ativar modo claro' : 'Ativar modo escuro'}
+                aria-pressed={darkMode}
+                className={`min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center shrink-0 enabled:active:scale-[0.96] transition-[transform,background-color,color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary)] ${
+                  darkMode
+                    ? 'liquid-glass-dark text-[#5EC2F3] hover:text-[#E5E4E2]'
+                    : 'liquid-glass text-[var(--label-primary)] hover:bg-white/90'
+                }`}
+              >
+                <SfIcon name={darkMode ? 'sun' : 'moon'} filled size={18} />
+              </button>
+
+              <button
+                ref={profileTriggerRef}
+                type="button"
+                onClick={openProfileClean}
+                aria-label="Abrir perfil e privacidade"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-[var(--bg-elevated)] text-[var(--label-primary)] text-sm font-semibold flex items-center justify-center shrink-0 border border-[var(--separator)] shadow-[0_2px_8px_rgba(15,23,42,0.08)] hover:bg-[var(--bg-elevated-secondary)] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary)]"
+              >
+                {initials}
+              </button>
+            </div>
           </header>
 
           {/* High-Contrast Segmented Mode Switcher (Corredor | Campus) */}
@@ -443,6 +490,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
           {/* Hero Switch: RouteStatusCard vs Campus Network */}
           {heroMode === 'corridor' ? (
             <RouteStatusCard
+              dark={darkMode}
               originShort={originShort}
               destShort={destShort}
               originName={originName}
@@ -466,7 +514,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
           ) : (
             <motion.div
               {...enter(0.05)}
-              className="rounded-[28px] bg-[var(--bg-elevated)] border border-[var(--separator)] p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] space-y-4"
+              className="opal-hero-card rounded-[28px] bg-[var(--bg-elevated)] border border-[var(--separator)] p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] space-y-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <div>

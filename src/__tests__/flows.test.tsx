@@ -324,14 +324,18 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       expect(document.body.textContent).not.toContain('52998224725');
       expect(document.body.textContent).not.toContain('529.982.247-25');
 
-      // Toggle Night Map and Haptics switches
+      // Toggle Dark Mode, Night Map and Haptics switches
+      const darkModeSwitch = screen.getByRole('switch', { name: /Modo Escuro/i });
       const nightSwitch = screen.getByRole('switch', { name: /Luz Noturna no mapa/i });
       const hapticsSwitch = screen.getByRole('switch', { name: /Feedback tátil/i });
+      expect(darkModeSwitch).toHaveAttribute('aria-checked', 'false');
       expect(nightSwitch).toHaveAttribute('aria-checked', 'false');
       expect(hapticsSwitch).toHaveAttribute('aria-checked', 'true');
 
+      fireEvent.click(darkModeSwitch);
       fireEvent.click(nightSwitch);
       fireEvent.click(hapticsSwitch);
+      expect(darkModeSwitch).toHaveAttribute('aria-checked', 'true');
       expect(nightSwitch).toHaveAttribute('aria-checked', 'true');
       expect(hapticsSwitch).toHaveAttribute('aria-checked', 'false');
 
@@ -415,5 +419,73 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
         await screen.findByRole('heading', { name: /Seja bem-vindo!/i })
       ).toBeInTheDocument();
     }, 15000);
+  });
+
+  describe('Opal Dark Mode (Light-by-Default + Avatar Quick Toggle + Settings Switch)', () => {
+    it('defaults to light theme even when isNightMap is true, and toggles dark mode via Avatar quick button and ProfileSheet switch', async () => {
+      const verifiedState = createVerifiedState();
+      verifiedState.isNightMap = true;
+      localStorage.setItem(CAMPUS_STORAGE_KEY, JSON.stringify(verifiedState));
+
+      render(<App />);
+
+      // App starts primordially in light mode (ignores OS & isNightMap)
+      expect(document.documentElement.dataset.theme).toBe('light');
+
+      const enterCampusBtn = await screen.findByRole('button', { name: /Entrar no campus/i });
+      fireEvent.click(enterCampusBtn);
+
+      // Quick toggle beside avatar in ExploreTab (>= 44px)
+      const quickToggle = await screen.findByRole('button', { name: /Ativar modo escuro/i });
+      expect(quickToggle.className).toMatch(/min-w-\[44px\]/);
+      expect(quickToggle.className).toMatch(/min-h-\[44px\]/);
+      fireEvent.click(quickToggle);
+
+      expect(document.documentElement.dataset.theme).toBe('dark');
+      expect(screen.getByRole('button', { name: /Ativar modo claro/i })).toBeInTheDocument();
+      const storedAfterToggle = JSON.parse(localStorage.getItem(CAMPUS_STORAGE_KEY) || '{}');
+      expect(storedAfterToggle.darkMode).toBe(true);
+
+      // ProfileSheet switch toggles darkMode back to light
+      fireEvent.click(screen.getByRole('button', { name: /Abrir perfil/i }));
+      const darkSwitch = await screen.findByRole('switch', { name: /Modo Escuro/i });
+      expect(darkSwitch).toHaveAttribute('aria-checked', 'true');
+      fireEvent.click(darkSwitch);
+      expect(darkSwitch).toHaveAttribute('aria-checked', 'false');
+      expect(document.documentElement.dataset.theme).toBe('light');
+    });
+
+    it('renders light-only sunburst and dark-only glow layers across ExploreTab, LightsTab, and ReportsTab', () => {
+      const state = createVerifiedState();
+
+      const { container: exploreContainer } = render(
+        <CampusStoreProvider initialState={state}>
+          <ExploreTab
+            onOpenMap={vi.fn()}
+            onOpenLights={vi.fn()}
+            onOpenReports={vi.fn()}
+            onOpenProfile={vi.fn()}
+          />
+        </CampusStoreProvider>
+      );
+      expect(exploreContainer.querySelector('.light-only-sunburst')).toBeInTheDocument();
+      expect(exploreContainer.querySelector('.dark-only-glow')).toBeInTheDocument();
+
+      const { container: lightsContainer } = render(
+        <CampusStoreProvider initialState={state}>
+          <LightsTab onOpenMap={vi.fn()} />
+        </CampusStoreProvider>
+      );
+      expect(lightsContainer.querySelector('.light-only-sunburst')).toBeInTheDocument();
+      expect(lightsContainer.querySelector('.dark-only-glow')).toBeInTheDocument();
+
+      const { container: reportsContainer } = render(
+        <CampusStoreProvider initialState={state}>
+          <ReportsTab />
+        </CampusStoreProvider>
+      );
+      expect(reportsContainer.querySelector('.light-only-sunburst')).toBeInTheDocument();
+      expect(reportsContainer.querySelector('.dark-only-glow')).toBeInTheDocument();
+    });
   });
 });

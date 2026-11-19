@@ -36,6 +36,7 @@ export interface ArcBottomSheetProps {
   initialDetent?: number;
   onDetentChange?: (index: number) => void;
   closeLabel?: string;
+  dark?: boolean;
   className?: string;
   children: ReactNode;
 }
@@ -115,6 +116,7 @@ function Sheet({
   initialDetent = 0,
   onDetentChange,
   closeLabel = 'Fechar painel',
+  dark = false,
   className,
   children,
   onDismiss,
@@ -534,6 +536,7 @@ function Sheet({
         <motion.div
           ref={sheetRef}
           data-testid="bottom-sheet"
+          data-theme={dark ? 'dark' : undefined}
           className={[styles.sheet, className].filter(Boolean).join(' ')}
           style={style}
           data-expanded={expanded ? '' : undefined}

@@ -81,6 +81,7 @@ export interface CampusStoreContextType {
   selectedBuildings: string[];
   timeSlot: string;
   isNightMap: boolean;
+  darkMode: boolean;
   hapticsEnabled: boolean;
   userSession: GovBrSession | null;
   posts: LampPost[];
@@ -130,6 +131,7 @@ export interface CampusStoreContextType {
   setRouteMode: (mode: RouteMode) => void;
   scheduleDeparture: (time: string) => { success: boolean; error?: string };
   toggleNightMap: () => void;
+  toggleDarkMode: () => void;
   setHapticsEnabled: (enabled: boolean) => void;
   resetSessionOnly: () => void;
   resetAllDemoData: () => void;
@@ -728,6 +730,14 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     haptics.trigger('light');
   }, [updateState, haptics]);
 
+  const toggleDarkMode = useCallback(() => {
+    updateState((prev) => ({
+      ...prev,
+      darkMode: !(prev.darkMode ?? false),
+    }));
+    haptics.trigger('light');
+  }, [updateState, haptics]);
+
   const setHapticsEnabled = useCallback(
     (enabled: boolean) => {
       haptics.setEnabled(enabled);
@@ -817,6 +827,7 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     selectedBuildings: state.selectedBuildings,
     timeSlot: state.timeSlot,
     isNightMap: state.isNightMap,
+    darkMode: state.darkMode ?? false,
     hapticsEnabled: state.hapticsEnabled,
     userSession: state.userSession,
     posts: state.posts,
@@ -848,6 +859,7 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     setRouteMode,
     scheduleDeparture,
     toggleNightMap,
+    toggleDarkMode,
     setHapticsEnabled,
     resetSessionOnly,
     resetAllDemoData,

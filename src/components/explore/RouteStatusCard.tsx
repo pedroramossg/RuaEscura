@@ -388,6 +388,7 @@ export interface RouteStatusCardProps {
   onSwapRoute: () => void;
   onOpenSchedule: () => void;
   onOpenDetails: () => void;
+  dark?: boolean;
   className?: string;
 }
 
@@ -412,16 +413,27 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
   onSwapRoute,
   onOpenSchedule,
   onOpenDetails,
+  dark = false,
   className = '',
 }) => {
   const prefersReducedMotion = usePrefersReducedMotion();
   const depCode = toDotCode(originShort);
   const arrCode = toDotCode(destShort);
 
-  const activeColor = hasDarkWarning ? '#D97706' : '#1D4ED8';
+  const activeColor = hasDarkWarning
+    ? dark
+      ? '#F59E0B'
+      : '#D97706'
+    : dark
+      ? '#5EC2F3'
+      : '#1D4ED8';
   const inactiveColor = hasDarkWarning
-    ? 'rgba(217, 119, 6, 0.16)'
-    : 'rgba(37, 99, 235, 0.14)';
+    ? dark
+      ? 'rgba(245, 158, 11, 0.18)'
+      : 'rgba(217, 119, 6, 0.16)'
+    : dark
+      ? 'rgba(94, 194, 243, 0.18)'
+      : 'rgba(37, 99, 235, 0.14)';
 
   // Compute simulated departure and arrival clock display
   const baseHHMM = scheduledTime ?? '21:15';
@@ -441,7 +453,7 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
           ? { duration: 0.01 }
           : { duration: 0.36, ease: [0.23, 1, 0.32, 1] }
       }
-      className={`relative w-full rounded-[28px] bg-[var(--bg-elevated)] p-5 sm:p-6 overflow-hidden border border-[var(--separator)] shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] ${className}`.trim()}
+      className={`opal-hero-card relative w-full rounded-[28px] bg-[var(--bg-elevated)] p-5 sm:p-6 overflow-hidden border border-[var(--separator)] shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] ${className}`.trim()}
     >
       <HalftoneLightPattern />
 

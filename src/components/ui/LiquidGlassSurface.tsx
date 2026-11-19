@@ -17,7 +17,7 @@ export const LiquidGlassSurface: React.FC<LiquidGlassSurfaceProps> = ({
   ...props
 }) => {
   const baseGlassClass = dark
-    ? 'liquid-glass-dark text-[#F8FAFC]'
+    ? 'liquid-glass-dark text-[#E5E4E2]'
     : 'liquid-glass text-[var(--label-primary)]';
 
   const variantClass = (() => {
