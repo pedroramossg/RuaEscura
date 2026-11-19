@@ -55,6 +55,63 @@ describe('FloatingTabBar UI Primitive', () => {
     const badge = screen.getByText('3');
     expect(badge).toBeInTheDocument();
   });
+
+  it('minimizes on scroll down past 80px and restores on scroll up while preserving tab roles and accessible names', () => {
+    Object.defineProperty(window, 'scrollY', {
+      writable: true,
+      configurable: true,
+      value: 0,
+    });
+
+    const { rerender } = render(
+      <FloatingTabBar
+        activeTab="explorar"
+        onTabChange={vi.fn()}
+      />
+    );
+
+    const nav = screen.getByRole('navigation', { name: /navegação principal/i });
+    expect(nav).toHaveAttribute('data-minimized', 'false');
+
+    // Scroll down past 80px -> minimizes
+    window.scrollY = 140;
+    fireEvent.scroll(window);
+    expect(nav).toHaveAttribute('data-minimized', 'true');
+
+    // All 4 tabs and their accessible names remain intact while minimized
+    const minimizedTabs = screen.getAllByRole('tab');
+    expect(minimizedTabs).toHaveLength(4);
+    expect(screen.getByRole('tab', { name: /explorar/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /mapa/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /postes/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /denúncias/i })).toBeInTheDocument();
+
+    // Small jitter (< 12px) does not restore minimized state
+    window.scrollY = 134;
+    fireEvent.scroll(window);
+    expect(nav).toHaveAttribute('data-minimized', 'true');
+
+    // Scroll up (>= 12px) -> restores expanded state
+    window.scrollY = 100;
+    fireEvent.scroll(window);
+    expect(nav).toHaveAttribute('data-minimized', 'false');
+
+    // Scroll down again, then change activeTab -> restores expanded state
+    window.scrollY = 180;
+    fireEvent.scroll(window);
+    expect(nav).toHaveAttribute('data-minimized', 'true');
+
+    rerender(
+      <FloatingTabBar
+        activeTab="mapa"
+        onTabChange={vi.fn()}
+      />
+    );
+    expect(nav).toHaveAttribute('data-minimized', 'false');
+
+    // Reset scrollY cleanly
+    window.scrollY = 0;
+  });
 });
 
 describe('BottomSheet UI Primitive', () => {

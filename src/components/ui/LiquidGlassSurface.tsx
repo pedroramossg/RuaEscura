@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type LiquidGlassVariant = 'control' | 'panel' | 'pill' | 'nav';
+export type LiquidGlassVariant = 'control' | 'panel' | 'card' | 'pill' | 'nav';
 
 export interface LiquidGlassSurfaceProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: LiquidGlassVariant;
@@ -18,15 +18,15 @@ export const LiquidGlassSurface: React.FC<LiquidGlassSurfaceProps> = ({
 }) => {
   const baseGlassClass = dark
     ? 'liquid-glass-dark text-[#F8FAFC]'
-    : 'liquid-glass text-[#111827]';
+    : 'liquid-glass text-[var(--label-primary)]';
 
   const variantClass = (() => {
     switch (variant) {
       case 'pill':
-        return 'rounded-full';
       case 'nav':
-        return 'rounded-full px-2 py-1.5';
+        return 'rounded-full';
       case 'panel':
+      case 'card':
         return 'rounded-[24px] p-4';
       case 'control':
       default:
