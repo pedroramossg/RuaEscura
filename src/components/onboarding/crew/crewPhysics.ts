@@ -1,10 +1,10 @@
 /**
- * Oglet-inspired spring physics, polar silhouettes, and Rua Escura 5-character Crew data.
+ * Oglet-inspired spring physics and WelcomeBack Trio (Blue, Gold, Pink) data.
  * Pure math + static SVG geometry so the 60fps rAF loop stays allocation-light and zero-React-setState.
  */
 
-export const INK = '#15121C';
-export const INK_RGB = '21,18,28';
+export const INK = '#0F172A';
+export const INK_RGB = '15,23,42';
 export const EYE_WHITE = '#FFFFFF';
 export const TONGUE = '#FF6B8A';
 
@@ -35,6 +35,10 @@ export function polar(f: (theta: number) => number, N = 96): string {
   }
   parts.push('Z');
   return parts.join(' ');
+}
+
+function ovalRadius(rx: number, ry: number): (theta: number) => number {
+  return (a: number) => 1 / Math.hypot(Math.cos(a) / rx, Math.sin(a) / ry);
 }
 
 export interface Spring {
@@ -68,7 +72,7 @@ export const SPRINGS = {
   pupil: [140, 8.5] as const,
 } as const;
 
-export type CrewId = 'sky' | 'cobalt' | 'gold' | 'pink' | 'mint';
+export type CrewId = 'blue' | 'gold' | 'pink';
 
 export interface CrewEyeSpec {
   ox: number;
@@ -80,11 +84,13 @@ export interface CrewEyeSpec {
 export interface CrewMember {
   id: CrewId;
   name: string;
-  layer: 'back' | 'front';
   color: string;
   highlight: string;
+  haloColor: string;
   cx: number;
   cy: number;
+  rx: number;
+  ry: number;
   /** Approximate anchor in normalized [-1, 1] card-relative space for realistic gaze convergence */
   anchorX: number;
   anchorY: number;
@@ -93,6 +99,8 @@ export interface CrewMember {
   eyes: CrewEyeSpec[];
   mouth: { ox: number; oy: number; w: number };
   blush: Array<{ ox: number; oy: number }>;
+  freckles?: Array<{ ox: number; oy: number; r: number }>;
+  sparkles?: Array<{ ox: number; oy: number; r: number }>;
   sweatOffset: { ox: number; oy: number };
   heartOffset: { ox: number; oy: number };
   hopDelay: number;
@@ -101,42 +109,41 @@ export interface CrewMember {
   bobSpeed: number;
 }
 
-/**
- * Superellipse helper for the tall cobalt capsule bean.
- */
-function capsuleRadius(rx: number, ry: number, n: number): (theta: number) => number {
-  return (a: number) => {
-    const ca = Math.pow(Math.abs(Math.cos(a)) / rx, n);
-    const sa = Math.pow(Math.abs(Math.sin(a)) / ry, n);
-    return Math.pow(ca + sa, -1 / n);
-  };
-}
-
 export const CREW: readonly CrewMember[] = [
   {
-    id: 'sky',
-    name: 'Nuvem',
-    layer: 'back',
+    id: 'blue',
+    name: 'Gotinha Azul',
     color: '#5EC2F3',
-    highlight: '#95DCFA',
-    cx: 92,
-    cy: 98,
-    anchorX: -0.58,
+    highlight: '#87D7FA',
+    haloColor: 'rgba(135, 215, 250, 0.55)',
+    cx: 112,
+    cy: 88,
+    rx: 48,
+    ry: 58,
+    anchorX: -0.52,
     anchorY: -1.05,
-    baseTilt: -6,
-    // Scalloped cookie / friendly cloud silhouette
-    bodyPath: polar((a) => 49 + 5.6 * Math.cos(10 * a) + 1.2 * Math.sin(5 * a), 96),
+    baseTilt: -7,
+    bodyPath: polar(ovalRadius(48, 58), 96),
     eyes: [
-      { ox: -15, oy: -12, r: 10.5, pr: 5.1 },
-      { ox: 15, oy: -10, r: 10.5, pr: 5.1 },
+      { ox: -13, oy: -14, r: 9.8, pr: 4.8 },
+      { ox: 14, oy: -8, r: 10.2, pr: 5.0 },
     ],
-    mouth: { ox: 0, oy: 7, w: 12 },
+    mouth: { ox: 1, oy: 11, w: 12 },
     blush: [
-      { ox: -25, oy: 1 },
-      { ox: 25, oy: 3 },
+      { ox: -22, oy: 2 },
+      { ox: 24, oy: 6 },
     ],
-    sweatOffset: { ox: -37, oy: -28 },
-    heartOffset: { ox: -34, oy: -48 },
+    freckles: [
+      { ox: -6, oy: 2, r: 1.7 },
+      { ox: 4, oy: 5, r: 1.4 },
+      { ox: -12, oy: 6, r: 1.3 },
+    ],
+    sparkles: [
+      { ox: -6, oy: -25, r: 4.5 },
+      { ox: 23, oy: -18, r: 3.8 },
+    ],
+    sweatOffset: { ox: -36, oy: -28 },
+    heartOffset: { ox: -28, oy: -48 },
     hopDelay: 0,
     shakeSign: 1,
     bobPhase: 0.2,
@@ -144,122 +151,63 @@ export const CREW: readonly CrewMember[] = [
   },
   {
     id: 'gold',
-    name: 'Sol',
-    layer: 'back',
+    name: 'Gotinha Solar',
     color: '#F7C648',
-    highlight: '#FFE285',
+    highlight: '#FFE270',
+    haloColor: 'rgba(255, 226, 112, 0.6)',
     cx: 200,
-    cy: 92,
+    cy: 84,
+    rx: 64,
+    ry: 54,
     anchorX: 0,
     anchorY: -1.12,
     baseTilt: 0,
-    // Spiky cyclops sun peeking top-center
-    bodyPath: polar((a) => 46 + 7.8 * Math.cos(14 * a), 96),
-    eyes: [{ ox: 0, oy: -11, r: 15.5, pr: 7.4 }],
-    mouth: { ox: 0, oy: 12, w: 13 },
-    blush: [
-      { ox: -23, oy: 5 },
-      { ox: 23, oy: 5 },
-    ],
-    sweatOffset: { ox: 34, oy: -32 },
-    heartOffset: { ox: 0, oy: -54 },
-    hopDelay: 0.07,
-    shakeSign: -1,
-    bobPhase: 1.5,
-    bobSpeed: 2.35,
-  },
-  {
-    id: 'cobalt',
-    name: 'Farol',
-    layer: 'back',
-    color: '#2563EB',
-    highlight: '#60A5FA',
-    cx: 308,
-    cy: 102,
-    anchorX: 0.58,
-    anchorY: -1.05,
-    baseTilt: 6,
-    // Tall capsule bean peeking top-right
-    bodyPath: polar(capsuleRadius(43, 62, 3.4), 96),
+    bodyPath: polar(ovalRadius(64, 54), 96),
     eyes: [
-      { ox: -13.5, oy: -17, r: 10.2, pr: 5.0 },
-      { ox: 13.5, oy: -17, r: 10.2, pr: 5.0 },
+      { ox: -17, oy: -10, r: 10.6, pr: 5.1 },
+      { ox: 17, oy: -10, r: 10.6, pr: 5.1 },
     ],
-    mouth: { ox: 0, oy: 2, w: 11.5 },
+    mouth: { ox: 0, oy: 11, w: 16 },
     blush: [
-      { ox: -23, oy: -5 },
-      { ox: 23, oy: -5 },
+      { ox: -29, oy: 4 },
+      { ox: 29, oy: 4 },
     ],
-    sweatOffset: { ox: 34, oy: -38 },
-    heartOffset: { ox: 32, oy: -56 },
-    hopDelay: 0.14,
-    shakeSign: 1,
-    bobPhase: 2.8,
-    bobSpeed: 1.95,
+    sweatOffset: { ox: 42, oy: -30 },
+    heartOffset: { ox: 0, oy: -52 },
+    hopDelay: 0.08,
+    shakeSign: -1,
+    bobPhase: 1.4,
+    bobSpeed: 2.3,
   },
   {
     id: 'pink',
-    name: 'Aura',
-    layer: 'front',
+    name: 'Gotinha Rosa',
     color: '#EE86BF',
-    highlight: '#F8B4D9',
-    cx: 68,
-    cy: 54,
-    anchorX: -0.68,
-    anchorY: 1.05,
-    baseTilt: 5,
-    // Lumpy wobble peeking bottom-left
-    bodyPath: polar(
-      (a) => 40 + 4.4 * Math.sin(3 * a + 0.55) + 2.9 * Math.cos(5 * a - 0.7),
-      96
-    ),
+    highlight: '#F5A4CE',
+    haloColor: 'rgba(245, 164, 206, 0.55)',
+    cx: 288,
+    cy: 88,
+    rx: 48,
+    ry: 58,
+    anchorX: 0.52,
+    anchorY: -1.05,
+    baseTilt: 7,
+    bodyPath: polar(ovalRadius(48, 58), 96),
     eyes: [
-      { ox: -12, oy: -8, r: 9.2, pr: 4.5 },
-      { ox: 12, oy: -6, r: 9.2, pr: 4.5 },
+      { ox: -14, oy: -8, r: 10.0, pr: 4.9 },
+      { ox: 13, oy: -14, r: 9.8, pr: 4.8 },
     ],
-    mouth: { ox: 0, oy: 8.5, w: 10.5 },
+    mouth: { ox: -1, oy: 11, w: 12 },
     blush: [
-      { ox: -21, oy: 3 },
-      { ox: 21, oy: 4 },
+      { ox: -24, oy: 6 },
+      { ox: 22, oy: 2 },
     ],
-    sweatOffset: { ox: -31, oy: -22 },
-    heartOffset: { ox: -24, oy: -40 },
-    hopDelay: 0.21,
-    shakeSign: -1,
-    bobPhase: 0.9,
-    bobSpeed: 2.2,
-  },
-  {
-    id: 'mint',
-    name: 'Folha',
-    layer: 'front',
-    color: '#34D399',
-    highlight: '#6EE7B7',
-    cx: 332,
-    cy: 56,
-    anchorX: 0.68,
-    anchorY: 1.05,
-    baseTilt: -5,
-    // Lumpy pebble peeking bottom-right
-    bodyPath: polar(
-      (a) => 39 + 4.8 * Math.cos(2 * a - 0.45) + 2.6 * Math.sin(4 * a + 1.15),
-      96
-    ),
-    eyes: [
-      { ox: -11.5, oy: -7, r: 9.0, pr: 4.4 },
-      { ox: 11.5, oy: -8, r: 9.0, pr: 4.4 },
-    ],
-    mouth: { ox: 0, oy: 8, w: 10 },
-    blush: [
-      { ox: -20, oy: 4 },
-      { ox: 20, oy: 3 },
-    ],
-    sweatOffset: { ox: 31, oy: -22 },
-    heartOffset: { ox: 24, oy: -40 },
-    hopDelay: 0.28,
+    sweatOffset: { ox: 36, oy: -28 },
+    heartOffset: { ox: 28, oy: -48 },
+    hopDelay: 0.16,
     shakeSign: 1,
-    bobPhase: 2.1,
-    bobSpeed: 2.05,
+    bobPhase: 2.5,
+    bobSpeed: 2.0,
   },
 ] as const;
 
@@ -272,11 +220,11 @@ export interface StarSpec {
 }
 
 export const STARS: readonly StarSpec[] = [
-  { x: 34, y: 34, r: 6.5, phase: 0.0, color: '#F7C648' },
-  { x: 146, y: 24, r: 5.0, phase: 1.1, color: '#5EC2F3' },
-  { x: 256, y: 22, r: 5.4, phase: 2.3, color: '#EE86BF' },
-  { x: 366, y: 36, r: 6.8, phase: 3.4, color: '#34D399' },
-  { x: 200, y: 14, r: 4.4, phase: 4.5, color: '#2563EB' },
+  { x: 46, y: 28, r: 5.8, phase: 0.0, color: '#87D7FA' },
+  { x: 152, y: 18, r: 4.6, phase: 1.1, color: '#FFE270' },
+  { x: 248, y: 18, r: 4.8, phase: 2.3, color: '#F5A4CE' },
+  { x: 354, y: 30, r: 6.0, phase: 3.4, color: '#5EC2F3' },
+  { x: 200, y: 10, r: 4.0, phase: 4.5, color: '#FFFFFF' },
 ] as const;
 
 /** Teardrop sweat path centered at (0, 0) */

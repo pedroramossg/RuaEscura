@@ -400,7 +400,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       expect(screen.getByText(/Validação única Gov\.br/i)).toBeInTheDocument();
     });
 
-    it('Step 4 + Step 5: renders interactive crew, validates CPF fail-fast, transitions to "Tudo pronto!", and completes onboarding with masked CPF', async () => {
+    it('Step 4 + Step 5: renders WelcomeBack Trio crew without campus GPS prompt, validates CPF fail-fast, transitions to "Tudo pronto!", and completes onboarding with masked CPF', async () => {
       const handleComplete = vi.fn();
 
       const { container } = render(
@@ -412,20 +412,20 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       // Jump directly to Step 4 via shortcut
       fireEvent.click(screen.getByRole('button', { name: /Já tenho conta Gov\.br/i }));
 
-      // 1. All 5 RuaEscura crew SVG characters render
-      for (const id of ['sky', 'cobalt', 'gold', 'pink', 'mint']) {
+      // 1. All 3 WelcomeBack Trio animated SVG characters render in Step 4
+      for (const id of ['blue', 'gold', 'pink']) {
         expect(container.querySelector(`[data-member="${id}"]`)).toBeInTheDocument();
       }
+      expect(container.querySelectorAll('[data-member]')).toHaveLength(3);
+
+      // Verify "Localização no campus" / "Continuar para localização" were completely removed from Login
+      expect(screen.queryByRole('button', { name: /Continuar para localização/i })).not.toBeInTheDocument();
+      expect(screen.queryByText(/Localização no campus/i)).not.toBeInTheDocument();
 
       const nameInput = screen.getByLabelText(/Nome completo/i);
       const affiliationInput = screen.getByLabelText(/Vínculo UFSC/i);
       const cpfInput = screen.getByLabelText(/CPF/i);
       const submitBtn = screen.getByRole('button', { name: /Validar e entrar/i });
-
-      // Test GPS pre-permission button exists and can be clicked
-      const gpsBtn = screen.getByRole('button', { name: /Continuar para localização/i });
-      expect(gpsBtn).toBeInTheDocument();
-      fireEvent.click(gpsBtn);
 
       // 2. Test fail-fast invalid CPF + crew error state
       fireEvent.change(nameInput, { target: { value: 'Carlos Silva' } });
@@ -434,7 +434,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       fireEvent.click(submitBtn);
 
       expect(screen.getByRole('alert')).toHaveTextContent(/CPF inválido/i);
-      expect(screen.getByText(/Ops! A turma notou algo para corrigir/i)).toBeInTheDocument();
+      expect(screen.getByText(/Ops! Confira os campos destacados/i)).toBeInTheDocument();
       expect(handleComplete).not.toHaveBeenCalled();
 
       // 3. Click "Preencher demo Gov.br", submit, verify checklist -> Step 5 "Tudo pronto, Mariana!"
@@ -455,11 +455,13 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
         expect(screen.getByText(/Selo Verificado ativo/i)).toBeInTheDocument();
       });
 
-      // After verification sequence finishes, transitions to Step 5 "Tudo pronto, Mariana!" (Conectado)
+      // After verification sequence finishes, transitions to Step 5 "Tudo pronto, Mariana!" (Conectado) with centered WelcomeBack Trio
       await waitFor(
         () => {
           expect(screen.getByRole('heading', { name: /Tudo pronto, Mariana!/i })).toBeInTheDocument();
           expect(screen.getByText(/^Conectado$/i)).toBeInTheDocument();
+          expect(screen.getByText(/\*\*\*\.982\.247-\*\*/)).toBeInTheDocument();
+          expect(screen.getByTestId('welcome-back-trio-centered')).toBeInTheDocument();
         },
         { timeout: 3000 }
       );

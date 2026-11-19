@@ -5,17 +5,16 @@ import {
   CheckCircle2,
   ChevronLeft,
   LockOpen,
-  MapPin,
   ShieldCheck,
 } from 'lucide-react';
 import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion';
 import { isValidCpf, maskCpf } from '../../../security/schemas';
+import ufscLogo from '../../../assets/ufsc-logo.webp';
 import {
   CREW,
   EYE_WHITE,
   HEART_PATH,
   INK,
-  INK_RGB,
   SPRINGS,
   STARS,
   SWEAT_PATH,
@@ -45,8 +44,6 @@ export interface InteractiveCrewSignUpProps {
   onCpfChange: (value: string) => void;
   error: string | null;
   errorShakeKey: number;
-  gpsStatus: 'prompt' | 'granted' | 'fallback';
-  onRequestGps: () => void;
   isVerifying: boolean;
   checklistStep: number;
   corridorLabel: string;
@@ -63,8 +60,8 @@ const VERIFICATION_STEPS = [
   { threshold: 3, label: 'Selo Verificado ativo (+100 XP)', activeColor: 'text-[#10B981]', strong: true },
 ] as const;
 
-const BACK_CREW = CREW.filter((m) => m.layer === 'back');
-const FRONT_CREW = CREW.filter((m) => m.layer === 'front');
+// Render blue & pink first so center gold dome layers warmly in front (matching WelcomeBack)
+const STAGE_CREW_ORDER: readonly CrewMember[] = [CREW[0]!, CREW[2]!, CREW[1]!];
 
 const FIELD_GAZE_Y: Record<FieldName, number> = {
   name: -0.15,
@@ -149,7 +146,7 @@ function buildClosedMouthPath(ox: number, oy: number, w: number, curve: number):
 
 function buildOpenMouthPaths(ox: number, oy: number, w: number): { outer: string; tongue: string } {
   const half = w * 0.62;
-  const depth = w * 0.85;
+  const depth = w * 0.82;
   const topY = oy - 2.2;
   const outer = `M${(ox - half).toFixed(2)},${topY.toFixed(2)} L${(ox + half).toFixed(2)},${topY.toFixed(2)} Q${(ox + half).toFixed(2)},${(topY + depth).toFixed(2)} ${ox.toFixed(2)},${(topY + depth).toFixed(2)} Q${(ox - half).toFixed(2)},${(topY + depth).toFixed(2)} ${(ox - half).toFixed(2)},${topY.toFixed(2)} Z`;
   const tw = half * 0.62;
@@ -166,8 +163,6 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
   onCpfChange,
   error,
   errorShakeKey,
-  gpsStatus,
-  onRequestGps,
   isVerifying,
   checklistStep,
   corridorLabel,
@@ -175,7 +170,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
   onSubmit,
   onBack,
 }) => {
-  const uid = useId();
+  const uid = useId().replace(/:/g, '');
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const isCpfValid = useMemo(() => isValidCpf(cpf), [cpf]);
@@ -191,11 +186,9 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
   });
 
   const memberRefs = useRef<Record<CrewId, MemberRefs>>({
-    sky: { root: null, face: null, eyeGroups: [], pupils: [], lids: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, sweat: null, heart: null },
-    cobalt: { root: null, face: null, eyeGroups: [], pupils: [], lids: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, sweat: null, heart: null },
+    blue: { root: null, face: null, eyeGroups: [], pupils: [], lids: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, sweat: null, heart: null },
     gold: { root: null, face: null, eyeGroups: [], pupils: [], lids: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, sweat: null, heart: null },
     pink: { root: null, face: null, eyeGroups: [], pupils: [], lids: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, sweat: null, heart: null },
-    mint: { root: null, face: null, eyeGroups: [], pupils: [], lids: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, sweat: null, heart: null },
   });
 
   const starRefs = useRef<Array<SVGPathElement | null>>([]);
@@ -308,11 +301,9 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
     }
 
     const physics: Record<CrewId, MemberPhysics> = {
-      sky: createMemberPhysics(CREW[0]!),
+      blue: createMemberPhysics(CREW[0]!),
       gold: createMemberPhysics(CREW[1]!),
-      cobalt: createMemberPhysics(CREW[2]!),
-      pink: createMemberPhysics(CREW[3]!),
-      mint: createMemberPhysics(CREW[4]!),
+      pink: createMemberPhysics(CREW[2]!),
     };
 
     let lookX = 0;
@@ -420,13 +411,13 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
       const joyTarget = t.isSuccess ? 1 : 0;
       const reliefTarget = !t.hasError && t.isCpfValid ? Math.max(0.55, reliefPulse) : 0;
 
-      // 4. Update each of the 5 crew members
+      // 4. Update each of the 3 WelcomeBack Trio members
       CREW.forEach((m) => {
         const dom = memberRefs.current[m.id];
         if (!dom.root) return;
         const p = physics[m.id];
 
-        // Trigger 3 staggered squash-and-stretch celebration hops (0.07s stagger)
+        // Trigger 3 staggered squash-and-stretch celebration hops (0.08s stagger)
         if (successElapsed >= 0 && p.hopBeatsFired < 3) {
           const nextBeatTime = m.hopDelay + p.hopBeatsFired * 0.34;
           if (successElapsed >= nextBeatTime) {
@@ -443,7 +434,6 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
         const shakeDeg = step(p.shake, 0, dt) * 0.42;
         const squashVal = clamp(step(p.squash, 0, dt) * 0.032, -0.22, 0.24);
 
-        // Gaze direction vector from this character's anchor toward the card focus
         const dx = clamp(lookX - m.anchorX * 0.42, -1.2, 1.2);
         const dy = clamp(lookY - m.anchorY * 0.36, -1.2, 1.2);
 
@@ -453,8 +443,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
         const turnX = step(p.turnX, dx * 6.2, dt);
         const turnY = step(p.turnY, dy * 3.8, dt);
 
-        // Subtle organic idle bobbing
-        const bob = Math.sin(elapsed * m.bobSpeed + m.bobPhase) * 2.1;
+        const bob = Math.sin(elapsed * m.bobSpeed + m.bobPhase) * 2.4;
         const scaleX = 1 - squashVal * 0.65;
         const scaleY = 1 + squashVal;
         const totalRot = m.baseTilt + leanDeg + shakeDeg;
@@ -485,7 +474,6 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
 
           const px = step(p.pupilX[i]!, pTargetX, dt);
           const py = step(p.pupilY[i]!, pTargetY, dt);
-          // Clamp final googly pupil inside eye white
           const pDist = Math.hypot(px, py);
           const fpx = pDist > maxTravel ? (px / pDist) * maxTravel : px;
           const fpy = pDist > maxTravel ? (py / pDist) * maxTravel : py;
@@ -512,7 +500,6 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           }
 
           if (lid) {
-            // Eyelid drops 30% of eye diameter (0.6 * r) down from top edge on worry
             const drop = clamp(worry, 0, 1) * (eye.r * 0.62);
             const lidHeight = eye.r * 2.1;
             const lidY = -eye.r - lidHeight + drop;
@@ -530,9 +517,8 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           }
         });
 
-        // Mouth: neutral / relief smile / worried frown -> open joy grin + pink tongue
         if (dom.mouthClosed) {
-          const baseCurve = 3.6 + relief * 3.2 - worry * 9.5;
+          const baseCurve = 3.8 + relief * 3.4 - worry * 9.5;
           dom.mouthClosed.setAttribute(
             'd',
             buildClosedMouthPath(m.mouth.ox, m.mouth.oy, m.mouth.w, baseCurve)
@@ -544,13 +530,11 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           dom.mouthOpen.setAttribute('opacity', openOp.toFixed(3));
         }
 
-        // Blush strokes on joy & relief
         if (dom.blush) {
           const blushOp = clamp(joy * 0.9 + relief * 0.42, 0, 0.95);
           dom.blush.setAttribute('opacity', blushOp.toFixed(3));
         }
 
-        // Sweat drop slides downward while worried
         if (dom.sweat) {
           const wOp = clamp(worry * 1.1, 0, 0.95);
           const slide = eio((elapsed * 0.95 + m.bobPhase) % 1) * 9.5;
@@ -561,7 +545,6 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           );
         }
 
-        // Floating heart during joy celebration
         if (dom.heart) {
           const hOp = clamp((joy - 0.35) * 1.8, 0, 0.96);
           const floatY = -((elapsed * 16 + m.hopDelay * 30) % 18);
@@ -575,7 +558,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
         }
       });
 
-      // 5. Back-layer sparkles twinkle & burst bigger during joy celebration
+      // 5. Ambient 4-point star sparkles twinkle & burst bigger on celebration
       const joyBurst = clamp(physics.gold.joy.x, 0, 1.2);
       STARS.forEach((st, idx) => {
         const el = starRefs.current[idx];
@@ -601,6 +584,8 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
 
   const renderCrewMember = (m: CrewMember) => {
     const gradId = `${uid}-grad-${m.id}`;
+    const blurId = `${uid}-blur-${m.id}`;
+    const haloBlurId = `${uid}-haloblur-${m.id}`;
     const openMouth = buildOpenMouthPaths(m.mouth.ox, m.mouth.oy, m.mouth.w);
 
     return (
@@ -613,10 +598,16 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
         transform={`translate(${m.cx},${m.cy}) rotate(${m.baseTilt})`}
       >
         <defs>
-          <radialGradient id={gradId} cx="35%" cy="28%" r="72%">
+          <radialGradient id={gradId} cx="42%" cy="35%" r="68%">
             <stop offset="0%" stopColor={m.highlight} />
             <stop offset="100%" stopColor={m.color} />
           </radialGradient>
+          <filter id={blurId} x="-18%" y="-18%" width="136%" height="136%">
+            <feGaussianBlur stdDeviation="4.2" />
+          </filter>
+          <filter id={haloBlurId} x="-35%" y="-35%" width="170%" height="170%">
+            <feGaussianBlur stdDeviation="11" />
+          </filter>
           {m.eyes.map((eye, idx) => (
             <clipPath key={idx} id={`${uid}-eyeclip-${m.id}-${idx}`}>
               <circle cx="0" cy="0" r={eye.r} />
@@ -624,21 +615,42 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           ))}
         </defs>
 
-        {/* Polar body silhouette */}
+        {/* Soft luminous pastel aura behind each mascot */}
+        <ellipse
+          cx="0"
+          cy="4"
+          rx={m.rx + 12}
+          ry={m.ry + 12}
+          fill={m.haloColor}
+          filter={`url(#${haloBlurId})`}
+        />
+
+        {/* Soft-diffused pastel organic oval body matching WelcomeBackOverlay */}
         <path
           d={m.bodyPath}
           fill={`url(#${gradId})`}
-          stroke={`rgba(${INK_RGB},0.16)`}
-          strokeWidth="1.5"
+          filter={`url(#${blurId})`}
         />
 
-        {/* Face group with 3D turn slide */}
+        {/* Crisp expressive face group with 3D turn slide */}
         <g
           ref={(el) => {
             memberRefs.current[m.id].face = el;
           }}
         >
-          {/* Open googly eyes */}
+          {/* Blue's subtle freckles */}
+          {m.freckles?.map((f, idx) => (
+            <circle
+              key={`freckle-${idx}`}
+              cx={f.ox}
+              cy={f.oy}
+              r={f.r}
+              fill="#3299D4"
+              opacity="0.35"
+            />
+          ))}
+
+          {/* Open tracking eyes */}
           {m.eyes.map((eye, idx) => (
             <g
               key={`eye-${idx}`}
@@ -684,6 +696,16 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                 />
               </g>
             </g>
+          ))}
+
+          {/* Blue's signature 4-point white star sparkles */}
+          {m.sparkles?.map((sp, idx) => (
+            <path
+              key={`sparkle-${idx}`}
+              d={starPath(sp.ox, sp.oy, sp.r)}
+              fill="#FFFFFF"
+              opacity="0.95"
+            />
           ))}
 
           {/* Happy ^ ^ celebration eye arcs */}
@@ -742,10 +764,10 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             ref={(el) => {
               memberRefs.current[m.id].mouthClosed = el;
             }}
-            d={buildClosedMouthPath(m.mouth.ox, m.mouth.oy, m.mouth.w, 3.6)}
+            d={buildClosedMouthPath(m.mouth.ox, m.mouth.oy, m.mouth.w, 3.8)}
             fill="none"
             stroke={INK}
-            strokeWidth="2.4"
+            strokeWidth="2.6"
             strokeLinecap="round"
           />
 
@@ -790,42 +812,84 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
 
   return (
     <div
-      className="-mx-5 -my-5 sm:-mx-8 sm:-my-8 px-4 pt-4 pb-6 sm:px-6 sm:pt-5 sm:pb-7 bg-gradient-to-b from-[#DCE8F8] via-[#EAEFF6] to-[#E6EFFA] font-sans relative"
-      style={{ fontFamily: "'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}
+      className="-mx-5 -my-5 sm:-mx-8 sm:-my-8 px-4 pt-4 pb-6 sm:px-6 sm:pt-5 sm:pb-7 font-sans relative overflow-hidden"
+      style={{
+        fontFamily: "'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+        background:
+          'linear-gradient(180deg, #D9EEFF 0%, #EAF5FF 36%, #F4F9FF 72%, #FFFFFF 100%)',
+      }}
     >
-      {/* Top Navigation Row */}
+      {/* Luminous Recenter atmospheric sky-mint & periwinkle pastel glow aura */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-20 -left-16 w-64 h-64 rounded-full bg-[#5EC2F3]/28 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-12 -right-14 w-60 h-60 rounded-full bg-[#EE86BF]/22 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-10 left-1/2 -translate-x-1/2 w-80 h-56 rounded-full bg-[#A7F3D0]/22 blur-3xl"
+      />
+
+      {/* Top Navigation Row: Frosted Voltar Pill + Black UFSC Emblem + Gov.br Badge */}
       <div className="flex items-center justify-between gap-2 mb-1 relative z-20">
         <button
           type="button"
           onClick={onBack}
           disabled={isVerifying}
-          className="min-h-[44px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-[#111827] bg-white/85 backdrop-blur-md border border-white/90 shadow-xs hover:bg-white active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+          className="min-h-[44px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-[#0F172A] bg-white/75 backdrop-blur-xl border border-white shadow-[0_4px_14px_rgba(15,23,42,0.06)] hover:bg-white active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
         >
-          <ChevronLeft className="w-4 h-4 text-[#2563EB]" aria-hidden="true" />
+          <ChevronLeft className="w-4 h-4 text-[#0F172A]" aria-hidden="true" />
           <span>Voltar</span>
         </button>
 
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/85 backdrop-blur-md text-[#1E3A8A] border border-white/90 shadow-xs shrink-0">
+        <img
+          src={ufscLogo}
+          alt="UFSC"
+          width={119}
+          height={160}
+          decoding="async"
+          className="h-9 w-auto object-contain select-none pointer-events-none"
+        />
+
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/75 backdrop-blur-xl text-[#0F172A] border border-white shadow-[0_4px_14px_rgba(15,23,42,0.06)] shrink-0">
           <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" aria-hidden="true" />
-          <span>Gov.br Gate</span>
+          <span>Gov.br</span>
         </span>
       </div>
 
-      {/* Interactive Crew Stage: Back Layer + Frosted Card + Front Layer */}
+      {/* Interactive WelcomeBack Trio Stage + Translucent Frosted Card */}
       <div
         ref={cardRef}
         onPointerMove={handleCardPointerMove}
         onPointerLeave={handleCardPointerLeave}
-        className="relative"
+        className="relative mt-1"
       >
-        {/* BACK SVG LAYER: Sparkles + Sky, Gold, Cobalt peeking over the top edge of the card */}
-        <div className="relative z-0 -mb-7 pointer-events-none select-none" aria-hidden="true">
+        {/* Floating Liquid Glass micro-pills flanking the Trio stage */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none relative z-20 flex items-center justify-between px-1 -mb-4"
+        >
+          <span className="px-2.5 py-1 rounded-full bg-white/75 backdrop-blur-md border border-white shadow-[0_6px_16px_rgba(37,99,235,0.08)] text-[10px] font-semibold tracking-tight text-[#334155]">
+            Rotas claras
+          </span>
+          <span className="px-2.5 py-1 rounded-full bg-white/75 backdrop-blur-md border border-white shadow-[0_6px_16px_rgba(37,99,235,0.08)] text-[10px] font-semibold tracking-tight text-[#334155] -translate-y-2">
+            Em grupo
+          </span>
+          <span className="px-2.5 py-1 rounded-full bg-white/75 backdrop-blur-md border border-white shadow-[0_6px_16px_rgba(37,99,235,0.08)] text-[10px] font-semibold tracking-tight text-[#334155]">
+            UFSC Trindade
+          </span>
+        </div>
+
+        {/* WELCOMEBACK TRIO SVG STAGE */}
+        <div className="relative z-0 -mb-6 pointer-events-none select-none" aria-hidden="true">
           <svg
             viewBox="0 0 400 132"
             className="w-full h-auto block overflow-visible"
             role="presentation"
           >
-            {/* Ambient sparkle stars */}
             {STARS.map((st, idx) => (
               <path
                 key={idx}
@@ -834,67 +898,38 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                 }}
                 d={starPath(st.x, st.y, st.r)}
                 fill={st.color}
-                opacity="0.72"
+                opacity="0.78"
               />
             ))}
-            {BACK_CREW.map(renderCrewMember)}
+            {STAGE_CREW_ORDER.map(renderCrewMember)}
           </svg>
         </div>
 
-        {/* FROSTED SIGN-UP CARD */}
-        <div className="relative z-10 rounded-[28px] bg-white/88 backdrop-blur-xl border border-white/90 shadow-[0_18px_46px_rgba(15,23,42,0.09)] px-4 pt-5 pb-7 sm:px-6 sm:pt-6 sm:pb-8">
+        {/* LUMINOUS FROSTED TRANSLUCENT CARD */}
+        <div className="relative z-10 rounded-[28px] bg-white/78 backdrop-blur-2xl border border-white shadow-[0_24px_60px_rgba(37,99,235,0.10)] px-4 pt-5 pb-6 sm:px-6 sm:pt-6 sm:pb-7">
           {/* Header & Dynamic Crew Subtitle */}
           <div className="text-center mb-4">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EFF6FF] border border-[#DBEAFE] text-[11px] font-semibold text-[#1D4ED8] mb-2">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/85 border border-white shadow-2xs text-[11px] font-semibold text-[#1D4ED8] mb-2">
               <LockOpen className="w-3 h-3 text-[#10B981]" aria-hidden="true" />
-              <span>Acesso ao trajeto {corridorLabel}</span>
+              <span>Trajeto {corridorLabel}</span>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#111827]">
+            <h2 className="text-[22px] sm:text-2xl font-semibold tracking-[-0.02em] text-[#0F172A] leading-tight">
               Validação única Gov.br
             </h2>
             <p
-              className={`text-xs sm:text-sm mt-1 transition-colors ${
-                error ? 'text-[#D70015] font-medium' : 'text-[#4B5563]'
+              className={`text-xs sm:text-[13px] mt-1 transition-colors ${
+                error ? 'text-[#D70015] font-medium' : 'text-[#475569]'
               }`}
             >
               {error
-                ? 'Ops! A turma notou algo para corrigir'
+                ? 'Ops! Confira os campos destacados'
                 : 'Identificação institucional segura para caminhar com colegas verificados'}
             </p>
           </div>
 
-          {/* GPS Pre-Permission Row */}
-          <div className="p-3 rounded-2xl bg-[#F8FAFC]/90 border border-[#E5EAF4]">
-            <div className="flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" aria-hidden="true" />
-              <div className="text-xs text-[#4B5563] leading-relaxed">
-                <span className="font-semibold text-[#111827] block">
-                  Localização no campus
-                </span>
-                Usamos sua posição apenas enquanto caminha na UFSC para alertar sobre trechos escuros.
-              </div>
-            </div>
-
-            <div className="mt-2.5 flex items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={onRequestGps}
-                className="min-h-[44px] px-3.5 py-1.5 rounded-full text-xs font-medium bg-white border border-[#E5EAF4] text-[#2563EB] hover:bg-[#EFF6FF] active:scale-[0.97] transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
-              >
-                Continuar para localização
-              </button>
-              {gpsStatus !== 'prompt' && (
-                <span className="text-xs font-medium text-[#059669] flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>{gpsStatus === 'granted' ? 'Habilitada' : 'Campus Trindade'}</span>
-                </span>
-              )}
-            </div>
-          </div>
-
           {/* Gov.br Form */}
-          <form onSubmit={onSubmit} className="mt-4 space-y-3" noValidate>
+          <form onSubmit={onSubmit} className="space-y-3" noValidate>
             {/* Nome completo */}
             <div
               ref={(el) => {
@@ -904,7 +939,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
               <div className="flex items-center justify-between gap-2">
                 <label
                   htmlFor="govbr-name"
-                  className="block text-xs font-semibold text-[#4B5563] uppercase tracking-wider"
+                  className="block text-[11px] font-semibold text-[#475569] uppercase tracking-wider"
                 >
                   Nome completo
                 </label>
@@ -936,10 +971,10 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                 }}
                 placeholder="Ex: Mariana Silva"
                 disabled={isVerifying}
-                className={`w-full min-h-[44px] px-3.5 py-2 rounded-xl border bg-white/95 text-sm text-[#111827] transition-colors focus-visible:outline-2 focus-visible:outline-[#2563EB] ${
+                className={`w-full min-h-[46px] px-3.5 py-2.5 rounded-2xl bg-white/95 text-sm text-[#0F172A] shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all focus-visible:outline-2 focus-visible:outline-[#2563EB] ${
                   error && errorField === 'name'
-                    ? 'border-[#EF4444] bg-red-50/40'
-                    : 'border-[#DCE3F0]'
+                    ? 'ring-2 ring-[#EF4444]/80 bg-red-50/50'
+                    : 'border border-white'
                 }`}
               />
             </div>
@@ -952,7 +987,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             >
               <label
                 htmlFor="govbr-affiliation"
-                className="block text-xs font-semibold text-[#4B5563] uppercase tracking-wider mb-1"
+                className="block text-[11px] font-semibold text-[#475569] uppercase tracking-wider mb-1"
               >
                 Vínculo UFSC
               </label>
@@ -974,10 +1009,10 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                 }}
                 placeholder="Ex: Ciência da Computação • 6ª fase"
                 disabled={isVerifying}
-                className={`w-full min-h-[44px] px-3.5 py-2 rounded-xl border bg-white/95 text-sm text-[#111827] transition-colors focus-visible:outline-2 focus-visible:outline-[#2563EB] ${
+                className={`w-full min-h-[46px] px-3.5 py-2.5 rounded-2xl bg-white/95 text-sm text-[#0F172A] shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all focus-visible:outline-2 focus-visible:outline-[#2563EB] ${
                   error && errorField === 'affiliation'
-                    ? 'border-[#EF4444] bg-red-50/40'
-                    : 'border-[#DCE3F0]'
+                    ? 'ring-2 ring-[#EF4444]/80 bg-red-50/50'
+                    : 'border border-white'
                 }`}
               />
             </div>
@@ -991,7 +1026,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
               <div className="flex items-center justify-between mb-1">
                 <label
                   htmlFor="govbr-cpf"
-                  className="block text-xs font-semibold text-[#4B5563] uppercase tracking-wider"
+                  className="block text-[11px] font-semibold text-[#475569] uppercase tracking-wider"
                 >
                   CPF
                 </label>
@@ -1022,12 +1057,12 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                   }}
                   placeholder="000.000.000-00"
                   disabled={isVerifying}
-                  className={`w-full min-h-[44px] pl-3.5 pr-11 py-2 rounded-xl border bg-white/95 text-sm text-[#111827] transition-colors focus-visible:outline-2 focus-visible:outline-[#2563EB] ${
+                  className={`w-full min-h-[46px] pl-3.5 pr-11 py-2.5 rounded-2xl bg-white/95 text-sm text-[#0F172A] shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all focus-visible:outline-2 focus-visible:outline-[#2563EB] ${
                     error && errorField === 'cpf'
-                      ? 'border-[#EF4444] bg-red-50/40'
+                      ? 'ring-2 ring-[#EF4444]/80 bg-red-50/50'
                       : isCpfValid
-                        ? 'border-[#22C55E] bg-[#F0FDF4]/60'
-                        : 'border-[#DCE3F0]'
+                        ? 'ring-2 ring-[#22C55E]/70 bg-[#F0FDF4]/70'
+                        : 'border border-white'
                   }`}
                 />
                 {isCpfValid && (
@@ -1045,7 +1080,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             {error && (
               <div
                 role="alert"
-                className="t-error-msg p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-[#D70015] font-medium"
+                className="t-error-msg p-3 rounded-2xl bg-red-50/90 border border-red-200/80 text-xs text-[#D70015] font-medium"
               >
                 {error}
               </div>
@@ -1053,7 +1088,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
 
             {/* 3-Stage Verification Checklist */}
             {isVerifying && (
-              <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#DBEAFE] space-y-2">
+              <div className="p-3.5 rounded-2xl bg-white/90 border border-[#DBEAFE] space-y-2 shadow-2xs">
                 {VERIFICATION_STEPS.map((item) => {
                   const isDone = checklistStep >= item.threshold;
                   return (
@@ -1067,8 +1102,8 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                       <span
                         className={
                           isDone
-                            ? `text-[#111827] ${item.strong ? 'font-semibold' : 'font-medium'}`
-                            : 'text-[#4B5563]'
+                            ? `text-[#0F172A] ${item.strong ? 'font-semibold' : 'font-medium'}`
+                            : 'text-[#475569]'
                         }
                       >
                         {item.label}
@@ -1079,15 +1114,15 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
               </div>
             )}
 
-            {/* Submit / Celebration CTA */}
-            <div className="pt-1.5 pb-1">
+            {/* Primary Onyx Apple Capsule CTA */}
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={isVerifying}
-                className={`w-full min-h-[48px] px-5 py-3 rounded-full text-sm font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:cursor-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
+                className={`w-full min-h-[50px] px-5 py-3 rounded-full text-sm font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2 cursor-pointer disabled:cursor-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F172A] ${
                   isSuccess
-                    ? 'bg-[#22C55E] text-white shadow-[0_8px_22px_rgba(34,197,94,0.35)]'
-                    : 'bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.98] text-white shadow-[0_8px_20px_rgba(37,99,235,0.28)]'
+                    ? 'bg-[#22C55E] text-white shadow-[0_10px_24px_rgba(34,197,94,0.35)]'
+                    : 'bg-[#0F172A] hover:bg-[#1E293B] active:scale-[0.98] text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)]'
                 }`}
               >
                 {isSuccess ? (
@@ -1104,17 +1139,6 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
               </button>
             </div>
           </form>
-        </div>
-
-        {/* FRONT SVG LAYER: Pink & Mint peeking over the bottom corners of the frosted card */}
-        <div className="relative z-20 -mt-9 pointer-events-none select-none" aria-hidden="true">
-          <svg
-            viewBox="0 0 400 84"
-            className="w-full h-auto block overflow-visible"
-            role="presentation"
-          >
-            {FRONT_CREW.map(renderCrewMember)}
-          </svg>
         </div>
       </div>
     </div>
