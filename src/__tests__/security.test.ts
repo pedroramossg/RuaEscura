@@ -19,6 +19,12 @@ import {
   DEMO_UFSC_EMAIL,
 } from '../services/ufscOtpAuth';
 import {
+  canUseWomenOnlyGroups,
+  classifyIdentityGender,
+  extractEmailFirstName,
+  isMemberEligibleForWomenOnly,
+} from '../security/genderGuard';
+import {
   defaultStripExifCanvas,
   validateEvidenceImage,
 } from '../security/fileValidation';
@@ -548,6 +554,48 @@ describe('Security & DevSecOps Validation Layer', () => {
 
       // Consumed challenge cannot be replayed
       await expect(verifyUfscOtpCode(DEMO_UFSC_EMAIL, DEMO_OTP_CODE)).rejects.toThrow(/expirado/i);
+    });
+  });
+
+  describe('Women-Only Email Gender Guard (genderGuard)', () => {
+    it('prioritizes institutional @ufsc.br email over display name and excludes male names cleanly', () => {
+      expect(extractEmailFirstName('pedro.ramos@grad.ufsc.br')).toBe('pedro');
+      expect(extractEmailFirstName('joao_silva@ufsc.br')).toBe('joao');
+      expect(extractEmailFirstName('ana.oliveira@posgrad.ufsc.br')).toBe('ana');
+
+      // Even if a male user fakes display name as "Mariana", male email blocks women-only access
+      const spoofedMaleSession = {
+        name: 'Mariana Fake',
+        cpfMasked: '***.111.222-**',
+        affiliation: 'CTC UFSC',
+        ufscEmail: 'pedro.ramos@grad.ufsc.br',
+        verifiedAt: new Date().toISOString(),
+      };
+      expect(classifyIdentityGender(spoofedMaleSession.ufscEmail, spoofedMaleSession.name).gender).toBe('male');
+      expect(canUseWomenOnlyGroups(spoofedMaleSession)).toBe(false);
+
+      const maleSession = {
+        name: 'João Silva',
+        cpfMasked: '***.111.222-**',
+        affiliation: 'CTC UFSC',
+        ufscEmail: 'joao.silva@ufsc.br',
+        verifiedAt: new Date().toISOString(),
+      };
+      expect(canUseWomenOnlyGroups(maleSession)).toBe(false);
+
+      const femaleSession = {
+        name: 'Mariana Silva',
+        cpfMasked: '***.982.247-**',
+        affiliation: 'CTC UFSC',
+        ufscEmail: 'mariana.silva@grad.ufsc.br',
+        verifiedAt: new Date().toISOString(),
+      };
+      expect(canUseWomenOnlyGroups(femaleSession)).toBe(true);
+
+      // Member list filtering excludes male email accounts automatically
+      expect(isMemberEligibleForWomenOnly({ name: 'Mariana', ufscEmail: 'mariana.silva@grad.ufsc.br' })).toBe(true);
+      expect(isMemberEligibleForWomenOnly({ name: 'Lucas', ufscEmail: 'lucas.becker@grad.ufsc.br' })).toBe(false);
+      expect(isMemberEligibleForWomenOnly({ name: 'Maria', ufscEmail: 'pedro.henrique@ufsc.br' })).toBe(false);
     });
   });
 });

@@ -244,6 +244,7 @@ export const CompanionMatchSchema = z.object({
     .refine(isSafeText, 'Ponto de encontro contém caracteres inválidos')
     .optional(),
   maxSeats: z.number().int().min(2).max(12).optional(),
+  ufscEmail: z.string().max(120).refine(isSafeText, 'E-mail contém caracteres inválidos').optional(),
 });
 
 export const WalkingGroupCreationSchema = z.object({

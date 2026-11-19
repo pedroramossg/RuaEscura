@@ -230,10 +230,9 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
 
     // Persisted in localStorage
     const stored = JSON.parse(localStorage.getItem(CAMPUS_STORAGE_KEY) || '{}');
-    const firstCompanionId = stored.companionMatches[0].id;
-    const savedTexts = (stored.chatMessages[firstCompanionId] || []).map(
-      (m: { text: string }) => m.text
-    );
+    const savedTexts = Object.values(stored.chatMessages || {})
+      .flat()
+      .map((m) => (m as { text: string }).text);
     expect(savedTexts).toContain('Nos vemos na entrada da BU!');
     expect(savedTexts).toContain('Saio em 5 min');
     expect(savedTexts).not.toContain('<script>alert(1)</script>');
@@ -378,11 +377,20 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
     expect(sheetEl.className).toContain('bg-white');
   });
 
-  it('supports women-only filter, BlaBlaCar meetingPoint group creation, WhatsApp invite link, and arrival check-in in chat', () => {
-    renderMapTab();
+  it('supports women-only filter, auto-filters male emails on creation, WhatsApp invite link, and arrival check-in in chat', () => {
+    const femaleSeed = getSeedCampusState();
+    femaleSeed.userSession = {
+      name: 'Mariana Silva',
+      cpfMasked: '***.982.247-**',
+      affiliation: 'CTC UFSC',
+      ufscEmail: 'mariana.silva@grad.ufsc.br',
+      verifiedAt: '2026-11-16T20:00:00Z',
+    };
+
+    renderMapTab(vi.fn(), femaleSeed);
     const sheet = screen.getByTestId('bottom-sheet');
 
-    // Toggle Grupo Feminino filter
+    // Toggle Grupo Feminino filter (visible for verified female session)
     const womenFilterBtn = within(sheet).getByRole('button', { name: /Grupo Feminino/i });
     fireEvent.click(womenFilterBtn);
     expect(womenFilterBtn).toHaveAttribute('aria-pressed', 'true');
@@ -397,12 +405,21 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
     fireEvent.click(within(sheet).getByRole('button', { name: /^Todos/i }));
     fireEvent.click(within(sheet).getByRole('button', { name: /Criar grupo/i }));
 
+    // Initially all 5 peers (including Lucas and Gabriel) are listed
+    expect(within(sheet).getByRole('button', { name: /^Lucas$/i })).toBeInTheDocument();
+
     fireEvent.change(within(sheet).getByLabelText(/Nome do grupo/i), {
       target: { value: 'Volta CDS Segura' },
     });
     const meetingInput = within(sheet).getByLabelText(/Ponto de encontro/i);
     fireEvent.change(meetingInput, { target: { value: 'Portaria principal CDS' } });
     fireEvent.click(within(sheet).getByRole('button', { name: /Grupo feminino verificado/i }));
+
+    // Toggling Grupo feminino automatically excludes male peers based on @ufsc.br email
+    expect(within(sheet).queryByRole('button', { name: /^Lucas$/i })).not.toBeInTheDocument();
+    expect(within(sheet).queryByRole('button', { name: /^Gabriel$/i })).not.toBeInTheDocument();
+    expect(within(sheet).getByText(/Filtro por e-mail ativo/i)).toBeInTheDocument();
+
     fireEvent.click(within(sheet).getByRole('button', { name: /Criar e abrir chat/i }));
 
     expect(within(sheet).getByText('Volta CDS Segura')).toBeInTheDocument();
@@ -411,5 +428,28 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
     // Send 1-tap arrival check-in inside CompanionChatView
     fireEvent.click(within(sheet).getByRole('button', { name: /Cheguei bem/i }));
     expect(within(sheet).getByText(/Cheguei bem ao destino pelo trajeto iluminado/i)).toBeInTheDocument();
+  });
+
+  it('hides women-only group options for male UFSC accounts and uses OSM CSS night tiles without Carto API watermark', () => {
+    const maleSeed = getSeedCampusState();
+    maleSeed.isNightMap = true;
+    maleSeed.userSession = {
+      name: 'Pedro Ramos',
+      cpfMasked: '***.111.222-**',
+      affiliation: 'CTC UFSC',
+      ufscEmail: 'pedro.ramos@grad.ufsc.br',
+      verifiedAt: '2026-11-16T20:00:00Z',
+    };
+
+    const { container } = renderMapTab(vi.fn(), maleSeed);
+    const sheet = screen.getByTestId('bottom-sheet');
+
+    // Male account never sees women-only filter or exclusive women-only toggle
+    expect(within(sheet).queryByRole('button', { name: /Grupo Feminino/i })).not.toBeInTheDocument();
+    fireEvent.click(within(sheet).getByRole('button', { name: /Criar grupo/i }));
+    expect(within(sheet).queryByRole('button', { name: /Grupo feminino verificado/i })).not.toBeInTheDocument();
+
+    // Dark map applies CSS night tiles without gated Carto dark tiles
+    expect(container.querySelector('.rua-escura-night-tiles')).toBeInTheDocument();
   });
 });

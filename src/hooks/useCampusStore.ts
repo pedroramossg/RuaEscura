@@ -32,6 +32,10 @@ import {
   WalkingGroupCreationSchema,
   CompanionMatchSchema,
 } from '../security/schemas';
+import {
+  canUseWomenOnlyGroups,
+  isMemberEligibleForWomenOnly,
+} from '../security/genderGuard';
 import { pickTrioVariant } from '../components/mascot/TrioMascotBadge';
 import { useHaptics } from './useHaptics';
 
@@ -450,6 +454,12 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
 
   const toggleJoinCompanion = useCallback(
     (companionId: string) => {
+      const target = stateRef.current.companionMatches.find((c) => c.id === companionId);
+      if (target?.womenOnly && !canUseWomenOnlyGroups(stateRef.current.userSession)) {
+        haptics.trigger('error');
+        return;
+      }
+
       updateState((prev) => ({
         ...prev,
         companionMatches: prev.companionMatches.map((comp) =>
@@ -484,14 +494,33 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
         womenOnly,
         maxSeats,
       } = validation.data;
+
+      if (womenOnly && !canUseWomenOnlyGroups(stateRef.current.userSession)) {
+        haptics.trigger('error');
+        return {
+          success: false,
+          error:
+            'A criação de grupos exclusivos para mulheres é restrita a contas femininas verificadas pelo e-mail @ufsc.br.',
+        };
+      }
+
       const originLabel = LANDMARK_LABEL_BY_ID.get(originId) ?? originId.toUpperCase();
       const destLabel = LANDMARK_LABEL_BY_ID.get(destinationId) ?? destinationId.toUpperCase();
       const routeLabel = `${originLabel} → ${destLabel}`;
 
-      const snapshotPeers = stateRef.current.companionMatches.filter((c) => !c.isGroup);
-      const selectedPeers = snapshotPeers.filter((c) => memberIds.includes(c.id));
-      const fallbackPeer = snapshotPeers[0];
+      const rawPeers = stateRef.current.companionMatches.filter((c) => !c.isGroup);
+      const eligiblePool = womenOnly ? rawPeers.filter(isMemberEligibleForWomenOnly) : rawPeers;
+      const selectedPeers = eligiblePool.filter((c) => memberIds.includes(c.id));
+      const fallbackPeer = eligiblePool[0];
       const finalPeers = selectedPeers.length > 0 ? selectedPeers : fallbackPeer ? [fallbackPeer] : [];
+
+      if (womenOnly && finalPeers.length === 0) {
+        haptics.trigger('error');
+        return {
+          success: false,
+          error: 'Nenhuma colega elegível encontrada para o grupo feminino.',
+        };
+      }
 
       const members: GroupMember[] = finalPeers.map((peer, index) => ({
         id: peer.id,

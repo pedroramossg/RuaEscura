@@ -91,6 +91,7 @@ export interface CompanionMatch {
   womenOnly?: boolean;
   meetingPoint?: string;
   maxSeats?: number;
+  ufscEmail?: string;
 }
 
 export interface ChatMessage {

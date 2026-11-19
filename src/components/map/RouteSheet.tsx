@@ -28,6 +28,10 @@ import {
 import { getRouteMascotMood } from '../../mascot/moods';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { useCampusStore } from '../../hooks/useCampusStore';
+import {
+  canUseWomenOnlyGroups,
+  isMemberEligibleForWomenOnly,
+} from '../../security/genderGuard';
 import type {
   ChatMessage,
   CompanionMatch,
@@ -150,7 +154,11 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
   onSendChatMessage,
   onNotify,
 }) => {
-  const { createWalkingGroup } = useCampusStore();
+  const { createWalkingGroup, userSession } = useCampusStore();
+  const canAccessWomenOnly = useMemo(
+    () => canUseWomenOnlyGroups(userSession),
+    [userSession]
+  );
 
   const individualPeers = useMemo(
     () => companionMatches.filter((c) => !c.isGroup),
@@ -194,15 +202,20 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
   const pathSet = useMemo(() => new Set(activeRoute.path), [activeRoute.path]);
 
   // Prioritize groups and companions on or intersecting the active route corridor
+  // Hide exclusive Grupo Feminino entries when account email does not qualify as female
   const sortedCompanions = useMemo(() => {
-    return [...companionMatches].sort((a, b) => {
+    const visiblePool = canAccessWomenOnly
+      ? companionMatches
+      : companionMatches.filter((c) => !c.womenOnly);
+
+    return [...visiblePool].sort((a, b) => {
       const aGroup = a.isGroup ? 2 : 0;
       const bGroup = b.isGroup ? 2 : 0;
       const aMatch = pathSet.has(a.originId) || pathSet.has(a.destinationId) ? 1 : 0;
       const bMatch = pathSet.has(b.originId) || pathSet.has(b.destinationId) ? 1 : 0;
       return bGroup + bMatch - (aGroup + aMatch);
     });
-  }, [companionMatches, pathSet]);
+  }, [canAccessWomenOnly, companionMatches, pathSet]);
 
   const womenOnlyCount = useMemo(
     () => sortedCompanions.filter((c) => Boolean((c as CompanionWithMeta).womenOnly)).length,
@@ -210,11 +223,17 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
   );
 
   const visibleCompanions = useMemo(() => {
-    if (companionFilter === 'womenOnly') {
+    if (canAccessWomenOnly && companionFilter === 'womenOnly') {
       return sortedCompanions.filter((c) => Boolean((c as CompanionWithMeta).womenOnly));
     }
     return sortedCompanions;
-  }, [companionFilter, sortedCompanions]);
+  }, [canAccessWomenOnly, companionFilter, sortedCompanions]);
+
+  const selectablePeers = useMemo(
+    () => (groupWomenOnly ? individualPeers.filter(isMemberEligibleForWomenOnly) : individualPeers),
+    [groupWomenOnly, individualPeers]
+  );
+  const filteredOutByEmailCount = individualPeers.length - selectablePeers.length;
 
   const routeBreadcrumb = useMemo(() => {
     return activeRoute.path.map((id) => landmarkShortMap.get(id) ?? id).join(' → ');
@@ -263,19 +282,47 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
     );
   };
 
+  const handleToggleWomenOnlyGroup = () => {
+    if (!canAccessWomenOnly) return;
+    setGroupWomenOnly((prev) => {
+      const next = !prev;
+      if (next) {
+        const eligibleIds = new Set(
+          individualPeers.filter(isMemberEligibleForWomenOnly).map((p) => p.id)
+        );
+        const kept = selectedMemberIds.filter((id) => eligibleIds.has(id));
+        if (kept.length > 0) {
+          setSelectedMemberIds(kept);
+        } else {
+          const firstEligible = individualPeers.find((p) => eligibleIds.has(p.id));
+          setSelectedMemberIds(firstEligible ? [firstEligible.id] : []);
+        }
+      }
+      return next;
+    });
+  };
+
   const handleCreateGroupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setGroupError(null);
 
     const trimmedMeetingPoint = groupMeetingPoint.trim();
+    const effectiveWomenOnly = canAccessWomenOnly && groupWomenOnly;
+    const eligibleIds = effectiveWomenOnly
+      ? new Set(individualPeers.filter(isMemberEligibleForWomenOnly).map((p) => p.id))
+      : null;
+    const filteredMemberIds = eligibleIds
+      ? selectedMemberIds.filter((id) => eligibleIds.has(id))
+      : selectedMemberIds;
+
     const groupPayload = {
       title: groupTitle,
       originId: groupOriginId,
       destinationId: groupDestId,
       departureTime: groupTime,
-      memberIds: selectedMemberIds,
+      memberIds: filteredMemberIds,
       ...(trimmedMeetingPoint ? { meetingPoint: trimmedMeetingPoint } : {}),
-      womenOnly: groupWomenOnly,
+      womenOnly: effectiveWomenOnly,
       maxSeats: groupMaxSeats,
     };
 
@@ -620,71 +667,73 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
               </button>
             </div>
 
-            {/* Companion Filter Pills: Todos | Grupo Feminino */}
-            <div
-              role="group"
-              aria-label="Filtrar colegas e grupos"
-              className="flex items-center gap-2"
-            >
-              <button
-                type="button"
-                onClick={() => setCompanionFilter('all')}
-                aria-pressed={companionFilter === 'all'}
-                className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
-                  companionFilter === 'all'
-                    ? isNightMap
-                      ? 'bg-[#5EC2F3] text-[#0B1120] border-[#5EC2F3]'
-                      : 'bg-[#0F172A] text-white border-[#0F172A]'
-                    : isNightMap
-                      ? 'bg-[#111C34] text-[#E2E8F0] border-[#1E293B] hover:border-[#5EC2F3]/60'
-                      : 'bg-[#F8FAFC] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]/60'
-                }`}
+            {/* Companion Filter Pills: Todos | Grupo Feminino (visível somente para contas femininas) */}
+            {canAccessWomenOnly && (
+              <div
+                role="group"
+                aria-label="Filtrar colegas e grupos"
+                className="flex items-center gap-2"
               >
-                <span>Todos</span>
-                <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
+                <button
+                  type="button"
+                  onClick={() => setCompanionFilter('all')}
+                  aria-pressed={companionFilter === 'all'}
+                  className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
                     companionFilter === 'all'
                       ? isNightMap
-                        ? 'bg-[#0B1120]/15 text-[#0B1120]'
-                        : 'bg-white/20 text-white'
+                        ? 'bg-[#5EC2F3] text-[#0B1120] border-[#5EC2F3]'
+                        : 'bg-[#0F172A] text-white border-[#0F172A]'
                       : isNightMap
-                        ? 'bg-white/10 text-[#CBD5E1]'
-                        : 'bg-[#E2E8F0] text-[#334155]'
+                        ? 'bg-[#111C34] text-[#E2E8F0] border-[#1E293B] hover:border-[#5EC2F3]/60'
+                        : 'bg-[#F8FAFC] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]/60'
                   }`}
                 >
-                  {sortedCompanions.length}
-                </span>
-              </button>
+                  <span>Todos</span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
+                      companionFilter === 'all'
+                        ? isNightMap
+                          ? 'bg-[#0B1120]/15 text-[#0B1120]'
+                          : 'bg-white/20 text-white'
+                        : isNightMap
+                          ? 'bg-white/10 text-[#CBD5E1]'
+                          : 'bg-[#E2E8F0] text-[#334155]'
+                    }`}
+                  >
+                    {sortedCompanions.length}
+                  </span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setCompanionFilter('womenOnly')}
-                aria-pressed={companionFilter === 'womenOnly'}
-                className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
-                  companionFilter === 'womenOnly'
-                    ? isNightMap
-                      ? 'bg-[#EC4899] text-white border-[#EC4899]'
-                      : 'bg-[#BE185D] text-white border-[#BE185D]'
-                    : isNightMap
-                      ? 'bg-[#111C34] text-[#FBCFE8] border-[#1E293B] hover:border-[#F472B6]/60'
-                      : 'bg-[#FDF2F8] text-[#9D174D] border-[#FBCFE8] hover:border-[#DB2777]'
-                }`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                <span>Grupo Feminino</span>
-                <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
+                <button
+                  type="button"
+                  onClick={() => setCompanionFilter('womenOnly')}
+                  aria-pressed={companionFilter === 'womenOnly'}
+                  className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
                     companionFilter === 'womenOnly'
-                      ? 'bg-white/20 text-white'
+                      ? isNightMap
+                        ? 'bg-[#EC4899] text-white border-[#EC4899]'
+                        : 'bg-[#BE185D] text-white border-[#BE185D]'
                       : isNightMap
-                        ? 'bg-[#EC4899]/25 text-[#F9A8D4]'
-                        : 'bg-[#FCE7F3] text-[#9D174D]'
+                        ? 'bg-[#111C34] text-[#FBCFE8] border-[#1E293B] hover:border-[#F472B6]/60'
+                        : 'bg-[#FDF2F8] text-[#9D174D] border-[#FBCFE8] hover:border-[#DB2777]'
                   }`}
                 >
-                  {womenOnlyCount}
-                </span>
-              </button>
-            </div>
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <span>Grupo Feminino</span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
+                      companionFilter === 'womenOnly'
+                        ? 'bg-white/20 text-white'
+                        : isNightMap
+                          ? 'bg-[#EC4899]/25 text-[#F9A8D4]'
+                          : 'bg-[#FCE7F3] text-[#9D174D]'
+                    }`}
+                  >
+                    {womenOnlyCount}
+                  </span>
+                </button>
+              </div>
+            )}
 
             {/* Inline Group Creation Panel (no nested sheet/modal) */}
             {isCreatingGroup && (
@@ -846,37 +895,39 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setGroupWomenOnly((prev) => !prev)}
-                    aria-pressed={groupWomenOnly}
-                    className={`w-full min-h-[44px] px-3.5 rounded-xl border text-xs font-semibold inline-flex items-center justify-between gap-2 transition-all active:scale-[0.98] cursor-pointer ${
-                      groupWomenOnly
-                        ? isNightMap
-                          ? 'bg-[#EC4899]/20 text-[#FBCFE8] border-[#EC4899]/60'
-                          : 'bg-[#FDF2F8] text-[#9D174D] border-[#F472B6]'
-                        : isNightMap
-                          ? 'bg-[#0B1120] text-[#E2E8F0] border-[#1E293B] hover:border-[#F472B6]/50'
-                          : 'bg-[#FFFFFF] text-[#0F172A] border-[#D5E0EE] hover:border-[#DB2777]/50'
-                    }`}
-                  >
-                    <span className="inline-flex items-center gap-1.5">
-                      <ShieldCheck
-                        className={`w-4 h-4 shrink-0 ${
-                          groupWomenOnly
-                            ? isNightMap
-                              ? 'text-[#F472B6]'
-                              : 'text-[#BE185D]'
-                            : mutedTextClass
-                        }`}
-                        aria-hidden="true"
-                      />
-                      <span>Grupo feminino verificado</span>
-                    </span>
-                    <span className="text-[11px] font-bold">
-                      {groupWomenOnly ? 'Ativo' : 'Opcional'}
-                    </span>
-                  </button>
+                  {canAccessWomenOnly && (
+                    <button
+                      type="button"
+                      onClick={handleToggleWomenOnlyGroup}
+                      aria-pressed={groupWomenOnly}
+                      className={`w-full min-h-[44px] px-3.5 rounded-xl border text-xs font-semibold inline-flex items-center justify-between gap-2 transition-all active:scale-[0.98] cursor-pointer ${
+                        groupWomenOnly
+                          ? isNightMap
+                            ? 'bg-[#EC4899]/20 text-[#FBCFE8] border-[#EC4899]/60'
+                            : 'bg-[#FDF2F8] text-[#9D174D] border-[#F472B6]'
+                          : isNightMap
+                            ? 'bg-[#0B1120] text-[#E2E8F0] border-[#1E293B] hover:border-[#F472B6]/50'
+                            : 'bg-[#FFFFFF] text-[#0F172A] border-[#D5E0EE] hover:border-[#DB2777]/50'
+                      }`}
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <ShieldCheck
+                          className={`w-4 h-4 shrink-0 ${
+                            groupWomenOnly
+                              ? isNightMap
+                                ? 'text-[#F472B6]'
+                                : 'text-[#BE185D]'
+                              : mutedTextClass
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <span>Grupo feminino verificado</span>
+                      </span>
+                      <span className="text-[11px] font-bold">
+                        {groupWomenOnly ? 'Ativo' : 'Opcional'}
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 <div>
@@ -885,7 +936,7 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                     {selectedMemberIds.length === 1 ? '' : 's'})
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {individualPeers.map((peer, idx) => {
+                    {selectablePeers.map((peer, idx) => {
                       const selected = selectedMemberIds.includes(peer.id);
                       return (
                         <button
@@ -910,6 +961,16 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                       );
                     })}
                   </div>
+                  {groupWomenOnly && filteredOutByEmailCount > 0 && (
+                    <p
+                      role="status"
+                      className={`mt-2 text-[11px] leading-snug ${
+                        isNightMap ? 'text-[#FBCFE8]' : 'text-[#9D174D]'
+                      }`}
+                    >
+                      Filtro por e-mail ativo: {filteredOutByEmailCount} conta(s) com primeiro nome masculino no e-mail @ufsc.br excluída(s) automaticamente.
+                    </p>
+                  )}
                 </div>
 
                 {groupError && (
