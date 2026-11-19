@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, within, act } from '@testing-library/react';
-import { CampusStoreProvider } from '../hooks/useCampusStore';
+import { CampusStoreProvider, useCampusStore } from '../hooks/useCampusStore';
 import { MapTab } from '../components/map/MapTab';
 import { getSeedCampusState } from '../data/ufscTrindade';
 import { CAMPUS_STORAGE_KEY } from '../security/storage';
@@ -287,5 +287,94 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
     fireEvent.click(thumbsUp);
 
     expect(within(sheet).getByRole('button', { name: /👍 1, incluindo você/i })).toBeInTheDocument();
+  });
+
+  it('exports safe Google Maps and Apple Maps walking directions URLs reflecting active route coordinates', () => {
+    renderMapTab();
+
+    const sheet = screen.getByTestId('bottom-sheet');
+    const googleLink = within(sheet).getByRole('link', { name: /Abrir rota no Google Maps/i });
+    const appleLink = within(sheet).getByRole('link', { name: /Abrir rota no Apple Maps/i });
+
+    expect(googleLink).toHaveTextContent('Abrir no Google Maps');
+    expect(appleLink).toHaveTextContent('Abrir no Apple Maps');
+    expect(googleLink).toHaveAttribute('target', '_blank');
+    expect(googleLink).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(appleLink).toHaveAttribute('target', '_blank');
+    expect(appleLink).toHaveAttribute('rel', 'noopener noreferrer');
+
+    const gHref = googleLink.getAttribute('href') || '';
+    const aHref = appleLink.getAttribute('href') || '';
+
+    expect(gHref).toMatch(/^https:\/\/www\.google\.com\/maps\/dir\/\?api=1/);
+    expect(gHref).toContain('travelmode=walking');
+    expect(gHref).toMatch(/origin=-27\.\d{6},-48\.\d{6}/);
+    expect(gHref).toMatch(/destination=-27\.\d{6},-48\.\d{6}/);
+
+    expect(aHref).toMatch(/^https:\/\/maps\.apple\.com\/\?/);
+    expect(aHref).toMatch(/saddr=-27\.\d{6},-48\.\d{6}/);
+    expect(aHref).toMatch(/daddr=-27\.\d{6},-48\.\d{6}/);
+    expect(aHref).toContain('dirflg=w');
+
+    // Switching destination updates exported URLs
+    const destSelect = screen.getByLabelText(/^Destino$/i);
+    fireEvent.change(destSelect, { target: { value: 'santos_dumont' } });
+    const updatedGHref = googleLink.getAttribute('href') || '';
+    const updatedAHref = appleLink.getAttribute('href') || '';
+    expect(updatedGHref).not.toBe(gHref);
+    expect(updatedAHref).not.toBe(aHref);
+  });
+
+  it('syncs global darkMode across CampusMap, RouteSheet, and Map HUD controls, and defaults companions filter off', () => {
+    function GlobalDarkHarness() {
+      const { toggleDarkMode } = useCampusStore();
+      return (
+        <>
+          <button type="button" onClick={toggleDarkMode}>
+            Alternar Dark Global
+          </button>
+          <MapTab />
+        </>
+      );
+    }
+
+    const seed = getSeedCampusState();
+    seed.darkMode = false;
+    seed.isNightMap = false;
+
+    render(
+      <CampusStoreProvider initialState={seed}>
+        <GlobalDarkHarness />
+      </CampusStoreProvider>
+    );
+
+    const mapEl = screen.getByTestId('campus-map');
+    const sheetEl = screen.getByTestId('bottom-sheet');
+
+    // Companions layer defaults to off to avoid covering building names; legend is present
+    const companionsChip = screen.getByRole('button', { name: /^Colegas$/i });
+    expect(companionsChip).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByRole('button', { name: /Colega de trajeto:/i })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Legenda do mapa/i)).toBeInTheDocument();
+
+    fireEvent.click(companionsChip);
+    expect(companionsChip).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getAllByRole('button', { name: /Colega de trajeto:/i }).length).toBeGreaterThan(0);
+
+    // Enable global darkMode via store
+    expect(mapEl).toHaveAttribute('data-night', 'false');
+    expect(sheetEl.className).toContain('bg-white');
+
+    fireEvent.click(screen.getByRole('button', { name: /Alternar Dark Global/i }));
+
+    expect(mapEl).toHaveAttribute('data-night', 'true');
+    expect(mapEl.className).toContain('bg-[#0A0A0A]');
+    expect(sheetEl.className).toContain('bg-[#0B1120]');
+
+    // Clicking Mapa Claro in Map HUD responds even when darkMode was toggled globally
+    const dayToggle = screen.getByRole('button', { name: /Mapa Claro/i });
+    fireEvent.click(dayToggle);
+    expect(mapEl).toHaveAttribute('data-night', 'false');
+    expect(sheetEl.className).toContain('bg-white');
   });
 });

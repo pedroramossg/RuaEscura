@@ -66,7 +66,7 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
   };
 
   const selectThemeClass = isNightMap
-    ? 'bg-[#0F172A]/90 text-[#F8FAFC] border-white/15 focus:border-[#5EC2F3]'
+    ? 'bg-[#0A0A0A]/90 text-[#F8FAFC] border-white/15 focus:border-[#5EC2F3] [color-scheme:dark]'
     : 'bg-white/95 text-[#0F172A] border-[#D5E0EE] focus:border-[#2563EB]';
 
   return (
@@ -77,7 +77,7 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
         dark={isNightMap}
         className={`pointer-events-auto p-2.5 flex flex-col gap-2 backdrop-blur-xl ${
           isNightMap
-            ? '!bg-[#0B1120]/90 !border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.45)]'
+            ? '!bg-[#0A0A0A]/88 !border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.5)]'
             : '!bg-white/92 !border-[#D5E0EE] shadow-[0_10px_28px_rgba(15,23,42,0.10)]'
         }`}
       >

@@ -5,6 +5,10 @@ const ALLOWED_HTTPS_HOSTNAMES = new Set([
   'a.tile.openstreetmap.org',
   'b.tile.openstreetmap.org',
   'c.tile.openstreetmap.org',
+  'a.basemaps.cartocdn.com',
+  'b.basemaps.cartocdn.com',
+  'c.basemaps.cartocdn.com',
+  'd.basemaps.cartocdn.com',
   'server.arcgisonline.com',
 ]);
 

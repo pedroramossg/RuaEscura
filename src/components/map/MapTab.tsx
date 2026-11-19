@@ -30,7 +30,9 @@ export const MapTab: React.FC<MapTabProps> = ({ onOpenReportsShortcut }) => {
     companionMatches,
     chatMessages,
     isNightMap,
+    darkMode,
     toggleNightMap,
+    toggleDarkMode,
     setRouteEndpoints,
     swapEndpoints,
     setRouteMode,
@@ -39,9 +41,10 @@ export const MapTab: React.FC<MapTabProps> = ({ onOpenReportsShortcut }) => {
   } = useCampusStore();
 
   const { trigger } = useHaptics();
+  const effectiveNightMap = darkMode || isNightMap;
 
   const [filters, setFilters] = useState<MapLayerFilters>({
-    companions: true,
+    companions: false,
     posts: true,
     darkZones: true,
   });
@@ -88,13 +91,25 @@ export const MapTab: React.FC<MapTabProps> = ({ onOpenReportsShortcut }) => {
     setActiveChatCompanionId(null);
   };
 
+  const handleToggleNightMap = () => {
+    trigger('selection');
+    if (darkMode) {
+      toggleDarkMode();
+      if (isNightMap) {
+        toggleNightMap();
+      }
+    } else {
+      toggleNightMap();
+    }
+  };
+
   return (
     <section
       aria-label="Mapa de iluminação segura da UFSC"
       className="relative w-full h-[100dvh] min-h-[600px] overflow-hidden"
     >
       <CampusMap
-        isNightMap={isNightMap}
+        isNightMap={effectiveNightMap}
         mapStyle={mapStyle}
         activeOriginId={activeOriginId}
         activeDestinationId={activeDestinationId}
@@ -114,13 +129,13 @@ export const MapTab: React.FC<MapTabProps> = ({ onOpenReportsShortcut }) => {
       <RouteControlsOverlay
         activeOriginId={activeOriginId}
         activeDestinationId={activeDestinationId}
-        isNightMap={isNightMap}
+        isNightMap={effectiveNightMap}
         mapStyle={mapStyle}
         filters={filters}
         onChangeEndpoints={setRouteEndpoints}
         onSwapEndpoints={swapEndpoints}
         onToggleFilter={handleToggleFilter}
-        onToggleNightMap={toggleNightMap}
+        onToggleNightMap={handleToggleNightMap}
         onToggleMapStyle={() => {
           trigger('selection');
           setMapStyle((prev) => (prev === 'osm' ? 'satellite' : 'osm'));
@@ -134,7 +149,7 @@ export const MapTab: React.FC<MapTabProps> = ({ onOpenReportsShortcut }) => {
           trigger('selection');
           setDetent(nextDetent);
         }}
-        isNightMap={isNightMap}
+        isNightMap={effectiveNightMap}
         activeOriginId={activeOriginId}
         activeDestinationId={activeDestinationId}
         routeMode={routeMode}

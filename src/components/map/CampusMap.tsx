@@ -4,6 +4,7 @@ import { Zap, AlertTriangle, Flame, X } from 'lucide-react';
 import { pickTrioVariant, type TrioVariant } from '../mascot/TrioMascotBadge';
 import type {
   CampusNode,
+  CampusNodeCategory,
   CompanionMatch,
   Coordinates,
   IncidentReport,
@@ -48,10 +49,18 @@ export interface CampusMapProps {
   onSelectCompanion?: (companionId: string) => void;
 }
 
-const TILE_URLS: Record<MapStyle, string> = {
+const TILE_URLS = {
   osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  osmNight: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
   satellite:
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+} as const;
+
+const LANDMARK_CATEGORY_DOT: Record<CampusNodeCategory, string> = {
+  centro: 'bg-[#2563EB]',
+  servico: 'bg-[#10B981]',
+  lazer: 'bg-[#059669]',
+  entorno: 'bg-[#536878]',
 };
 
 const LAMP_STATUS_META: Record<
@@ -218,10 +227,10 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
         {/* Campus Perimeter Polygon */}
         <polygon
           points={PERIMETER_SVG_POINTS}
-          fill={isNightMap ? '#132033' : '#FFFFFF'}
-          fillOpacity={isNightMap ? 0.78 : 0.85}
-          stroke={isNightMap ? '#5EC2F3' : '#CBD5E1'}
-          strokeOpacity={isNightMap ? 0.28 : 1}
+          fill={isNightMap ? '#0A0A0A' : '#FFFFFF'}
+          fillOpacity={isNightMap ? 0.84 : 0.85}
+          stroke={isNightMap ? '#536878' : '#CBD5E1'}
+          strokeOpacity={isNightMap ? 0.55 : 1}
           strokeWidth="2"
           strokeDasharray="8 6"
         />
@@ -242,7 +251,7 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
             key={`walkway-${idx}`}
             points={points}
             fill="none"
-            stroke={isNightMap ? '#1E293B' : '#E2E8F0'}
+            stroke={isNightMap ? '#24303D' : '#E2E8F0'}
             strokeWidth="1.4"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -266,9 +275,10 @@ const VectorFallbackSvg = React.memo<VectorFallbackSvgProps>(
                     ? '#EF4444'
                     : '#DC2626'
                   : isNightMap
-                    ? '#283548'
+                    ? '#536878'
                     : '#CBD5E1'
               }
+              strokeOpacity={showAsDark ? 0.9 : isNightMap ? 0.52 : 1}
               strokeWidth={showAsDark ? 3.5 : 2}
               strokeDasharray={showAsDark ? '5 5' : undefined}
               strokeLinecap="round"
@@ -398,6 +408,7 @@ const LandmarkMarker = React.memo<LandmarkMarkerProps>(
   ({ node, isOrigin, isDest, isNightMap, left, top, onSelect }) => {
     const roleSuffix = isOrigin ? ' (Origem)' : isDest ? ' (Destino)' : '';
     const style = useMemo<React.CSSProperties>(() => ({ left, top }), [left, top]);
+    const categoryDotClass = LANDMARK_CATEGORY_DOT[node.category];
 
     return (
       <button
@@ -407,29 +418,35 @@ const LandmarkMarker = React.memo<LandmarkMarkerProps>(
         aria-label={`${node.shortName} — ${node.name}${roleSuffix}`}
         aria-pressed={isOrigin || isDest}
         className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer focus-visible:outline-2 ${
+          isOrigin || isDest ? 'z-20' : 'z-[15]'
+        } ${
           isNightMap ? 'focus-visible:outline-[#5EC2F3]' : 'focus-visible:outline-[#2563EB]'
         } rounded-full group`}
       >
         <span
-          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-tight border transition-transform duration-150 group-active:scale-95 whitespace-nowrap ${
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold tracking-tight border backdrop-blur-md transition-transform duration-150 group-active:scale-95 whitespace-nowrap ${
             isOrigin
-              ? 'bg-[#0F172A] text-white border-white shadow-[0_4px_12px_rgba(15,23,42,0.28)]'
+              ? 'bg-[#0F172A] text-white border-white shadow-[0_4px_12px_rgba(15,23,42,0.32)]'
               : isDest
-                ? 'bg-[#2563EB] text-white border-white shadow-[0_4px_14px_rgba(37,99,235,0.38)]'
+                ? 'bg-[#2563EB] text-white border-white shadow-[0_4px_14px_rgba(37,99,235,0.40)]'
                 : isNightMap
-                  ? 'bg-[#132033]/92 backdrop-blur-md text-[#F1F5F9] border-[#334155] shadow-[0_2px_10px_rgba(0,0,0,0.45)] hover:border-[#5EC2F3]'
-                  : 'bg-white/95 backdrop-blur-md text-[#0F172A] border-[#CBD5E1]/90 shadow-[0_2px_8px_rgba(15,23,42,0.08)] hover:border-[#2563EB]'
+                  ? 'bg-[#0A0A0A]/85 text-[#F8FAFC] border-[#536878]/60 shadow-[0_2px_10px_rgba(0,0,0,0.55)] hover:border-[#5EC2F3]'
+                  : 'bg-white/92 text-[#0F172A] border-[#CBD5E1]/90 shadow-[0_2px_6px_rgba(15,23,42,0.08)] hover:border-[#2563EB]'
           }`}
         >
-          {isOrigin && (
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-white/20 text-[9px] font-bold uppercase">
+          {isOrigin ? (
+            <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/20 text-[9px] font-bold uppercase">
               O
             </span>
-          )}
-          {isDest && (
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-white/25 text-[9px] font-bold uppercase">
+          ) : isDest ? (
+            <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/25 text-[9px] font-bold uppercase">
               D
             </span>
+          ) : (
+            <span
+              aria-hidden="true"
+              className={`w-1.5 h-1.5 rounded-full shrink-0 ${categoryDotClass}`}
+            />
           )}
           <span>{node.shortName}</span>
         </span>
@@ -460,67 +477,64 @@ const LampPostMarker = React.memo<LampPostMarkerProps>(
         style={style}
         aria-label={`${post.id} — ${post.name} (${meta.label})`}
         aria-pressed={isSelected}
-        className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer focus-visible:outline-2 ${
+        className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] z-10 flex items-center justify-center cursor-pointer focus-visible:outline-2 ${
           isNightMap ? 'focus-visible:outline-[#5EC2F3]' : 'focus-visible:outline-[#2563EB]'
         } rounded-full group`}
       >
-        {/* Sleek 24px optical beacon pin inside 44x44 touch target */}
-        <span className="relative inline-flex items-center justify-center w-6 h-6">
+        {/* Sleek 12px optical LED beacon inside 44x44px transparent touch target */}
+        <span className="relative inline-flex items-center justify-center w-3 h-3">
           {post.status === 'oscilando' && (
             <span
               aria-hidden="true"
-              className="absolute inset-0 rounded-full bg-[#F7C648]/55 motion-safe:animate-ping"
+              className="absolute -inset-1 rounded-full bg-[#F7C648]/60 motion-safe:animate-ping"
             />
           )}
-          {post.status === 'aceso' && isNightMap && (
+          {post.status === 'aceso' && (
             <span
               aria-hidden="true"
-              className="absolute -inset-1.5 rounded-full bg-[#34D399]/25 blur-[2px]"
+              className={`absolute -inset-1.5 rounded-full blur-[2px] ${
+                isNightMap ? 'bg-[#10B981]/45' : 'bg-[#10B981]/25'
+              }`}
             />
           )}
           {post.status === 'queimado' && (
             <span
               aria-hidden="true"
-              className="absolute -inset-1 rounded-full bg-[#EF4444]/18"
+              className="absolute -inset-1 rounded-full border border-[#EF4444]/85 bg-[#EF4444]/20"
             />
           )}
 
           {post.status === 'aceso' && (
             <span
-              className={`relative inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-white transition-transform duration-150 group-hover:scale-105 group-active:scale-95 ${
+              className={`relative w-3 h-3 rounded-full bg-[#10B981] ring-1 ring-white/85 transition-transform duration-150 group-hover:scale-110 group-active:scale-95 ${
                 isNightMap
-                  ? 'bg-gradient-to-br from-[#34D399] to-[#10B981] shadow-[0_0_12px_rgba(52,211,153,0.75)]'
-                  : 'bg-gradient-to-br from-[#34D399] to-[#059669] shadow-[0_2px_8px_rgba(16,185,129,0.42)]'
-              } ${isSelected ? 'scale-120 ring-4 ring-[#34D399]/40' : ''}`}
-            >
-              {/* Crisp optical specular highlight */}
-              <span className="w-2 h-2 rounded-full bg-white/90 shadow-[0_0_4px_rgba(255,255,255,0.9)]" />
-            </span>
+                  ? 'shadow-[0_0_10px_rgba(16,185,129,0.8)]'
+                  : 'shadow-[0_0_6px_rgba(16,185,129,0.5)]'
+              } ${isSelected ? 'scale-125 ring-2 ring-[#34D399]' : ''}`}
+            />
           )}
 
           {post.status === 'oscilando' && (
             <span
-              className={`relative inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-white bg-gradient-to-br from-[#FFE270] to-[#F7C648] shadow-[0_2px_10px_rgba(247,198,72,0.55)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95 ${
-                isSelected ? 'scale-120 ring-4 ring-[#F7C648]/45' : ''
+              className={`relative w-3 h-3 rounded-full bg-[#F7C648] ring-1 ring-white/85 shadow-[0_0_8px_rgba(247,198,72,0.75)] transition-transform duration-150 group-hover:scale-110 group-active:scale-95 ${
+                isSelected ? 'scale-125 ring-2 ring-[#FDE68A]' : ''
               }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-[#92400E]" />
-            </span>
+            />
           )}
 
           {post.status === 'queimado' && (
             <span
-              className={`relative inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-[#EF4444] shadow-[0_2px_8px_rgba(239,68,68,0.38)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95 ${
+              className={`relative inline-flex items-center justify-center w-3 h-3 rounded-full ring-1 ring-[#EF4444] shadow-[0_0_8px_rgba(239,68,68,0.6)] transition-transform duration-150 group-hover:scale-110 group-active:scale-95 ${
                 isNightMap ? 'bg-[#1F1218]' : 'bg-[#FEF2F2]'
-              } ${isSelected ? 'scale-120 ring-4 ring-[#EF4444]/40' : ''}`}
+              } ${isSelected ? 'scale-125 ring-2 ring-[#EF4444]' : ''}`}
             >
-              {/* Subtle crossed-filament optical glyph (never color-only) */}
+              {/* Subtle crossed-filament glyph inside 12px alert dot (never color-only) */}
               <svg
                 viewBox="0 0 12 12"
-                className="w-3 h-3 text-[#EF4444]"
+                className="w-2 h-2 text-[#EF4444]"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="2.4"
                 strokeLinecap="round"
                 aria-hidden="true"
               >
@@ -705,7 +719,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
     };
   }, []);
 
-  // Switch tile layer cleanly between OSM Standard and Esri World Imagery
+  // Switch tile layer cleanly between OSM Standard, CartoDB Dark Matter, and Esri World Imagery
   useEffect(() => {
     const map = leafletMapRef.current;
     if (!map) return;
@@ -722,9 +736,18 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
 
     setTilesOffline(false);
 
+    const isCartoDark = mapStyle === 'osm' && isNightMap;
+    const tileUrl =
+      mapStyle === 'satellite'
+        ? TILE_URLS.satellite
+        : isCartoDark
+          ? TILE_URLS.osmNight
+          : TILE_URLS.osm;
+
     try {
-      const layer = L.tileLayer(TILE_URLS[mapStyle], {
+      const layer = L.tileLayer(tileUrl, {
         maxZoom: 19,
+        subdomains: isCartoDark ? 'abcd' : 'abc',
         crossOrigin: 'anonymous',
       });
 
@@ -747,7 +770,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
         tileLayerRef.current = null;
       }
     };
-  }, [mapStyle]);
+  }, [mapStyle, isNightMap]);
 
   // Sync local GeoJSON footprint, walkways, routes, dark zones, and active pole halos inside Leaflet
   useEffect(() => {
@@ -760,11 +783,11 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
       // 1. UFSC Trindade campus perimeter GeoJSON
       L.geoJSON(toGeoJsonPolygon(UFSC_PERIMETER_RING), {
         style: {
-          color: isNightMap ? 'rgba(94, 194, 243, 0.35)' : '#CBD5E1',
+          color: isNightMap ? '#536878' : '#CBD5E1',
           weight: 2,
           dashArray: '6 6',
-          fillColor: isNightMap ? '#132033' : '#EEF3F9',
-          fillOpacity: isNightMap ? 0.36 : 0.22,
+          fillColor: isNightMap ? '#0A0A0A' : '#EEF3F9',
+          fillOpacity: isNightMap ? 0.32 : 0.22,
         },
         interactive: false,
       }).addTo(group);
@@ -783,9 +806,9 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
       // 3. Real OSM campus sidewalks & pedestrian walkways GeoJSON
       L.geoJSON(UFSC_WALKWAYS_GEOJSON, {
         style: {
-          color: isNightMap ? '#283548' : '#CBD5E1',
+          color: isNightMap ? '#536878' : '#CBD5E1',
           weight: 1.5,
-          opacity: isNightMap ? 0.65 : 0.72,
+          opacity: isNightMap ? 0.42 : 0.72,
         },
         interactive: false,
       }).addTo(group);
@@ -809,11 +832,11 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
               ? '#EF4444'
               : '#DC2626'
             : isNightMap
-              ? '#334155'
+              ? '#536878'
               : '#94A3B8',
           weight: showAsDarkZone ? 4 : 2.5,
           dashArray: showAsDarkZone ? '4 6' : undefined,
-          opacity: showAsDarkZone ? 0.88 : 0.68,
+          opacity: showAsDarkZone ? 0.88 : isNightMap ? 0.55 : 0.68,
           interactive: false,
         }).addTo(group);
       }
@@ -955,10 +978,10 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
   const tileThemeClass =
     mapStyle === 'satellite'
       ? isNightMap
-        ? 'bg-[#0B1120] brightness-75 contrast-110'
-        : 'bg-[#0B1120]'
+        ? 'bg-[#0A0A0A] brightness-75 contrast-110'
+        : 'bg-[#0A0A0A]'
       : isNightMap
-        ? 'bg-[#0B1120] rua-escura-night-tiles'
+        ? 'bg-[#0A0A0A]'
         : 'bg-[#EEF3F9] rua-escura-day-tiles';
 
   return (
@@ -967,7 +990,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
       data-night={String(isNightMap)}
       data-map-style={mapStyle}
       className={`relative w-full h-full overflow-hidden select-none transition-colors duration-300 ${
-        isNightMap ? 'bg-[#0B1120] text-[#F8FAFC]' : 'bg-[#EEF3F9] text-[#0F172A]'
+        isNightMap ? 'bg-[#0A0A0A] text-[#F8FAFC]' : 'bg-[#EEF3F9] text-[#0F172A]'
       }`}
     >
       {/* Leaflet Geographic Canvas */}
@@ -1056,6 +1079,37 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
           })}
       </div>
 
+      {/* Compact Map Legend Pill (above BottomSheet peek height) */}
+      <div
+        aria-label="Legenda do mapa"
+        className={`pointer-events-auto absolute bottom-[156px] left-3 z-20 inline-flex flex-wrap items-center gap-x-2.5 gap-y-1 px-2.5 py-1.5 rounded-full border backdrop-blur-xl text-[10px] font-medium max-w-[calc(100%-24px)] ${
+          isNightMap
+            ? 'bg-[#0A0A0A]/84 text-[#E2E8F0] border-white/15 shadow-[0_4px_16px_rgba(0,0,0,0.45)]'
+            : 'bg-white/88 text-[#0F172A] border-[#CBD5E1]/90 shadow-[0_4px_14px_rgba(15,23,42,0.08)]'
+        }`}
+      >
+        <span className="font-semibold opacity-80">Postes:</span>
+        <span className="inline-flex items-center gap-1">
+          <span aria-hidden="true" className="w-2 h-2 rounded-full bg-[#10B981]" />
+          <span>Aceso</span>
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span aria-hidden="true" className="w-2 h-2 rounded-full bg-[#F7C648]" />
+          <span>Oscilando</span>
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span aria-hidden="true" className="w-2 h-2 rounded-full bg-[#EF4444]" />
+          <span>Queimado</span>
+        </span>
+        <span aria-hidden="true" className="opacity-35">
+          •
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span aria-hidden="true" className="w-2 h-2 rounded-full bg-[#2563EB]" />
+          <span>Centros</span>
+        </span>
+      </div>
+
       {/* Compact Lamp Post Status Summary Callout (Opaque Surface) */}
       {selectedPost && (
         <div
@@ -1063,7 +1117,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
           aria-live="polite"
           className={`absolute left-3 right-3 sm:left-auto sm:right-4 sm:w-80 top-[168px] sm:top-[152px] z-20 rounded-2xl p-3.5 border flex items-start justify-between gap-3 ${
             isNightMap
-              ? 'bg-[#0B1120]/95 backdrop-blur-xl text-[#F8FAFC] border-white/15 shadow-[0_12px_32px_rgba(0,0,0,0.45)]'
+              ? 'bg-[#0A0A0A]/95 backdrop-blur-xl text-[#F8FAFC] border-white/15 shadow-[0_12px_32px_rgba(0,0,0,0.55)]'
               : 'bg-white/95 backdrop-blur-xl text-[#0F172A] border-[#CBD5E1]/90 shadow-[0_12px_32px_rgba(15,23,42,0.14)]'
           }`}
         >

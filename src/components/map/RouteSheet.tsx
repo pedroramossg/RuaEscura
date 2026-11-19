@@ -3,7 +3,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  ExternalLink,
   MessageCircle,
+  Navigation,
   Plus,
   Route as RouteIcon,
   Users,
@@ -26,6 +28,7 @@ import { useCampusStore } from '../../hooks/useCampusStore';
 import type {
   ChatMessage,
   CompanionMatch,
+  Coordinates,
   RouteMode,
   RouteResult,
 } from '../../types/campus';
@@ -56,6 +59,60 @@ function getVariantForId(id: string): TrioVariant {
     hash = (hash * 31 + id.charCodeAt(i)) | 0;
   }
   return pickTrioVariant(hash);
+}
+
+function isValidCoordinate(coord: Coordinates): boolean {
+  const [lat, lng] = coord;
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+}
+
+function formatCoord(coord: Coordinates): string {
+  return `${coord[0].toFixed(6)},${coord[1].toFixed(6)}`;
+}
+
+/**
+ * Builds strictly validated numeric Google Maps & Apple Maps walking URLs
+ * from activeRoute.coordinates, sampling up to 3 intermediate waypoints.
+ */
+function buildExternalWalkingUrls(
+  coordinates: Coordinates[]
+): { googleMapsUrl: string; appleMapsUrl: string } | null {
+  const valid = coordinates.filter(isValidCoordinate);
+  if (valid.length < 2) {
+    return null;
+  }
+
+  const origin = formatCoord(valid[0]);
+  const destination = formatCoord(valid[valid.length - 1]);
+  const intermediate = valid.slice(1, -1);
+
+  let sampled: Coordinates[] = [];
+  if (intermediate.length <= 3) {
+    sampled = intermediate;
+  } else {
+    const indices = [
+      0,
+      Math.floor((intermediate.length - 1) / 2),
+      intermediate.length - 1,
+    ];
+    sampled = indices.map((idx) => intermediate[idx]);
+  }
+
+  const waypoints = sampled.map(formatCoord).join('|');
+  const googleMapsUrl = waypoints
+    ? `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${encodeURIComponent(waypoints)}&travelmode=walking`
+    : `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`;
+
+  const appleMapsUrl = `https://maps.apple.com/?saddr=${origin}&daddr=${destination}&dirflg=w`;
+
+  return { googleMapsUrl, appleMapsUrl };
 }
 
 /**
@@ -132,6 +189,11 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
   const routeBreadcrumb = useMemo(() => {
     return activeRoute.path.map((id) => landmarkShortMap.get(id) ?? id).join(' → ');
   }, [activeRoute.path, landmarkShortMap]);
+
+  const externalUrls = useMemo(
+    () => buildExternalWalkingUrls(activeRoute.coordinates),
+    [activeRoute.coordinates]
+  );
 
   const mutedTextClass = isNightMap ? 'text-[#94A3B8]' : 'text-[#475569]';
   const inputClass = isNightMap
@@ -396,6 +458,55 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
               </p>
             </button>
           </div>
+
+          {/* External Walking Navigation Export (Google Maps & Apple Maps) */}
+          {externalUrls && (
+            <div
+              role="group"
+              aria-label="Abrir trajeto em aplicativo de navegação"
+              className="grid grid-cols-2 gap-2.5"
+            >
+              <a
+                href={externalUrls.googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Abrir rota no Google Maps"
+                className={`min-h-[44px] px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 border transition-all active:scale-[0.98] ${
+                  isNightMap
+                    ? 'bg-[#111C34] text-[#F8FAFC] border-[#1E293B] hover:border-[#5EC2F3]'
+                    : 'bg-[#F8FAFC] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
+                }`}
+              >
+                <Navigation
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    isNightMap ? 'text-[#5EC2F3]' : 'text-[#2563EB]'
+                  }`}
+                  aria-hidden="true"
+                />
+                <span className="truncate">Abrir no Google Maps</span>
+              </a>
+
+              <a
+                href={externalUrls.appleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Abrir rota no Apple Maps"
+                className={`min-h-[44px] px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 border transition-all active:scale-[0.98] ${
+                  isNightMap
+                    ? 'bg-[#111C34] text-[#F8FAFC] border-[#1E293B] hover:border-[#5EC2F3]'
+                    : 'bg-[#F8FAFC] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
+                }`}
+              >
+                <ExternalLink
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    isNightMap ? 'text-[#34D399]' : 'text-[#059669]'
+                  }`}
+                  aria-hidden="true"
+                />
+                <span className="truncate">Abrir no Apple Maps</span>
+              </a>
+            </div>
+          )}
 
           {/* Dark Warning Banner when active route passes through dark/burned segments */}
           {activeRoute.hasDarkWarning && (
