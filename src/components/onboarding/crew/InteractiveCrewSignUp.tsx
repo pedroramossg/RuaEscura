@@ -1,8 +1,9 @@
 import React, { useEffect, useId, useMemo, useRef } from 'react';
 import {
-  ArrowLeft,
+  ArrowRight,
   Check,
   CheckCircle2,
+  ChevronLeft,
   LockOpen,
   MapPin,
   ShieldCheck,
@@ -800,7 +801,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           disabled={isVerifying}
           className="min-h-[44px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-[#111827] bg-white/85 backdrop-blur-md border border-white/90 shadow-xs hover:bg-white active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
         >
-          <ArrowLeft className="w-4 h-4 text-[#2563EB]" aria-hidden="true" />
+          <ChevronLeft className="w-4 h-4 text-[#2563EB]" aria-hidden="true" />
           <span>Voltar</span>
         </button>
 
@@ -1095,7 +1096,10 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                     <span>Tudo certo!</span>
                   </>
                 ) : (
-                  <span>Validar e entrar →</span>
+                  <>
+                    <span>Validar e entrar</span>
+                    <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  </>
                 )}
               </button>
             </div>

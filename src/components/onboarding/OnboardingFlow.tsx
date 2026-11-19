@@ -1122,9 +1122,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                         className="relative w-44 h-44 rounded-[36px] bg-white/85 backdrop-blur-xl border border-white shadow-[0_22px_50px_rgba(37,99,235,0.14)] flex flex-col items-center justify-center gap-1"
                       >
                         <DropletMascot
-                          state="burst"
+                          state="idle"
                           expression="heureux"
-                          size={86}
+                          size={92}
                           inkColor="#2563EB"
                           paperColor="#FFFFFF"
                           notifColor="#22C55E"
