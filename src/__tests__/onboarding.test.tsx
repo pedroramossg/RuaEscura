@@ -235,10 +235,75 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
   });
 
   describe('OnboardingFlow 4-Step Conversion & Gov.br Gate', () => {
-    it('Step 1: renders outcome promise and shortcut button jumping directly to Step 4', () => {
+    it('Focus Flight Intro: advances through all 5 beats into Step 1, supports Voltar, and jumps straight to Step 4 via Gov.br shortcut', async () => {
+      const { unmount } = render(
+        <CampusStoreProvider>
+          <OnboardingFlow />
+        </CampusStoreProvider>
+      );
+
+      // Beat 0: Welcome
+      expect(screen.getByRole('heading', { name: /Seja bem-vindo!/i })).toBeInTheDocument();
+      expect(screen.getByText(/Te apresentamos o Rua Escura/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Já tenho conta Gov\.br/i })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /^Olá!$/i }));
+
+      // Beat 1: Safety feeling
+      expect(screen.getByRole('heading', { name: /inseguro\(a\) na UFSC\?/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Às vezes/i })).toBeInTheDocument();
+
+      // Verify back button works and returns to Beat 0
+      fireEvent.click(screen.getByRole('button', { name: /Voltar/i }));
+      expect(screen.getByRole('heading', { name: /Seja bem-vindo!/i })).toBeInTheDocument();
+
+      // Advance Beat 0 -> Beat 1 -> Beat 2
+      fireEvent.click(screen.getByRole('button', { name: /^Olá!$/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Sim, já senti\./i }));
+
+      // Beat 2: Night fear (Sim / Não pills)
+      expect(screen.getByRole('heading', { name: /medo ao andar à noite\?/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Sim$/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Não$/i })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /^Sim$/i }));
+
+      // Beat 3: Solution
+      expect(screen.getByRole('heading', { name: /Rua Escura\./i })).toBeInTheDocument();
+      expect(screen.getByText(/Rotas iluminadas em tempo real/i)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /Qual é a chave\?/i }));
+
+      // Beat 4: The Key -> Finish Intro into Step 1
+      expect(
+        screen.getByRole('heading', { name: /A chave para andar tranquilo\(a\)\?/i })
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Caminhos iluminados, alertas reais da comunidade/i)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /Começar meu cadastro/i }));
+
+      // Enters Wizard Step 1
+      expect(
+        await screen.findByRole('heading', {
+          name: /Caminhe pela UFSC no claro\. E acompanhado\./i,
+        })
+      ).toBeInTheDocument();
+
+      unmount();
+
+      // Fresh mount: "Já tenho conta Gov.br" jumps straight from Intro Beat 0 to Step 4
       render(
         <CampusStoreProvider>
           <OnboardingFlow />
+        </CampusStoreProvider>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /Já tenho conta Gov\.br/i }));
+      expect(await screen.findByText(/Validação única Gov\.br/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Nome completo/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/CPF/i)).toBeInTheDocument();
+    });
+
+    it('Step 1: renders outcome promise and shortcut button jumping directly to Step 4', () => {
+      render(
+        <CampusStoreProvider>
+          <OnboardingFlow initialStage="wizard" />
         </CampusStoreProvider>
       );
 
@@ -267,7 +332,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
     it('Step 2: selects multiple UFSC buildings, time slot, and "Sempre Noturno" mode', () => {
       render(
         <CampusStoreProvider>
-          <OnboardingFlow />
+          <OnboardingFlow initialStage="wizard" />
         </CampusStoreProvider>
       );
 
@@ -312,7 +377,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
     it('Step 3: displays live Aha! preview with % iluminado and verified peers BEFORE requiring login', () => {
       render(
         <CampusStoreProvider>
-          <OnboardingFlow />
+          <OnboardingFlow initialStage="wizard" />
         </CampusStoreProvider>
       );
 
@@ -340,7 +405,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
 
       render(
         <CampusStoreProvider>
-          <OnboardingFlow onComplete={handleComplete} />
+          <OnboardingFlow initialStage="wizard" onComplete={handleComplete} />
         </CampusStoreProvider>
       );
 

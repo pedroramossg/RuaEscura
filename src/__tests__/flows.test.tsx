@@ -363,8 +363,9 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
     it('renders OnboardingFlow when unverified', async () => {
       render(<App />);
       expect(
-        await screen.findByRole('heading', { name: /Caminhe pela UFSC no claro\. E acompanhado\./i })
+        await screen.findByRole('heading', { name: /Seja bem-vindo!/i })
       ).toBeInTheDocument();
+      expect(screen.getByText(/Te apresentamos o Rua Escura/i)).toBeInTheDocument();
       expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
     });
 
@@ -408,7 +409,7 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       fireEvent.click(await screen.findByRole('button', { name: /Encerrar sessão Gov\.br/i }));
 
       expect(
-        await screen.findByRole('heading', { name: /Caminhe pela UFSC no claro\. E acompanhado\./i })
+        await screen.findByRole('heading', { name: /Seja bem-vindo!/i })
       ).toBeInTheDocument();
     }, 15000);
   });

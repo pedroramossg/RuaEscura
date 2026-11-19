@@ -21,6 +21,7 @@ import type { StateId } from '../../mascot/bloub/states';
 import type { ExpressionId } from '../../mascot/bloub/expressions';
 import { findRoute } from '../../engine/routing';
 import { GovBrAuthSchema, maskCpf } from '../../security/schemas';
+import { FocusFlightIntro } from './FocusFlightIntro';
 
 const StepSlide = React.forwardRef<
   HTMLDivElement,
@@ -53,6 +54,7 @@ StepSlide.displayName = 'StepSlide';
 
 export interface OnboardingFlowProps {
   onComplete?: () => void;
+  initialStage?: 'intro' | 'wizard';
 }
 
 type OnboardingStep = 1 | 2 | 3 | 4;
@@ -135,7 +137,10 @@ function useCountUp(target: number, active: boolean, reducedMotion: boolean): nu
   return value;
 }
 
-export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
+export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
+  onComplete,
+  initialStage = 'intro',
+}) => {
   const {
     posts,
     edgeRatings,
@@ -144,6 +149,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     completeOnboarding,
   } = useCampusStore();
 
+  const [stage, setStage] = useState<'intro' | 'wizard'>(initialStage);
   const [step, setStep] = useState<OnboardingStep>(1);
   const [maxVisitedStep, setMaxVisitedStep] = useState<OnboardingStep>(1);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -185,12 +191,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
   const prefersReducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
-    if (prefersReducedMotion || step !== 1) return;
+    if (prefersReducedMotion || stage !== 'wizard' || step !== 1) return;
     const timer = window.setInterval(() => {
       setAutoMoodIdx((prev) => (prev + 1) % AUTO_MOOD_CYCLE.length);
     }, 2600);
     return () => window.clearInterval(timer);
-  }, [prefersReducedMotion, step]);
+  }, [prefersReducedMotion, stage, step]);
 
   const activeAutoMood = AUTO_MOOD_CYCLE[autoMoodIdx] ?? AUTO_MOOD_CYCLE[0];
   const xpEarned = step * 25;
@@ -383,9 +389,40 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
     </motion.div>
   );
 
+  const stageTransition: Transition = prefersReducedMotion
+    ? { duration: 0.01 }
+    : { duration: 0.3, ease: APPLE_EASE };
+
   return (
-    <LayoutGroup>
-      <div className="min-h-screen w-full bg-gradient-to-b from-[#E5EEFF] via-[#F5F8FF] to-white text-[#111827] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-300">
+    <AnimatePresence mode="wait" initial={false}>
+      {stage === 'intro' ? (
+        <motion.div
+          key="focus-flight-intro"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={stageTransition}
+          className="w-full"
+        >
+          <FocusFlightIntro
+            onFinishIntro={() => setStage('wizard')}
+            onJumpToGovBr={() => {
+              setStage('wizard');
+              goToStep(4);
+            }}
+          />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="onboarding-wizard"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={stageTransition}
+          className="w-full"
+        >
+          <LayoutGroup>
+            <div className="min-h-screen w-full bg-gradient-to-b from-[#E5EEFF] via-[#F5F8FF] to-white text-[#111827] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-300">
         {/* Gamified XP & Interactive Step Progress Bar */}
         <div className="w-full max-w-md mb-3 px-1">
           <div className="flex items-center justify-between text-xs font-medium text-[#4B5563] mb-1.5">
@@ -1198,5 +1235,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
         </motion.div>
       </div>
     </LayoutGroup>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
