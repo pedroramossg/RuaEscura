@@ -400,10 +400,10 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       expect(screen.getByText(/Validação única Gov\.br/i)).toBeInTheDocument();
     });
 
-    it('Step 4: validates CPF fail-fast, supports "Preencher demo Gov.br", executes checklist and completes onboarding', async () => {
+    it('Step 4 + Step 5: renders interactive crew, validates CPF fail-fast, transitions to "Tudo pronto!", and completes onboarding with masked CPF', async () => {
       const handleComplete = vi.fn();
 
-      render(
+      const { container } = render(
         <CampusStoreProvider>
           <OnboardingFlow initialStage="wizard" onComplete={handleComplete} />
         </CampusStoreProvider>
@@ -411,6 +411,11 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
 
       // Jump directly to Step 4 via shortcut
       fireEvent.click(screen.getByRole('button', { name: /Já tenho conta Gov\.br/i }));
+
+      // 1. All 5 RuaEscura crew SVG characters render
+      for (const id of ['sky', 'cobalt', 'gold', 'pink', 'mint']) {
+        expect(container.querySelector(`[data-member="${id}"]`)).toBeInTheDocument();
+      }
 
       const nameInput = screen.getByLabelText(/Nome completo/i);
       const affiliationInput = screen.getByLabelText(/Vínculo UFSC/i);
@@ -422,24 +427,25 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       expect(gpsBtn).toBeInTheDocument();
       fireEvent.click(gpsBtn);
 
-      // Test fail-fast invalid CPF
+      // 2. Test fail-fast invalid CPF + crew error state
       fireEvent.change(nameInput, { target: { value: 'Carlos Silva' } });
       fireEvent.change(affiliationInput, { target: { value: 'Engenharia Mecânica' } });
       fireEvent.change(cpfInput, { target: { value: '111.111.111-11' } }); // invalid repeated sequence
       fireEvent.click(submitBtn);
 
-      expect(screen.getByText(/CPF inválido/i)).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveTextContent(/CPF inválido/i);
+      expect(screen.getByText(/Ops! A turma notou algo para corrigir/i)).toBeInTheDocument();
       expect(handleComplete).not.toHaveBeenCalled();
 
-      // Click "Preencher demo Gov.br"
+      // 3. Click "Preencher demo Gov.br", submit, verify checklist -> Step 5 "Tudo pronto, Mariana!"
       const demoBtn = screen.getByRole('button', { name: /Preencher demo Gov\.br/i });
       fireEvent.click(demoBtn);
 
       expect((nameInput as HTMLInputElement).value).toBe('Mariana Silva');
       expect((cpfInput as HTMLInputElement).value).toBe('529.982.247-25');
       expect((affiliationInput as HTMLInputElement).value).toContain('UFSC');
+      expect(screen.getByLabelText(/CPF válido/i)).toBeInTheDocument();
 
-      // Submit valid form
       fireEvent.click(submitBtn);
 
       // Verification checklist items should appear
@@ -449,13 +455,23 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
         expect(screen.getByText(/Selo Verificado ativo/i)).toBeInTheDocument();
       });
 
-      // After verification sequence finishes, handleComplete is called
+      // After verification sequence finishes, transitions to Step 5 "Tudo pronto, Mariana!" (Conectado)
       await waitFor(
         () => {
-          expect(handleComplete).toHaveBeenCalled();
+          expect(screen.getByRole('heading', { name: /Tudo pronto, Mariana!/i })).toBeInTheDocument();
+          expect(screen.getByText(/^Conectado$/i)).toBeInTheDocument();
         },
         { timeout: 3000 }
       );
+
+      // Does not finalize until user taps "Entrar no campus"
+      expect(handleComplete).not.toHaveBeenCalled();
+
+      // 4. Tap "Entrar no campus" -> completes onboarding with masked CPF only
+      const enterBtn = screen.getByRole('button', { name: /Entrar no campus/i });
+      fireEvent.click(enterBtn);
+
+      expect(handleComplete).toHaveBeenCalledTimes(1);
 
       // Verify privacy requirement: raw CPF was NEVER saved in localStorage!
       const stored = JSON.parse(localStorage.getItem(CAMPUS_STORAGE_KEY) || '{}');
