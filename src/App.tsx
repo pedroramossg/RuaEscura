@@ -77,6 +77,14 @@ export function AppShell() {
     }
   }, [onboardingCompleted]);
 
+  useEffect(() => {
+    if (isNightMap) {
+      document.documentElement.dataset.theme = 'dark';
+    } else {
+      delete document.documentElement.dataset.theme;
+    }
+  }, [isNightMap]);
+
   const notify = useCallback((message: string) => {
     setToastMessage(message);
     if (toastTimerRef.current !== null) {
@@ -107,7 +115,7 @@ export function AppShell() {
 
   if (!onboardingCompleted) {
     return (
-      <main className="min-h-screen bg-[#F6F8FC] text-[#111827]">
+      <main className="min-h-screen bg-[var(--bg-grouped)] text-[var(--label-primary)]">
         <Suspense fallback={<TabSkeleton label="Carregando boas-vindas..." />}>
           <OnboardingFlow
             onComplete={() => {
@@ -122,7 +130,7 @@ export function AppShell() {
 
   if (showWelcomeBack) {
     return (
-      <main className="min-h-screen bg-[#F6F8FC] text-[#111827]">
+      <main className="min-h-screen bg-[var(--bg-grouped)] text-[var(--label-primary)]">
         <Suspense fallback={<TabSkeleton label="Preparando seu campus..." />}>
           <WelcomeBackOverlay
             userName={userSession?.name}
@@ -145,7 +153,7 @@ export function AppShell() {
       className={`min-h-screen relative transition-colors duration-200 ${
         isMapTab && isNightMap
           ? 'bg-[#0B1120] text-[#F8FAFC]'
-          : 'bg-[#F6F8FC] text-[#111827]'
+          : 'bg-[var(--bg-grouped)] text-[var(--label-primary)]'
       }`}
     >
 

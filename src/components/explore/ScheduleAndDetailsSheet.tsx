@@ -116,19 +116,19 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
       {isSchedule ? (
         <div className="space-y-5 pt-1">
           {/* Corridor & Predicted Arrival Summary (t-stagger transitions.dev) */}
-          <div className="t-stagger is-shown rounded-2xl bg-[#E5EDF7]/65 border border-[#D5E0EE] p-4 space-y-2">
+          <div className="t-stagger is-shown rounded-2xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)] p-4 space-y-2">
             <div className="t-stagger-line flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F172A]">
-                <MapPin className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--label-primary)]">
+                <MapPin className="w-3.5 h-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
                 <span>
                   {originShort} → {destShort}
                 </span>
               </span>
-              <span className="text-xs font-medium text-[#059669] bg-white px-2.5 py-0.5 rounded-full border border-[#A7F3D0]">
+              <span className="text-xs font-medium text-[#10B981] bg-[var(--bg-elevated)] px-2.5 py-0.5 rounded-full border border-[#10B981]/35">
                 Chegada prevista ~{etaHHMM}
               </span>
             </div>
-            <p className="t-stagger-line t-stagger-line--2 text-xs text-[#475569] flex items-center gap-2">
+            <p className="t-stagger-line t-stagger-line--2 text-xs text-[var(--label-secondary)] flex items-center gap-2">
               <TrioMascotStack size={20} />
               <span>
                 {companions.length === 1
@@ -171,8 +171,8 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
                     onClick={() => handlePresetClick(preset.minutes)}
                     className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold tabular-nums transition-colors duration-150 cursor-pointer border ${
                       active
-                        ? 'bg-[#111827] text-white border-[#111827]'
-                        : 'bg-white text-[#334155] border-[#DCE7F7] hover:bg-[#F8FAFC]'
+                        ? 'bg-[var(--label-primary)] text-[var(--bg-elevated)] border-[var(--label-primary)]'
+                        : 'bg-[var(--bg-elevated)] text-[var(--label-secondary)] border-[var(--separator)] hover:bg-[var(--bg-fill-secondary)]'
                     }`}
                   >
                     {preset.label}
@@ -196,10 +196,10 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
             {justConfirmedTime && (
               <div
                 role="status"
-                className="w-full max-w-[300px] rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] p-3 flex items-center justify-between gap-3"
+                className="w-full max-w-[300px] rounded-2xl bg-[#10B981]/14 border border-[#10B981]/35 p-3 flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="t-success-check text-[#059669] shrink-0" data-state="in">
+                  <span className="t-success-check text-[#10B981] shrink-0" data-state="in">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                       <path
                         d="M4 10.5l4 4 8-8"
@@ -211,10 +211,10 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
                     </svg>
                   </span>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-[#065F46]">
+                    <p className="text-xs font-semibold text-[var(--label-primary)]">
                       Saída marcada para {justConfirmedTime}
                     </p>
-                    <p className="text-[11px] text-[#047857] truncate">
+                    <p className="text-[11px] text-[var(--label-secondary)] truncate">
                       Corredor {originShort} → {destShort} pronto no Mapa
                     </p>
                   </div>
@@ -235,7 +235,7 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
             <button
               type="button"
               onClick={() => onSwitchMode('details')}
-              className="min-h-[44px] text-xs font-medium text-[#2563EB] hover:underline cursor-pointer"
+              className="min-h-[44px] text-xs font-medium text-[var(--accent-primary)] hover:underline cursor-pointer"
             >
               Ver postes e trechos desta rota
             </button>
@@ -247,14 +247,14 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
           <div
             className={`rounded-2xl p-4 border flex items-start gap-3 ${
               route.hasDarkWarning
-                ? 'bg-[#FFFBEB] border-[#FDE68A] text-[#92400E]'
-                : 'bg-[#F0F7FF] border-[#DBEAFE] text-[#1E3A8A]'
+                ? 'bg-[#F59E0B]/14 border-[#F59E0B]/35 text-[var(--label-primary)]'
+                : 'bg-[var(--bg-fill-secondary)] border-[var(--separator)] text-[var(--label-primary)]'
             }`}
           >
             {route.hasDarkWarning ? (
               <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5 text-[#D97706]" aria-hidden="true" />
             ) : (
-              <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5 text-[#2563EB]" aria-hidden="true" />
+              <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5 text-[var(--accent-primary)]" aria-hidden="true" />
             )}
             <div className="text-xs leading-relaxed">
               <p className="font-semibold">
@@ -262,7 +262,7 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
                   ? 'Trecho com iluminação reduzida detectada'
                   : 'Rota priorizando calçadas iluminadas da Trindade'}
               </p>
-              <p className="opacity-85 mt-0.5">
+              <p className="text-[var(--label-secondary)] mt-0.5">
                 {route.posts.filter((p) => p.status === 'aceso').length} de {route.posts.length}{' '}
                 postes ativos agora ao longo de {route.edges.length} segmentos.
               </p>
@@ -271,7 +271,7 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
 
           {/* Segments List */}
           <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--label-tertiary)]">
               Segmentos do caminho
             </h3>
             <div className="space-y-2">
@@ -282,18 +282,18 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
                 return (
                   <div
                     key={edge.id}
-                    className="rounded-xl bg-[#E5EDF7]/55 border border-[#D5E0EE] px-3.5 py-2.5 flex items-center justify-between gap-2"
+                    className="rounded-xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)] px-3.5 py-2.5 flex items-center justify-between gap-2"
                   >
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-[#0F172A] truncate">
+                      <p className="text-xs font-semibold text-[var(--label-primary)] truncate">
                         {fromName} → {toName}
                       </p>
-                      <p className="text-[11px] text-[#475569]">
+                      <p className="text-[11px] text-[var(--label-secondary)]">
                         {edge.distance} m • base {edge.baseIllumination}% iluminada
                       </p>
                     </div>
                     {summary && (
-                      <span className="text-xs font-semibold text-[#0F172A] tabular-nums shrink-0">
+                      <span className="text-xs font-semibold text-[var(--label-primary)] tabular-nums shrink-0">
                         ★ {summary.averageRating.toFixed(1)}
                       </span>
                     )}
@@ -305,39 +305,39 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
 
           {/* Transitions.dev Accordion for Lamp Posts on Route */}
           <div
-            className="t-acc rounded-2xl border border-[#E5EAF4] bg-white overflow-hidden"
+            className="t-acc rounded-2xl border border-[var(--separator)] bg-[var(--bg-elevated)] overflow-hidden"
             data-open={isPostsAccordionOpen ? 'true' : 'false'}
           >
             <button
               type="button"
               onClick={() => setIsPostsAccordionOpen((o) => !o)}
               aria-expanded={isPostsAccordionOpen}
-              className="w-full min-h-[44px] px-4 py-3 flex items-center justify-between text-xs font-semibold text-[#111827] hover:bg-[#F8FAFC] cursor-pointer"
+              className="w-full min-h-[44px] px-4 py-3 flex items-center justify-between text-xs font-semibold text-[var(--label-primary)] hover:bg-[var(--bg-elevated-secondary)] cursor-pointer"
             >
               <span className="inline-flex items-center gap-2">
-                <Lightbulb className="w-4 h-4 text-[#2563EB]" aria-hidden="true" />
+                <Lightbulb className="w-4 h-4 text-[var(--accent-primary)]" aria-hidden="true" />
                 <span>Postes monitorados no trajeto ({route.posts.length})</span>
               </span>
               <span className="t-acc-chevron" aria-hidden="true">
-                <ChevronDown className="w-4 h-4 text-[#64748B]" />
+                <ChevronDown className="w-4 h-4 text-[var(--label-tertiary)]" />
               </span>
             </button>
 
             <div className="t-acc-panel">
-              <div className="t-acc-panel-inner border-t border-[#E5EAF4] px-4 py-2.5 space-y-2">
+              <div className="t-acc-panel-inner border-t border-[var(--separator)] px-4 py-2.5 space-y-2">
                 {route.posts.map((post) => (
                   <div
                     key={post.id}
                     className="flex items-center justify-between gap-2 text-xs py-1"
                   >
-                    <span className="text-[#334155] truncate">{post.name}</span>
+                    <span className="text-[var(--label-secondary)] truncate">{post.name}</span>
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide shrink-0 ${
                         post.status === 'aceso'
-                          ? 'bg-[#ECFDF5] text-[#047857]'
+                          ? 'bg-[#10B981]/15 text-[#10B981]'
                           : post.status === 'oscilando'
-                            ? 'bg-[#FFFBEB] text-[#B45309]'
-                            : 'bg-[#FEF2F2] text-[#B91C1C]'
+                            ? 'bg-[#F59E0B]/15 text-[#D97706]'
+                            : 'bg-[#EF4444]/15 text-[#EF4444]'
                       }`}
                     >
                       {post.status}
@@ -349,14 +349,14 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
           </div>
 
           {/* Active Group Companions */}
-          <div className="rounded-2xl bg-[#E5EDF7]/65 border border-[#D5E0EE] p-3.5 space-y-2.5">
+          <div className="rounded-2xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)] p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#0F172A]">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--label-primary)]">
                 <TrioMascotStack size={20} />
                 <span>Colegas confirmados na rota ({companions.length})</span>
               </span>
               {scheduledTime && (
-                <span className="text-[11px] font-semibold text-[#2563EB]">
+                <span className="text-[11px] font-semibold text-[var(--accent-primary)]">
                   Saída {scheduledTime}
                 </span>
               )}
@@ -365,11 +365,11 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
               {companions.slice(0, 4).map((c, idx) => (
                 <span
                   key={c.id}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#D5E0EE] text-[11px] font-medium text-[#0F172A] shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--separator)] text-[11px] font-medium text-[var(--label-primary)] shadow-2xs"
                 >
                   <TrioCharacterAvatar variant={pickTrioVariant(idx)} size={16} />
                   <span>{c.name.split(' ')[0]}</span>
-                  <span className="text-[#475569]">• {c.departureTime}</span>
+                  <span className="text-[var(--label-secondary)]">• {c.departureTime}</span>
                 </span>
               ))}
             </div>
@@ -380,9 +380,9 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
             <button
               type="button"
               onClick={() => onSwitchMode('schedule')}
-              className="min-h-[44px] flex-1 px-4 rounded-full bg-white hover:bg-[#E5EDF7]/70 border border-[#D5E0EE] text-xs font-semibold text-[#0F172A] inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="min-h-[44px] flex-1 px-4 rounded-full bg-[var(--bg-elevated)] hover:bg-[var(--bg-fill-secondary)] border border-[var(--separator)] text-xs font-semibold text-[var(--label-primary)] inline-flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <Clock className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
+              <Clock className="w-3.5 h-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
               <span>{scheduledTime ? `Mudar saída (${scheduledTime})` : 'Marcar horário'}</span>
             </button>
             <PillButton

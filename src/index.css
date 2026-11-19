@@ -2,6 +2,26 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
+  color-scheme: light dark;
+
+  /* Apple iOS 26 Semantic Tokens (Light Defaults) */
+  --bg-grouped: #EAEFF6;
+  --bg-elevated: #FFFFFF;
+  --bg-elevated-secondary: #F2F5FA;
+  --bg-fill-secondary: #E5EDF7;
+  --label-primary: #0F172A;
+  --label-secondary: #475569;
+  --label-tertiary: #64748B;
+  --separator: rgba(15, 23, 42, 0.10);
+  --glass-surface: rgba(255, 255, 255, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.90);
+  --accent-primary: #2563EB;
+  --hero-sky-start: #D7ECFF;
+  --hero-sky-mid: #E3F0FC;
+  --hero-danger-start: #FFE4C4;
+  --hero-danger-mid: #F5EDE6;
+
   /* RuaEscura Unified Identity: Radiant Sky Trio (Blue / Gold / Pink) + High-Contrast Alabaster Ground */
   --color-cobalt: #2563EB;
   --color-cobalt-hover: #1D4ED8;
@@ -43,14 +63,75 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-grouped: #000000;
+    --bg-elevated: #1C1C1E;
+    --bg-elevated-secondary: #2C2C2E;
+    --bg-fill-secondary: rgba(118, 118, 128, 0.24);
+    --label-primary: #F8FAFC;
+    --label-secondary: #94A3B8;
+    --label-tertiary: #8E8E93;
+    --separator: rgba(255, 255, 255, 0.14);
+    --glass-surface: rgba(28, 28, 30, 0.74);
+    --glass-border: rgba(255, 255, 255, 0.16);
+    --glass-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
+    --accent-primary: #60A5FA;
+    --hero-sky-start: #0A1A36;
+    --hero-sky-mid: #050D1E;
+    --hero-danger-start: #2B1510;
+    --hero-danger-mid: #170C09;
+  }
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-grouped: #000000;
+  --bg-elevated: #1C1C1E;
+  --bg-elevated-secondary: #2C2C2E;
+  --bg-fill-secondary: rgba(118, 118, 128, 0.24);
+  --label-primary: #F8FAFC;
+  --label-secondary: #94A3B8;
+  --label-tertiary: #8E8E93;
+  --separator: rgba(255, 255, 255, 0.14);
+  --glass-surface: rgba(28, 28, 30, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
+  --accent-primary: #60A5FA;
+  --hero-sky-start: #0A1A36;
+  --hero-sky-mid: #050D1E;
+  --hero-danger-start: #2B1510;
+  --hero-danger-mid: #170C09;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-grouped: #EAEFF6;
+  --bg-elevated: #FFFFFF;
+  --bg-elevated-secondary: #F2F5FA;
+  --bg-fill-secondary: #E5EDF7;
+  --label-primary: #0F172A;
+  --label-secondary: #475569;
+  --label-tertiary: #64748B;
+  --separator: rgba(15, 23, 42, 0.10);
+  --glass-surface: rgba(255, 255, 255, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.90);
+  --accent-primary: #2563EB;
+  --hero-sky-start: #D7ECFF;
+  --hero-sky-mid: #E3F0FC;
+  --hero-danger-start: #FFE4C4;
+  --hero-danger-mid: #F5EDE6;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
   font-weight: 400;
   letter-spacing: -0.008em;
   font-feature-settings: "kern" 1, "liga" 1;
-  background-color: var(--color-canvas);
-  color: var(--color-ink);
+  background-color: var(--bg-grouped);
+  color: var(--label-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
@@ -67,11 +148,11 @@ h1, h2, h3 {
    ========================================================================== */
 
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.84);
+  background: var(--glass-surface);
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
-  border: 1px solid rgba(37, 99, 235, 0.14);
-  box-shadow: 0 8px 32px 0 rgba(17, 24, 39, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(17, 24, 39, 0.12), var(--glass-specular);
 }
 
 .liquid-glass-dark {
@@ -85,10 +166,10 @@ h1, h2, h3 {
 /* Reduced transparency accessibility fallback */
 @media (prefers-reduced-transparency: reduce) {
   .liquid-glass {
-    background: #FFFFFF !important;
+    background: var(--bg-elevated) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    border-color: #E5EAF4 !important;
+    border-color: var(--separator) !important;
   }
   .liquid-glass-dark {
     background: #0B1120 !important;
@@ -119,8 +200,8 @@ h1, h2, h3 {
 /* High contrast accessibility fallback */
 @media (prefers-contrast: more) {
   .liquid-glass {
-    background: #FFFFFF !important;
-    border: 2px solid #0B1226 !important;
+    background: var(--bg-elevated) !important;
+    border: 2px solid var(--label-primary) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
@@ -409,13 +490,13 @@ h1, h2, h3 {
    ========================================================================== */
 .tms,
 .sld {
-  --card: var(--color-surface-white, #FFFFFF);
-  --fill-slab: #EEF2F7;
-  --fill-on: var(--color-ink, #111827);
+  --card: var(--bg-elevated);
+  --fill-slab: var(--bg-fill-secondary);
+  --fill-on: var(--label-primary);
   --font-ui: var(--font-sans);
-  --ink: var(--color-ink, #111827);
-  --pane-edge: var(--color-rule, #E5EAF4);
-  --signal: var(--color-cobalt, #2563EB);
+  --ink: var(--label-primary);
+  --pane-edge: var(--separator);
+  --signal: var(--accent-primary);
 }
 
 /* ══ Time scrubber ═══════════════════════════════════════ */

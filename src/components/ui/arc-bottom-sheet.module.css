@@ -1,12 +1,13 @@
 /* UIArc BottomSheet tokens scoped locally to overlay/sheet so nothing leaks */
 .overlay {
-  --border: #E5EAF4;
-  --border-strong: #CBD5E1;
-  --surface-raised: #FFFFFF;
-  --surface-muted: #F1F5F9;
-  --foreground: #111827;
-  --text-secondary: #4B5563;
-  --text-muted: #64748B;
+  --border: var(--separator, rgba(15, 23, 42, 0.10));
+  --border-strong: var(--label-tertiary, #64748B);
+  --surface-raised: var(--bg-elevated, #FFFFFF);
+  --surface-muted: var(--bg-fill-secondary, #E5EDF7);
+  --foreground: var(--label-primary, #0F172A);
+  --muted: var(--label-secondary, #475569);
+  --text-secondary: var(--label-secondary, #475569);
+  --text-muted: var(--label-tertiary, #64748B);
   --shadow-floating: 0 -16px 40px -8px rgba(17, 24, 39, 0.14), 0 -4px 14px rgba(17, 24, 39, 0.06);
   --font-body: var(--font-sans, "NeueMontreal", ui-sans-serif, system-ui, sans-serif);
   --tracking-body: -0.01em;
@@ -37,13 +38,14 @@
 }
 
 .sheet {
-  --border: #E5EAF4;
-  --border-strong: #CBD5E1;
-  --surface-raised: #FFFFFF;
-  --surface-muted: #F1F5F9;
-  --foreground: #111827;
-  --text-secondary: #4B5563;
-  --text-muted: #64748B;
+  --border: var(--separator, rgba(15, 23, 42, 0.10));
+  --border-strong: var(--label-tertiary, #64748B);
+  --surface-raised: var(--bg-elevated, #FFFFFF);
+  --surface-muted: var(--bg-fill-secondary, #E5EDF7);
+  --foreground: var(--label-primary, #0F172A);
+  --muted: var(--label-secondary, #475569);
+  --text-secondary: var(--label-secondary, #475569);
+  --text-muted: var(--label-tertiary, #64748B);
   --shadow-floating: 0 -18px 44px -8px rgba(17, 24, 39, 0.16), 0 -4px 16px rgba(17, 24, 39, 0.07);
   --font-body: var(--font-sans, "NeueMontreal", ui-sans-serif, system-ui, sans-serif);
   --tracking-body: -0.01em;

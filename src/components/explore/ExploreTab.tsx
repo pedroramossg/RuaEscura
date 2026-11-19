@@ -277,11 +277,11 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
     routeMood.tone === 'danger'
       ? {
           background:
-            'linear-gradient(180deg, #FFE4C4 0%, #F5EDE6 52%, #EAEFF6 100%)',
+            'linear-gradient(180deg, var(--hero-danger-start) 0%, var(--hero-danger-mid) 52%, var(--bg-grouped) 100%)',
         }
       : {
           background:
-            'linear-gradient(180deg, #D7ECFF 0%, #E3F0FC 52%, #EAEFF6 100%)',
+            'linear-gradient(180deg, var(--hero-sky-start) 0%, var(--hero-sky-mid) 52%, var(--bg-grouped) 100%)',
         };
 
   const markerPercent = Math.min(96, Math.max(4, brightestRoute.illuminationPercentage));
@@ -299,9 +299,9 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
   return (
     <section
       aria-label="Explorar campus UFSC Trindade"
-      className="min-h-screen bg-[#EAEFF6] text-[#0F172A] pb-28"
+      className="min-h-screen bg-[var(--bg-grouped)] text-[var(--label-primary)] pb-28"
     >
-      {/* Top WelcomeBack-Inspired Sky Sunburst Wash + Light-Mode RouteStatusCard Hero */}
+      {/* Top WelcomeBack-Inspired Sky Sunburst Wash + RouteStatusCard Hero */}
       <div
         className="relative overflow-hidden px-4 pt-5 pb-6 sm:px-6 transition-colors duration-300"
         style={heroBackdropStyle}
@@ -320,15 +320,15 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
         />
         <div className="relative z-10 max-w-2xl mx-auto space-y-4">
           {/* Compact Top Greeting + Trio Companion Stack + Profile Avatar */}
-          <header className="flex items-center justify-between gap-3 text-[#0F172A]">
+          <header className="flex items-center justify-between gap-3 text-[var(--label-primary)]">
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[var(--label-primary)]">
                   Olá, {firstName}
                 </h1>
                 <TrioMascotStack size={26} />
               </div>
-              <p className="text-xs font-medium text-[#475569] truncate mt-0.5">
+              <p className="text-xs font-medium text-[var(--label-secondary)] truncate mt-0.5">
                 UFSC Trindade • {scheduledDeparture ? `Saída ${scheduledDeparture.time}` : timeSlot}
               </p>
             </div>
@@ -338,7 +338,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
               type="button"
               onClick={openProfileClean}
               aria-label="Abrir perfil e privacidade"
-              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white text-[#0F172A] text-sm font-semibold flex items-center justify-center shrink-0 border border-[#D5E0EE] shadow-[0_2px_8px_rgba(15,23,42,0.08)] hover:bg-[#F8FAFC] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-[var(--bg-elevated)] text-[var(--label-primary)] text-sm font-semibold flex items-center justify-center shrink-0 border border-[var(--separator)] shadow-[0_2px_8px_rgba(15,23,42,0.08)] hover:bg-[var(--bg-elevated-secondary)] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-primary)]"
             >
               {initials}
             </button>
@@ -349,7 +349,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             <div
               role="group"
               aria-label="Modo de leitura do painel"
-              className="inline-flex items-center p-1 rounded-full bg-[#E5EDF7] border border-[#D5E0EE] shadow-inner"
+              className="inline-flex items-center p-1 rounded-full bg-[var(--bg-fill-secondary)] border border-[var(--separator)] shadow-inner"
             >
               {(
                 [
@@ -365,7 +365,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                     aria-pressed={isActive}
                     onClick={() => setHeroMode(tab.id)}
                     className={`relative min-h-[36px] px-4 rounded-full text-xs font-semibold transition-colors duration-150 cursor-pointer ${
-                      isActive ? 'text-[#0F172A]' : 'text-[#475569] hover:text-[#0F172A]'
+                      isActive ? 'text-[var(--label-primary)]' : 'text-[var(--label-secondary)] hover:text-[var(--label-primary)]'
                     }`}
                   >
                     {isActive && (
@@ -376,7 +376,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                             ? { duration: 0.01 }
                             : { type: 'spring', duration: 0.3, bounce: 0 }
                         }
-                        className="absolute inset-0 rounded-full bg-white border border-[#D5E0EE] shadow-[0_2px_6px_rgba(15,23,42,0.08)]"
+                        className="absolute inset-0 rounded-full bg-[var(--bg-elevated)] border border-[var(--separator)] shadow-[0_2px_6px_rgba(15,23,42,0.08)]"
                         aria-hidden="true"
                       />
                     )}
@@ -387,7 +387,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             </div>
           </div>
 
-          {/* Hero Switch: Light-Mode RouteStatusCard vs Campus Network */}
+          {/* Hero Switch: RouteStatusCard vs Campus Network */}
           {heroMode === 'corridor' ? (
             <RouteStatusCard
               originShort={originShort}
@@ -413,23 +413,23 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
           ) : (
             <motion.div
               {...enter(0.05)}
-              className="rounded-[28px] bg-white border border-[#D5E0EE] p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] space-y-4"
+              className="rounded-[28px] bg-[var(--bg-elevated)] border border-[var(--separator)] p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] space-y-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[#2563EB]">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent-primary)]">
                     Rede UFSC Trindade
                   </p>
-                  <p className="text-base font-semibold text-[#0F172A] mt-0.5">
+                  <p className="text-base font-semibold text-[var(--label-primary)] mt-0.5">
                     {litPostsCount} de {posts.length} postes ativos agora
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSheetMode('schedule')}
-                  className="min-h-[44px] px-3.5 rounded-full bg-[#E5EDF7]/80 hover:bg-[#DCE6F4] border border-[#D5E0EE] text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 cursor-pointer"
+                  className="min-h-[44px] px-3.5 rounded-full bg-[var(--bg-fill-secondary)] hover:bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] text-xs font-semibold text-[var(--label-primary)] inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Clock className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
+                  <Clock className="w-3.5 h-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
                   <span>{scheduledDeparture?.time ? `Saída ${scheduledDeparture.time}` : 'Marcar horário'}</span>
                 </button>
               </div>
@@ -438,37 +438,37 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                 <button
                   type="button"
                   onClick={onOpenLights}
-                  className="rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] px-3 py-3 text-center hover:bg-[#D1FAE5] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+                  className="rounded-2xl bg-[#10B981]/14 border border-[#10B981]/30 px-3 py-3 text-center hover:bg-[#10B981]/20 enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
                 >
-                  <p className="text-[11px] font-medium text-[#065F46]">Acesos</p>
-                  <p className="text-lg font-semibold text-[#047857] mt-0.5 tabular-nums">
+                  <p className="text-[11px] font-medium text-[var(--label-secondary)]">Acesos</p>
+                  <p className="text-lg font-semibold text-[#10B981] mt-0.5 tabular-nums">
                     {litPostsCount}
                   </p>
-                  <p className="text-[11px] text-[#065F46]">operando</p>
+                  <p className="text-[11px] text-[var(--label-secondary)]">operando</p>
                 </button>
 
                 <button
                   type="button"
                   onClick={onOpenLights}
-                  className="rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] px-3 py-3 text-center hover:bg-[#FEF3C7] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+                  className="rounded-2xl bg-[#F59E0B]/14 border border-[#F59E0B]/30 px-3 py-3 text-center hover:bg-[#F59E0B]/20 enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
                 >
-                  <p className="text-[11px] font-medium text-[#92400E]">Oscilando</p>
-                  <p className="text-lg font-semibold text-[#B45309] mt-0.5 tabular-nums">
+                  <p className="text-[11px] font-medium text-[var(--label-secondary)]">Oscilando</p>
+                  <p className="text-lg font-semibold text-[#D97706] mt-0.5 tabular-nums">
                     {oscillatingPostsCount}
                   </p>
-                  <p className="text-[11px] text-[#92400E]">em alerta</p>
+                  <p className="text-[11px] text-[var(--label-secondary)]">em alerta</p>
                 </button>
 
                 <button
                   type="button"
                   onClick={onOpenReports}
-                  className="rounded-2xl bg-[#FEF2F2] border border-[#FECACA] px-3 py-3 text-center hover:bg-[#FEE2E2] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+                  className="rounded-2xl bg-[#EF4444]/14 border border-[#EF4444]/30 px-3 py-3 text-center hover:bg-[#EF4444]/20 enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
                 >
-                  <p className="text-[11px] font-medium text-[#991B1B]">Queimados</p>
-                  <p className="text-lg font-semibold text-[#B91C1C] mt-0.5 tabular-nums">
+                  <p className="text-[11px] font-medium text-[var(--label-secondary)]">Queimados</p>
+                  <p className="text-lg font-semibold text-[#EF4444] mt-0.5 tabular-nums">
                     {burnedPostsCount}
                   </p>
-                  <p className="text-[11px] text-[#991B1B]">desviando</p>
+                  <p className="text-[11px] text-[var(--label-secondary)]">desviando</p>
                 </button>
               </div>
             </motion.div>
@@ -488,9 +488,9 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
 
             <form
               onSubmit={handleSearchSubmit}
-              className="flex items-center gap-2 bg-white border border-[#D5E0EE] rounded-full p-1.5 pl-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+              className="flex items-center gap-2 bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-full p-1.5 pl-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
             >
-              <Search className="w-4 h-4 text-[#64748B] shrink-0" aria-hidden="true" />
+              <Search className="w-4 h-4 text-[var(--label-tertiary)] shrink-0" aria-hidden="true" />
               <label htmlFor="explore-destination-search" className="sr-only">
                 Para onde você vai na UFSC?
               </label>
@@ -500,11 +500,11 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Para onde você vai? Ex: RU, CCE, Santos Dumont"
-                className="flex-1 min-w-0 min-h-[44px] bg-transparent text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none"
+                className="flex-1 min-w-0 min-h-[44px] bg-transparent text-sm text-[var(--label-primary)] placeholder:text-[var(--label-tertiary)] focus:outline-none"
               />
               <button
                 type="submit"
-                className="min-h-[44px] px-4 rounded-full bg-[#E5EDF7] hover:bg-[#DCE6F4] border border-[#D5E0EE] enabled:active:scale-[0.96] text-xs sm:text-sm font-semibold text-[#0F172A] shrink-0 transition-[transform,background-color] duration-150 cursor-pointer"
+                className="min-h-[44px] px-4 rounded-full bg-[var(--bg-fill-secondary)] hover:bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] enabled:active:scale-[0.96] text-xs sm:text-sm font-semibold text-[var(--label-primary)] shrink-0 transition-[transform,background-color] duration-150 cursor-pointer"
               >
                 Ir ao Mapa
               </button>
@@ -514,16 +514,16 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
               <div
                 role="region"
                 aria-label="Destinos encontrados"
-                className="bg-white border border-[#D5E0EE] rounded-2xl p-2 flex flex-wrap gap-2 shadow-[0_4px_16px_rgba(15,23,42,0.06)]"
+                className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-2xl p-2 flex flex-wrap gap-2 shadow-[0_4px_16px_rgba(15,23,42,0.06)]"
               >
                 {matchingLandmarks.map((node) => (
                   <button
                     key={node.id}
                     type="button"
                     onClick={() => handleJumpToLandmark(node.id)}
-                    className="min-h-[44px] px-3.5 rounded-full bg-[#E5EDF7]/75 hover:bg-[#D7ECFF] border border-[#D5E0EE] text-sm font-medium text-[#0F172A] inline-flex items-center gap-1.5 transition-colors duration-150 cursor-pointer"
+                    className="min-h-[44px] px-3.5 rounded-full bg-[var(--bg-fill-secondary)] hover:bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] text-sm font-medium text-[var(--label-primary)] inline-flex items-center gap-1.5 transition-colors duration-150 cursor-pointer"
                   >
-                    <MapPin className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
+                    <MapPin className="w-3.5 h-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
                     <span>{node.shortName}</span>
                   </button>
                 ))}
@@ -533,19 +533,19 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
         </div>
       </div>
 
-      {/* Cool Alabaster Lower Canvas: Campus em Grupo Strip + Daily Updates + Sub-tabs */}
+      {/* Grouped Lower Canvas: Campus em Grupo Strip + Daily Updates + Sub-tabs */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 space-y-6 pt-2">
         {/* Campus em Grupo Companion Strip (Unified Trio Identity) */}
         <article
           aria-label="Campus em Grupo"
-          className="bg-white border border-[#D5E0EE] rounded-3xl p-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-3xl p-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
         >
           <div className="flex items-center gap-3 min-w-0">
             <TrioMascotStack size={28} className="shrink-0" />
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm font-semibold text-[#0F172A]">Campus em Grupo</h2>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#E5EDF7] text-[#2563EB] border border-[#D5E0EE]">
+                <h2 className="text-sm font-semibold text-[var(--label-primary)]">Campus em Grupo</h2>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--bg-fill-secondary)] text-[var(--accent-primary)] border border-[var(--separator)]">
                   {companionMatches.length} colegas na rota
                 </span>
               </div>
@@ -560,11 +560,11 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                   .map((comp, idx) => (
                     <span
                       key={comp.id}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E5EDF7]/75 border border-[#D5E0EE] text-[11px] font-medium text-[#0F172A]"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--bg-fill-secondary)] border border-[var(--separator)] text-[11px] font-medium text-[var(--label-primary)]"
                     >
                       <TrioCharacterAvatar variant={pickTrioVariant(idx)} size={16} />
                       <span>{comp.name.split(' ')[0]}</span>
-                      <span className="text-[#475569]">{comp.departureTime}</span>
+                      <span className="text-[var(--label-secondary)]">{comp.departureTime}</span>
                     </span>
                   ))}
               </div>
@@ -574,26 +574,26 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
           <button
             type="button"
             onClick={openMapClean}
-            className="min-h-[44px] px-4 rounded-full bg-[#E5EDF7] hover:bg-[#DCE6F4] border border-[#D5E0EE] enabled:active:scale-[0.96] text-xs font-semibold text-[#0F172A] inline-flex items-center justify-center gap-1.5 shrink-0 transition-[transform,background-color] duration-150 cursor-pointer"
+            className="min-h-[44px] px-4 rounded-full bg-[var(--bg-fill-secondary)] hover:bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] enabled:active:scale-[0.96] text-xs font-semibold text-[var(--label-primary)] inline-flex items-center justify-center gap-1.5 shrink-0 transition-[transform,background-color] duration-150 cursor-pointer"
           >
-            <Users className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
+            <Users className="w-3.5 h-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
             <span>Combinar saída</span>
           </button>
         </article>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold tracking-tight text-[#0F172A]">
+            <h2 className="text-lg font-semibold tracking-tight text-[var(--label-primary)]">
               Atualizações do Campus
             </h2>
-            <span className="text-xs font-medium text-[#475569]">Tempo real</span>
+            <span className="text-xs font-medium text-[var(--label-secondary)]">Tempo real</span>
           </div>
 
           {/* High-Contrast Segmented Sub-Tab Strip */}
           <div
             role="group"
             aria-label="Filtrar seções do campus"
-            className="grid grid-cols-4 p-1 rounded-2xl bg-[#E5EDF7] border border-[#D5E0EE]"
+            className="grid grid-cols-4 p-1 rounded-2xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)]"
           >
             {(
               [
@@ -611,7 +611,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                   onClick={() => setUpdatesFilter(tab.id)}
                   aria-pressed={active}
                   className={`relative min-h-[38px] rounded-xl text-xs font-semibold transition-colors duration-150 cursor-pointer ${
-                    active ? 'text-[#0F172A]' : 'text-[#475569] hover:text-[#0F172A]'
+                    active ? 'text-[var(--label-primary)]' : 'text-[var(--label-secondary)] hover:text-[var(--label-primary)]'
                   }`}
                 >
                   {active && (
@@ -622,7 +622,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                           ? { duration: 0.01 }
                           : { type: 'spring', duration: 0.3, bounce: 0 }
                       }
-                      className="absolute inset-0 rounded-xl bg-white shadow-[0_2px_6px_rgba(15,23,42,0.08)] border border-[#D5E0EE]"
+                      className="absolute inset-0 rounded-xl bg-[var(--bg-elevated)] shadow-[0_2px_6px_rgba(15,23,42,0.08)] border border-[var(--separator)]"
                       aria-hidden="true"
                     />
                   )}
@@ -636,21 +636,21 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
         {/* Continuous Safety Gradient Card + Subtle Mascot */}
         <article
           aria-label="Seu corredor agora"
-          className="bg-white border border-[#D5E0EE] rounded-3xl p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+          className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-3xl p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-[#0F172A]">
+              <p className="text-sm font-semibold text-[var(--label-primary)]">
                 Índice de Iluminação ({originShort} → {destShort})
               </p>
-              <p className="text-xs text-[#475569] mt-0.5">{routeMood.bubble}</p>
+              <p className="text-xs text-[var(--label-secondary)] mt-0.5">{routeMood.bubble}</p>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setSheetMode('details')}
-                className="min-h-[36px] px-3 rounded-full bg-[#E5EDF7]/80 border border-[#D5E0EE] text-xs font-semibold text-[#0F172A] tabular-nums hover:bg-[#DCE6F4] cursor-pointer"
+                className="min-h-[36px] px-3 rounded-full bg-[var(--bg-fill-secondary)] border border-[var(--separator)] text-xs font-semibold text-[var(--label-primary)] tabular-nums hover:bg-[var(--bg-elevated-secondary)] cursor-pointer"
               >
                 {routeLitPostsCount}/{brightestRoute.posts.length} postes
               </button>
@@ -659,7 +659,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                 expression={routeMood.expression}
                 tremble={routeMood.tremble}
                 inkColor={routeMood.inkColor}
-                paperColor="#FFFFFF"
+                paperColor="var(--bg-elevated)"
                 notifColor={routeMood.notifColor}
                 size={40}
                 interactive
@@ -679,15 +679,15 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                     ? { duration: 0.01 }
                     : { type: 'spring', duration: 0.45, bounce: 0 }
                 }
-                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-[#0F172A] shadow-sm"
+                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[var(--bg-elevated)] border-2 border-[var(--label-primary)] shadow-sm"
                 aria-hidden="true"
               />
             </div>
-            <div className="flex items-center justify-between text-[11px] text-[#475569]">
+            <div className="flex items-center justify-between text-[11px] text-[var(--label-secondary)]">
               <span>0% Escuro</span>
               <span
                 className={`font-semibold ${
-                  routeMood.tone === 'danger' ? 'text-[#EA580C]' : 'text-[#059669]'
+                  routeMood.tone === 'danger' ? 'text-[#EA580C]' : 'text-[#10B981]'
                 }`}
               >
                 ● {routeMood.tone === 'danger' ? 'Trecho com alerta' : 'Caminho seguro'}
@@ -711,11 +711,11 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
               <div className="flex items-baseline justify-between gap-2">
                 <h2
                   id="explore-safe-routes-heading"
-                  className="text-base font-semibold text-[#0F172A]"
+                  className="text-base font-semibold text-[var(--label-primary)]"
                 >
                   Rotas seguras perto de você
                 </h2>
-                <span className="text-xs text-[#475569]">Toque para traçar</span>
+                <span className="text-xs text-[var(--label-secondary)]">Toque para traçar</span>
               </div>
 
               <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -724,18 +724,18 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                     key={`${item.originId}-${item.destId}`}
                     type="button"
                     onClick={() => handleSelectQuickRoute(item.originId, item.destId, item.title)}
-                    className="min-w-[232px] max-w-[248px] shrink-0 min-h-[44px] bg-white border border-[#D5E0EE] hover:border-[#2563EB] rounded-2xl p-4 text-left transition-[transform,border-color] duration-150 enabled:active:scale-[0.96] cursor-pointer flex flex-col justify-between gap-3 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+                    className="min-w-[232px] max-w-[248px] shrink-0 min-h-[44px] bg-[var(--bg-elevated)] border border-[var(--separator)] hover:border-[var(--accent-primary)] rounded-2xl p-4 text-left transition-[transform,border-color] duration-150 enabled:active:scale-[0.96] cursor-pointer flex flex-col justify-between gap-3 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
                   >
                     <div>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#D1FAE5] text-[#065F46]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                         <Zap className="w-3 h-3" aria-hidden="true" />
                         <span>{item.route.illuminationPercentage}% iluminada</span>
                       </span>
-                      <h3 className="text-base font-semibold text-[#0F172A] mt-2.5">{item.title}</h3>
-                      <p className="text-xs text-[#475569] mt-1">{item.subtitle}</p>
+                      <h3 className="text-base font-semibold text-[var(--label-primary)] mt-2.5">{item.title}</h3>
+                      <p className="text-xs text-[var(--label-secondary)] mt-1">{item.subtitle}</p>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-[#475569] pt-2 border-t border-[#E5EDF7]">
+                    <div className="flex items-center justify-between text-xs text-[var(--label-secondary)] pt-2 border-t border-[var(--separator)]">
                       <span className="inline-flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" aria-hidden="true" />
                         <span>~{item.route.estimatedMinutes} min</span>
@@ -756,15 +756,15 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
               transition={{ duration: 0.2, ease: EASE_OUT }}
-              className="bg-white border border-[#D5E0EE] rounded-[24px] p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+              className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
             >
               <div className="flex items-start gap-3.5">
                 <TrioCharacterAvatar variant="gold" size={38} className="mt-0.5" />
                 <div className="min-w-0 flex-1">
-                  <h2 id="explore-rating-heading" className="text-base font-semibold text-[#0F172A]">
+                  <h2 id="explore-rating-heading" className="text-base font-semibold text-[var(--label-primary)]">
                     Avaliar iluminação de um trecho
                   </h2>
-                  <p className="text-xs sm:text-sm text-[#475569] mt-0.5">
+                  <p className="text-xs sm:text-sm text-[var(--label-secondary)] mt-0.5">
                     Sua nota de 1 a 5 recalibra o peso das rotas no grafo da UFSC.
                   </p>
                 </div>
@@ -774,7 +774,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                 <div>
                   <label
                     htmlFor="explore-rate-edge"
-                    className="block text-xs font-medium text-[#475569] mb-1.5"
+                    className="block text-xs font-medium text-[var(--label-secondary)] mb-1.5"
                   >
                     Trecho caminhado
                   </label>
@@ -787,7 +787,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                       setLastRatedScore(null);
                       setRatingError(null);
                     }}
-                    className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#D5E0EE] bg-[#E5EDF7]/65 text-sm text-[#0F172A] focus:outline-2 focus:outline-[#2563EB] cursor-pointer"
+                    className="w-full min-h-[44px] px-3.5 rounded-xl border border-[var(--separator)] bg-[var(--bg-fill-secondary)] text-sm text-[var(--label-primary)] focus:outline-2 focus:outline-[var(--accent-primary)] cursor-pointer"
                   >
                     {rateableEdges.map((edge) => (
                       <option key={edge.id} value={edge.id}>
@@ -811,7 +811,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                           className={`min-w-[44px] min-h-[44px] px-2.5 rounded-full border text-sm font-semibold inline-flex items-center justify-center gap-1 transition-[transform,background-color,border-color] duration-150 enabled:active:scale-[0.96] cursor-pointer ${
                             isActive
                               ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                              : 'bg-[#E5EDF7]/70 text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
+                              : 'bg-[var(--bg-fill-secondary)] text-[var(--label-primary)] border-[var(--separator)] hover:border-[var(--accent-primary)]'
                           }`}
                         >
                           <Star className="w-3.5 h-3.5" aria-hidden="true" />
@@ -821,7 +821,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                     })}
                   </div>
 
-                  <span className="text-xs text-[#475569]">
+                  <span className="text-xs text-[var(--label-secondary)]">
                     {selectedEdgeSummary
                       ? `Média ${selectedEdgeSummary.averageRating.toFixed(1)}/5 (${selectedEdgeSummary.count} votos)`
                       : 'Sem avaliações ainda'}
@@ -831,7 +831,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                 {ratingError && (
                   <div
                     role="alert"
-                    className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-[#D70015] font-medium"
+                    className="p-3 rounded-xl bg-[#EF4444]/12 border border-[#EF4444]/30 text-xs text-[#EF4444] font-medium"
                   >
                     {ratingError}
                   </div>
@@ -850,29 +850,29 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
               transition={{ duration: 0.2, ease: EASE_OUT }}
               className="space-y-3"
             >
-              <h2 id="explore-highlights-heading" className="text-base font-semibold text-[#0F172A]">
+              <h2 id="explore-highlights-heading" className="text-base font-semibold text-[var(--label-primary)]">
                 Destaques do campus agora
               </h2>
 
-              <div className="bg-white border border-[#D5E0EE] rounded-[24px] px-5 divide-y divide-[#E5EDF7] shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
+              <div className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] px-5 divide-y divide-[var(--separator)] shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
                 {/* Row 1: Lamp Posts */}
                 <div className="py-4 flex items-start gap-3.5">
                   <TrioCharacterAvatar variant="blue" size={36} className="mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <h3 className="text-sm sm:text-base font-semibold text-[#0F172A] inline-flex items-center gap-1.5">
+                      <h3 className="text-sm sm:text-base font-semibold text-[var(--label-primary)] inline-flex items-center gap-1.5">
                         <Lightbulb className="w-4 h-4 text-[#10B981]" aria-hidden="true" />
                         <span>Rede de postes monitorados</span>
                       </h3>
                       <button
                         type="button"
                         onClick={onOpenLights}
-                        className="min-h-[44px] px-3 rounded-full text-xs font-semibold border border-[#D5E0EE] bg-[#E5EDF7]/65 text-[#0F172A] hover:bg-[#DCE6F4] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+                        className="min-h-[44px] px-3 rounded-full text-xs font-semibold border border-[var(--separator)] bg-[var(--bg-fill-secondary)] text-[var(--label-primary)] hover:bg-[var(--bg-elevated-secondary)] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
                       >
                         Ver postes
                       </button>
                     </div>
-                    <p className="text-xs sm:text-sm text-[#475569] mt-1">
+                    <p className="text-xs sm:text-sm text-[var(--label-secondary)] mt-1">
                       {litPostsCount} de {posts.length} postes operando normalmente
                       {burnedPostsCount > 0 ? ` • ${burnedPostsCount} queimado(s) desviando rotas` : ''}.
                     </p>
@@ -884,19 +884,19 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                   <TrioCharacterAvatar variant="gold" size={36} className="mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <h3 className="text-sm sm:text-base font-semibold text-[#0F172A] inline-flex items-center gap-1.5">
+                      <h3 className="text-sm sm:text-base font-semibold text-[var(--label-primary)] inline-flex items-center gap-1.5">
                         <ShieldAlert className="w-4 h-4 text-[#F59E0B]" aria-hidden="true" />
                         <span>Último registro comunitário</span>
                       </h3>
                       <button
                         type="button"
                         onClick={onOpenReports}
-                        className="min-h-[44px] px-3 rounded-full text-xs font-semibold border border-[#D5E0EE] bg-[#E5EDF7]/65 text-[#0F172A] hover:bg-[#DCE6F4] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+                        className="min-h-[44px] px-3 rounded-full text-xs font-semibold border border-[var(--separator)] bg-[var(--bg-fill-secondary)] text-[var(--label-primary)] hover:bg-[var(--bg-elevated-secondary)] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
                       >
                         Ver denúncias
                       </button>
                     </div>
-                    <p className="text-xs sm:text-sm text-[#475569] mt-1">
+                    <p className="text-xs sm:text-sm text-[var(--label-secondary)] mt-1">
                       {latestReport
                         ? `${latestReport.locationName}: ${latestReport.description}`
                         : 'Nenhuma ocorrência recente registrada no campus.'}
@@ -909,19 +909,19 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                   <TrioCharacterAvatar variant="pink" size={36} className="mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <h3 className="text-sm sm:text-base font-semibold text-[#0F172A] inline-flex items-center gap-1.5">
-                        <Users className="w-4 h-4 text-[#2563EB]" aria-hidden="true" />
+                      <h3 className="text-sm sm:text-base font-semibold text-[var(--label-primary)] inline-flex items-center gap-1.5">
+                        <Users className="w-4 h-4 text-[var(--accent-primary)]" aria-hidden="true" />
                         <span>Caminhada acompanhada</span>
                       </h3>
                       <button
                         type="button"
                         onClick={onOpenMap}
-                        className="min-h-[44px] px-3 rounded-full text-xs font-semibold border border-[#D5E0EE] bg-[#E5EDF7]/65 text-[#0F172A] hover:bg-[#DCE6F4] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
+                        className="min-h-[44px] px-3 rounded-full text-xs font-semibold border border-[var(--separator)] bg-[var(--bg-fill-secondary)] text-[var(--label-primary)] hover:bg-[var(--bg-elevated-secondary)] enabled:active:scale-[0.96] transition-[transform,background-color] duration-150 cursor-pointer"
                       >
                         Ver colegas
                       </button>
                     </div>
-                    <p className="text-xs sm:text-sm text-[#475569] mt-1">
+                    <p className="text-xs sm:text-sm text-[var(--label-secondary)] mt-1">
                       {companionMatches.length === 1
                         ? '1 estudante confirmado'
                         : `${companionMatches.length} estudantes confirmados`}{' '}

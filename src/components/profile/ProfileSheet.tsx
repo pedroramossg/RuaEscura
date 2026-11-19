@@ -105,9 +105,10 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
     <BottomSheet
       detent={detent}
       onDetentChange={setDetent}
-      dark={false}
+      dark={isNightMap}
       isModal={true}
       grabberLabel="Perfil e Privacidade"
+      className="bg-[var(--bg-elevated)]! text-[var(--label-primary)]! border-[var(--separator)]!"
     >
       <div className="space-y-5 pb-4">
         {/* Header */}
@@ -117,18 +118,18 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               state={isNightMap ? 'sleep' : 'play'}
               expression={isNightMap ? 'somnolent' : 'heureux'}
               inkColor="#2563EB"
-              paperColor="#FFFFFF"
+              paperColor="var(--bg-elevated)"
               notifColor="#10B981"
               size={52}
               interactive
               ariaLabel="Mascote do perfil"
             />
             <div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EFF6FF] text-[#2563EB] border border-[#DBEAFE]">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-fill-secondary)] text-[var(--accent-primary)] border border-[var(--separator)]">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" aria-hidden="true" />
                 <span>Gov.br verificado</span>
               </span>
-              <h2 className="text-xl font-semibold text-[#111827] mt-1.5">
+              <h2 className="text-xl font-semibold text-[var(--label-primary)] mt-1.5">
                 Perfil & Privacidade
               </h2>
             </div>
@@ -138,39 +139,39 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
             type="button"
             onClick={handleClose}
             aria-label="Fechar perfil"
-            className="min-w-[44px] min-h-[44px] rounded-full inline-flex items-center justify-center border border-[#E5EAF4] text-[#111827] hover:bg-[#F8FAFC] active:scale-[0.97] transition-all cursor-pointer shrink-0"
+            className="min-w-[44px] min-h-[44px] rounded-full inline-flex items-center justify-center border border-[var(--separator)] text-[var(--label-primary)] hover:bg-[var(--bg-fill-secondary)] active:scale-[0.97] transition-all cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
         {/* Identity Card (Masked CPF Only) */}
-        <div className="rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4] p-4 space-y-3">
+        <div className="rounded-2xl bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] p-4 space-y-3">
           <div>
-            <p className="text-base font-semibold text-[#111827]">
+            <p className="text-base font-semibold text-[var(--label-primary)]">
               {userSession?.name ?? 'Estudante UFSC'}
             </p>
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-[var(--label-secondary)]">
               {userSession?.affiliation ?? 'UFSC Campus Trindade'}
             </p>
           </div>
 
-          <div className="pt-2.5 border-t border-[#E5EAF4] flex items-center justify-between text-xs">
-            <span className="text-[#6B7280]">CPF verificado (mascarado)</span>
-            <span className="font-mono font-medium text-[#111827]">{safeCpf}</span>
+          <div className="pt-2.5 border-t border-[var(--separator)] flex items-center justify-between text-xs">
+            <span className="text-[var(--label-tertiary)]">CPF verificado (mascarado)</span>
+            <span className="font-mono font-medium text-[var(--label-primary)]">{safeCpf}</span>
           </div>
 
-          <div className="pt-2.5 border-t border-[#E5EAF4] space-y-2">
+          <div className="pt-2.5 border-t border-[var(--separator)] space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="inline-flex items-center gap-1.5 text-[#6B7280]">
+              <span className="inline-flex items-center gap-1.5 text-[var(--label-tertiary)]">
                 <Clock className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Horário habitual</span>
               </span>
-              <span className="font-medium text-[#111827]">{timeSlot}</span>
+              <span className="font-medium text-[var(--label-primary)]">{timeSlot}</span>
             </div>
 
             <div className="flex items-start justify-between gap-2 text-xs">
-              <span className="inline-flex items-center gap-1.5 text-[#6B7280] shrink-0 pt-1">
+              <span className="inline-flex items-center gap-1.5 text-[var(--label-tertiary)] shrink-0 pt-1">
                 <Building2 className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Prédios frequentes</span>
               </span>
@@ -178,7 +179,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
                 {buildingLabels.map((label) => (
                   <span
                     key={label}
-                    className="px-2.5 py-0.5 rounded-full bg-white border border-[#E5EAF4] text-xs font-medium text-[#111827]"
+                    className="px-2.5 py-0.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--separator)] text-xs font-medium text-[var(--label-primary)]"
                   >
                     {label}
                   </span>
@@ -189,13 +190,13 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
         </div>
 
         {/* Preferences Toggles */}
-        <div className="rounded-2xl bg-white border border-[#E5EAF4] divide-y divide-[#E5EAF4]">
+        <div className="rounded-2xl bg-[var(--bg-elevated)] border border-[var(--separator)] divide-y divide-[var(--separator)]">
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <Moon className="w-4 h-4 text-[#2563EB] shrink-0" aria-hidden="true" />
+              <Moon className="w-4 h-4 text-[var(--accent-primary)] shrink-0" aria-hidden="true" />
               <div>
-                <p className="text-sm font-medium text-[#111827]">Luz Noturna no mapa</p>
-                <p className="text-xs text-[#6B7280]">
+                <p className="text-sm font-medium text-[var(--label-primary)]">Luz Noturna no mapa</p>
+                <p className="text-xs text-[var(--label-secondary)]">
                   Realce escuro com halos nos postes ativos
                 </p>
               </div>
@@ -208,7 +209,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               aria-label="Luz Noturna no mapa"
               onClick={toggleNightMap}
               className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                isNightMap ? 'bg-[#2563EB] justify-end' : 'bg-[#CBD5E1] justify-start'
+                isNightMap ? 'bg-[#2563EB] justify-end' : 'bg-[#64748B]/40 justify-start'
               }`}
             >
               <span className="w-7 h-7 rounded-full bg-white shadow-xs transition-transform" />
@@ -217,12 +218,12 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
 
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <Smartphone className="w-4 h-4 text-[#2563EB] shrink-0" aria-hidden="true" />
+              <Smartphone className="w-4 h-4 text-[var(--accent-primary)] shrink-0" aria-hidden="true" />
               <div>
-                <p className="text-sm font-medium text-[#111827]">
+                <p className="text-sm font-medium text-[var(--label-primary)]">
                   Feedback tátil (hápticos)
                 </p>
-                <p className="text-xs text-[#6B7280]">
+                <p className="text-xs text-[var(--label-secondary)]">
                   Vibração sutil em alertas e atualizações
                 </p>
               </div>
@@ -235,7 +236,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               aria-label="Feedback tátil (hápticos)"
               onClick={() => setHapticsEnabled(!hapticsEnabled)}
               className={`min-w-[52px] min-h-[44px] px-1.5 inline-flex items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                hapticsEnabled ? 'bg-[#2563EB] justify-end' : 'bg-[#CBD5E1] justify-start'
+                hapticsEnabled ? 'bg-[#2563EB] justify-end' : 'bg-[#64748B]/40 justify-start'
               }`}
             >
               <span className="w-7 h-7 rounded-full bg-white shadow-xs transition-transform" />
@@ -246,14 +247,14 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
         {/* Local Web Vitals & Span Telemetry (Read-only, zero PII) */}
         <div
           aria-label="Telemetria local de desempenho"
-          className="rounded-2xl bg-[#F8FAFC] border border-[#E5EAF4] px-4 py-3 text-xs text-[#4B5563] flex items-center justify-between gap-2 flex-wrap"
+          className="rounded-2xl bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] px-4 py-3 text-xs text-[var(--label-secondary)] flex items-center justify-between gap-2 flex-wrap"
         >
           <span>
             Telemetria RUM:{' '}
             {typeof perf.vitals.LCP === 'number' ? `LCP ${Math.round(perf.vitals.LCP)}ms` : 'LCP —'} •{' '}
             {typeof perf.vitals.INP === 'number' ? `INP ${Math.round(perf.vitals.INP)}ms` : 'INP —'}
           </span>
-          <span className="font-mono text-[11px] text-[#6B7280]">
+          <span className="font-mono text-[11px] text-[var(--label-tertiary)]">
             {perf.totalRecorded} spans ({perf.slowCount} lentos)
           </span>
         </div>
@@ -264,7 +265,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
             <button
               type="button"
               onClick={onOpenWelcomeBack}
-              className="w-full min-h-[44px] px-4 rounded-full border border-[#DBEAFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] active:scale-[0.97] text-sm font-medium text-[#2563EB] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full min-h-[44px] px-4 rounded-full border border-[var(--separator)] bg-[var(--bg-fill-secondary)] hover:bg-[var(--bg-elevated-secondary)] active:scale-[0.97] text-sm font-medium text-[var(--accent-primary)] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <span>Abrir tela de boas-vindas</span>
             </button>
@@ -273,7 +274,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
           <button
             type="button"
             onClick={handleResetSessionOnly}
-            className="w-full min-h-[44px] px-4 rounded-full border border-[#E5EAF4] bg-white hover:bg-[#F8FAFC] active:scale-[0.97] text-sm font-medium text-[#111827] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+            className="w-full min-h-[44px] px-4 rounded-full border border-[var(--separator)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-fill-secondary)] active:scale-[0.97] text-sm font-medium text-[var(--label-primary)] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <LogOut className="w-4 h-4" aria-hidden="true" />
             <span>Encerrar sessão Gov.br</span>
@@ -282,7 +283,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
           <button
             type="button"
             onClick={handleResetAllDemo}
-            className="w-full min-h-[44px] px-4 rounded-full border border-[#D70015]/30 bg-[#D70015]/5 hover:bg-[#D70015]/10 active:scale-[0.97] text-sm font-medium text-[#D70015] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+            className="w-full min-h-[44px] px-4 rounded-full border border-[#EF4444]/30 bg-[#EF4444]/10 hover:bg-[#EF4444]/16 active:scale-[0.97] text-sm font-medium text-[#EF4444] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
             <span>Resetar dados demo</span>

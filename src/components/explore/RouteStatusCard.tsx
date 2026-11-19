@@ -441,7 +441,7 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
           ? { duration: 0.01 }
           : { duration: 0.36, ease: [0.23, 1, 0.32, 1] }
       }
-      className={`relative w-full rounded-[28px] bg-white p-5 sm:p-6 overflow-hidden border border-[#D5E0EE] shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] ${className}`.trim()}
+      className={`relative w-full rounded-[28px] bg-[var(--bg-elevated)] p-5 sm:p-6 overflow-hidden border border-[var(--separator)] shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] ${className}`.trim()}
     >
       <HalftoneLightPattern />
 
@@ -457,13 +457,13 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
                 inactiveColor={inactiveColor}
                 reducedMotion={prefersReducedMotion}
               />
-              <span className="text-[#111827] text-xs font-semibold mt-2 truncate max-w-[116px]">
+              <span className="text-[var(--label-primary)] text-xs font-semibold mt-2 truncate max-w-[116px]">
                 {originShort}
               </span>
-              <span className="text-[#4B5563] text-[11px] truncate max-w-[116px]">
+              <span className="text-[var(--label-secondary)] text-[11px] truncate max-w-[116px]">
                 {originName}
               </span>
-              <span className="text-[#64748B] text-[10px] font-medium mt-0.5 uppercase tracking-wide">
+              <span className="text-[var(--label-tertiary)] text-[10px] font-medium mt-0.5 uppercase tracking-wide">
                 {scheduledTime ? `SAÍDA ${scheduledTime}` : `JANELA ${timeSlot}`}
               </span>
             </div>
@@ -475,7 +475,7 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
                 height="22"
                 viewBox="0 0 24 24"
                 fill="none"
-                className={hasDarkWarning ? 'text-[#D97706]' : 'text-[#2563EB]'}
+                className={hasDarkWarning ? 'text-[#D97706]' : 'text-[var(--accent-primary)]'}
                 initial={prefersReducedMotion ? false : { scaleX: 0, opacity: 0 }}
                 animate={{ scaleX: 1, opacity: 1 }}
                 transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
@@ -499,47 +499,47 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
                 inactiveColor={inactiveColor}
                 reducedMotion={prefersReducedMotion}
               />
-              <span className="text-[#111827] text-xs font-semibold mt-2 truncate max-w-[116px]">
+              <span className="text-[var(--label-primary)] text-xs font-semibold mt-2 truncate max-w-[116px]">
                 {destShort}
               </span>
-              <span className="text-[#4B5563] text-[11px] truncate max-w-[116px]">
+              <span className="text-[var(--label-secondary)] text-[11px] truncate max-w-[116px]">
                 {destName}
               </span>
-              <span className="text-[#64748B] text-[10px] font-medium mt-0.5 uppercase tracking-wide">
+              <span className="text-[var(--label-tertiary)] text-[10px] font-medium mt-0.5 uppercase tracking-wide">
                 CHEGADA ~{etaClock}
               </span>
             </div>
           </div>
 
           {/* Light ETA & Swap Panel */}
-          <div className="flex sm:flex-col items-center sm:items-stretch justify-between bg-[#E5EDF7]/70 rounded-2xl p-3 sm:min-w-[148px] border border-[#D5E0EE] gap-2">
+          <div className="flex sm:flex-col items-center sm:items-stretch justify-between bg-[var(--bg-fill-secondary)] rounded-2xl p-3 sm:min-w-[148px] border border-[var(--separator)] gap-2">
             <div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[#0F172A] text-sm font-semibold tabular-nums">
+                <span className="text-[var(--label-primary)] text-sm font-semibold tabular-nums">
                   {scheduledTime ? `Saída ${scheduledTime}` : `ETA ${etaClock}`}
                 </span>
                 <button
                   type="button"
                   onClick={onSwapRoute}
                   aria-label="Inverter origem e destino"
-                  className="min-w-[34px] min-h-[34px] -my-1 -mr-1 inline-flex items-center justify-center rounded-full bg-white/80 hover:bg-white border border-[#D5E0EE] enabled:active:scale-[0.94] text-[#475569] transition-[transform,background-color] duration-150 cursor-pointer"
+                  className="min-w-[34px] min-h-[34px] -my-1 -mr-1 inline-flex items-center justify-center rounded-full bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] enabled:active:scale-[0.94] text-[var(--label-secondary)] transition-[transform,background-color] duration-150 cursor-pointer"
                 >
                   <ArrowLeftRight className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
-              <p className="text-[#475569] text-[11px] mt-0.5">
+              <p className="text-[var(--label-secondary)] text-[11px] mt-0.5">
                 {hasDarkWarning ? 'Trecho com alerta' : 'Corredor iluminado'}
               </p>
             </div>
 
             <div className="flex items-center gap-1.5 text-[11px] font-semibold">
               {hasDarkWarning ? (
-                <span className="inline-flex items-center gap-1 text-[#B45309]">
+                <span className="inline-flex items-center gap-1 text-[#D97706]">
                   <ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>{litPostsCount}/{totalPostsCount} postes</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[#059669]">
+                <span className="inline-flex items-center gap-1 text-[#10B981]">
                   <Users className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>{companionsCount} colegas na rota</span>
                 </span>
@@ -548,9 +548,9 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
           </div>
         </div>
 
-        {/* Light Progress Track (Componentry flight-progress geometry) */}
+        {/* Progress Track (Componentry flight-progress geometry) */}
         <div className="space-y-1.5">
-          <div className="relative h-12 bg-[#E5EDF7] rounded-full overflow-hidden border border-[#D5E0EE] flex items-center pr-1.5">
+          <div className="relative h-12 bg-[var(--bg-fill-secondary)] rounded-full overflow-hidden border border-[var(--separator)] flex items-center pr-1.5">
             <motion.div
               className="h-full rounded-full flex items-center justify-end pr-2 shrink-0"
               initial={prefersReducedMotion ? false : { width: '18%' }}
@@ -577,7 +577,7 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
               </div>
             </motion.div>
 
-            <div className="ml-auto text-[#0F172A] bg-white px-2.5 py-1 rounded-full text-xs font-semibold tabular-nums border border-[#D5E0EE] shadow-2xs shrink-0">
+            <div className="ml-auto text-[var(--label-primary)] bg-[var(--bg-elevated)] px-2.5 py-1 rounded-full text-xs font-semibold tabular-nums border border-[var(--separator)] shadow-2xs shrink-0">
               ~{estimatedMinutes} min • {distanceMeters} m
             </div>
           </div>
@@ -587,9 +587,9 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
             <button
               type="button"
               onClick={onOpenSchedule}
-              className="min-h-[44px] px-3.5 rounded-full bg-[#E5EDF7]/75 hover:bg-[#DCE6F4] border border-[#D5E0EE] enabled:active:scale-[0.96] text-xs font-semibold text-[#0F172A] inline-flex items-center gap-1.5 transition-[transform,background-color] duration-150 cursor-pointer"
+              className="min-h-[44px] px-3.5 rounded-full bg-[var(--bg-fill-secondary)] hover:bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] enabled:active:scale-[0.96] text-xs font-semibold text-[var(--label-primary)] inline-flex items-center gap-1.5 transition-[transform,background-color] duration-150 cursor-pointer"
             >
-              <Clock className="w-3.5 h-3.5 text-[#2563EB]" aria-hidden="true" />
+              <Clock className="w-3.5 h-3.5 text-[var(--accent-primary)]" aria-hidden="true" />
               <span>
                 {scheduledTime ? `Horário marcado: ${scheduledTime}` : 'Marcar horário para sair'}
               </span>
@@ -598,9 +598,9 @@ export const RouteStatusCard: React.FC<RouteStatusCardProps> = ({
             <button
               type="button"
               onClick={onOpenDetails}
-              className="min-h-[44px] px-3.5 rounded-full bg-white hover:bg-[#E5EDF7]/70 border border-[#D5E0EE] enabled:active:scale-[0.96] text-xs font-medium text-[#334155] inline-flex items-center gap-1.5 transition-[transform,background-color] duration-150 cursor-pointer"
+              className="min-h-[44px] px-3.5 rounded-full bg-[var(--bg-elevated)] hover:bg-[var(--bg-fill-secondary)] border border-[var(--separator)] enabled:active:scale-[0.96] text-xs font-medium text-[var(--label-secondary)] inline-flex items-center gap-1.5 transition-[transform,background-color] duration-150 cursor-pointer"
             >
-              <Info className="w-3.5 h-3.5 text-[#475569]" aria-hidden="true" />
+              <Info className="w-3.5 h-3.5 text-[var(--label-secondary)]" aria-hidden="true" />
               <span>Detalhes da rota</span>
             </button>
           </div>
