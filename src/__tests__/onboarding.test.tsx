@@ -444,6 +444,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       expect(screen.queryByText(/Localização no campus/i)).not.toBeInTheDocument();
 
       const nameInput = screen.getByLabelText(/Nome completo/i);
+      const emailInput = screen.getByLabelText(/E-mail institucional UFSC/i);
       const affiliationInput = screen.getByLabelText(/Vínculo UFSC/i);
       const cpfInput = screen.getByLabelText(/CPF/i);
       const submitBtn = screen.getByRole('button', { name: /Validar e entrar/i });
@@ -458,11 +459,18 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       expect(screen.getByText(/Ops! Confira os campos destacados/i)).toBeInTheDocument();
       expect(handleComplete).not.toHaveBeenCalled();
 
-      // 3. Click "Preencher demo Gov.br", submit, verify checklist -> Step 5 "Tudo pronto, Mariana!"
+      // 2b. Test rejecting non-UFSC institutional email (@gmail.com)
+      fireEvent.change(cpfInput, { target: { value: '529.982.247-25' } });
+      fireEvent.change(emailInput, { target: { value: 'carlos@gmail.com' } });
+      fireEvent.click(submitBtn);
+      expect(screen.getByRole('alert')).toHaveTextContent(/ufsc\.br/i);
+
+      // 3. Click "Preencher demo Gov.br", submit, verify checklist -> VerificationCodeOtp -> Step 5 "Tudo pronto, Mariana!"
       const demoBtn = screen.getByRole('button', { name: /Preencher demo Gov\.br/i });
       fireEvent.click(demoBtn);
 
       expect((nameInput as HTMLInputElement).value).toBe('Mariana Silva');
+      expect((emailInput as HTMLInputElement).value).toBe('mariana.silva@grad.ufsc.br');
       expect((cpfInput as HTMLInputElement).value).toBe('529.982.247-25');
       expect((affiliationInput as HTMLInputElement).value).toContain('UFSC');
       expect(screen.getByLabelText(/CPF válido/i)).toBeInTheDocument();
@@ -473,7 +481,29 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       await waitFor(() => {
         expect(screen.getByText(/Identidade Gov\.br validada/i)).toBeInTheDocument();
         expect(screen.getByText(/Vínculo UFSC confirmado/i)).toBeInTheDocument();
-        expect(screen.getByText(/Selo Verificado ativo/i)).toBeInTheDocument();
+        expect(screen.getByText(/Enviando código @ufsc\.br/i)).toBeInTheDocument();
+      });
+
+      // Verification Code OTP motion screen renders cleanly with institutional email
+      await waitFor(
+        () => {
+          expect(screen.getByRole('heading', { name: /Código de verificação/i })).toBeInTheDocument();
+          expect(screen.getByText(/mariana\.silva@grad\.ufsc\.br/i)).toBeInTheDocument();
+        },
+        { timeout: 2500 }
+      );
+
+      // Entering invalid 4-digit OTP shows inline alert without advancing
+      const otpInput = screen.getByLabelText(/Código de verificação de 4 dígitos/i);
+      fireEvent.change(otpInput, { target: { value: '0000' } });
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/Código incorreto/i);
+      });
+
+      // Entering valid OTP 5739 verifies & advances cleanly to Step 5 "Tudo pronto, Mariana!"
+      fireEvent.change(otpInput, { target: { value: '5739' } });
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /E-mail verificado!/i })).toBeInTheDocument();
       });
 
       // After verification sequence finishes, transitions to Step 5 "Tudo pronto, Mariana!" (Conectado) with centered WelcomeBack Trio
@@ -490,7 +520,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       // Does not finalize until user taps "Entrar no campus"
       expect(handleComplete).not.toHaveBeenCalled();
 
-      // 4. Tap "Entrar no campus" -> completes onboarding with masked CPF only
+      // 4. Tap "Entrar no campus" -> completes onboarding with masked CPF & UFSC email
       const enterBtn = screen.getByRole('button', { name: /Entrar no campus/i });
       fireEvent.click(enterBtn);
 
@@ -500,6 +530,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       const stored = JSON.parse(localStorage.getItem(CAMPUS_STORAGE_KEY) || '{}');
       expect(stored.onboardingCompleted).toBe(true);
       expect(stored.userSession.cpfMasked).toBe('***.982.247-**');
+      expect(stored.userSession.ufscEmail).toBe('mariana.silva@grad.ufsc.br');
       expect(JSON.stringify(stored)).not.toContain('52998224725');
       expect(JSON.stringify(stored)).not.toContain('529.982.247-25');
     });

@@ -32,6 +32,8 @@ import {
 export interface InteractiveCrewSignUpProps {
   name: string;
   onNameChange: (value: string) => void;
+  ufscEmail: string;
+  onUfscEmailChange: (value: string) => void;
   affiliation: string;
   onAffiliationChange: (value: string) => void;
   cpf: string;
@@ -47,20 +49,21 @@ export interface InteractiveCrewSignUpProps {
   onBack: () => void;
 }
 
-type FieldName = 'name' | 'affiliation' | 'cpf';
+type FieldName = 'name' | 'ufscEmail' | 'affiliation' | 'cpf';
 
 const VERIFICATION_STEPS = [
   { threshold: 1, label: 'Identidade Gov.br validada', activeColor: 'text-[#2563EB]', strong: false },
   { threshold: 2, label: 'Vínculo UFSC confirmado', activeColor: 'text-[#2563EB]', strong: false },
-  { threshold: 3, label: 'Selo Verificado ativo (+100 XP)', activeColor: 'text-[#10B981]', strong: true },
+  { threshold: 3, label: 'Enviando código @ufsc.br (+100 XP)', activeColor: 'text-[#10B981]', strong: true },
 ] as const;
 
 // Render blue & pink first so center gold dome layers warmly in front (matching WelcomeBack)
 const STAGE_CREW_ORDER: readonly CrewMember[] = [CREW[0]!, CREW[2]!, CREW[1]!];
 
 const FIELD_GAZE_Y: Record<FieldName, number> = {
-  name: -0.15,
-  affiliation: 0.25,
+  name: -0.22,
+  ufscEmail: 0.05,
+  affiliation: 0.32,
   cpf: 0.65,
 };
 
@@ -79,6 +82,7 @@ function resolveErrorField(error: string | null): FieldName | null {
   if (!error) return null;
   const lower = error.toLowerCase();
   if (lower.includes('cpf')) return 'cpf';
+  if (lower.includes('e-mail') || lower.includes('email') || lower.includes('ufsc.br')) return 'ufscEmail';
   if (lower.includes('vínculo') || lower.includes('vinculo')) return 'affiliation';
   if (lower.includes('nome')) return 'name';
   return 'cpf';
@@ -168,6 +172,8 @@ function buildOpenMouthPaths(ox: number, oy: number, w: number): { outer: string
 export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
   name,
   onNameChange,
+  ufscEmail,
+  onUfscEmailChange,
   affiliation,
   onAffiliationChange,
   cpf,
@@ -192,6 +198,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
   const cardRef = useRef<HTMLDivElement | null>(null);
   const fieldWrapRefs = useRef<Record<FieldName, HTMLDivElement | null>>({
     name: null,
+    ufscEmail: null,
     affiliation: null,
     cpf: null,
   });
@@ -887,6 +894,42 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                 placeholder="Ex: Mariana Silva"
                 disabled={isVerifying}
                 className={getInputClassName(Boolean(error && errorField === 'name'), false, darkMode)}
+              />
+            </div>
+
+            {/* E-mail institucional UFSC */}
+            <div
+              ref={(el) => {
+                fieldWrapRefs.current.ufscEmail = el;
+              }}
+            >
+              <label
+                htmlFor="govbr-ufsc-email"
+                className="block text-[11px] font-semibold text-[var(--label-secondary)] uppercase tracking-wider mb-1"
+              >
+                E-mail institucional UFSC
+              </label>
+              <input
+                id="govbr-ufsc-email"
+                type="email"
+                inputMode="email"
+                aria-label="E-mail institucional UFSC"
+                autoComplete="email"
+                value={ufscEmail}
+                onFocus={(e) => updateCaretFromInput('ufscEmail', e.currentTarget)}
+                onBlur={() => {
+                  if (targetRef.current.focusedField === 'ufscEmail') {
+                    targetRef.current.focusedField = null;
+                  }
+                }}
+                onSelect={(e) => updateCaretFromInput('ufscEmail', e.currentTarget)}
+                onChange={(e) => {
+                  updateCaretFromInput('ufscEmail', e.currentTarget);
+                  onUfscEmailChange(e.target.value);
+                }}
+                placeholder="ex: nome@grad.ufsc.br"
+                disabled={isVerifying}
+                className={getInputClassName(Boolean(error && errorField === 'ufscEmail'), false, darkMode)}
               />
             </div>
 

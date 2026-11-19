@@ -18,10 +18,17 @@ import { DropletMascot } from '../mascot/DropletMascot';
 import type { StateId } from '../../mascot/bloub/states';
 import type { GovBrSession } from '../../types/campus';
 import { findRoute } from '../../engine/routing';
-import { GovBrAuthSchema, maskCpf } from '../../security/schemas';
+import { GovBrAuthSchema, UfscEmailSchema, maskCpf } from '../../security/schemas';
+import {
+  DEMO_UFSC_EMAIL,
+  sendUfscOtpCode,
+  verifyUfscOtpCode,
+  type OtpChallenge,
+} from '../../services/ufscOtpAuth';
 import ufscLogo from '../../assets/ufsc-logo.webp';
 import { FocusFlightIntro } from './FocusFlightIntro';
 import { InteractiveCrewSignUp } from './crew/InteractiveCrewSignUp';
+import { VerificationCodeOtp } from './VerificationCodeOtp';
 import { WelcomeBackTrioShowcase, useWelcomeBackGaze } from './WelcomeBackTrioShowcase';
 
 const StepSlide = React.forwardRef<
@@ -72,6 +79,11 @@ const UFSC_OPTIONS = [
   { id: 'cse', label: 'CSE', shortName: 'CSE', name: 'Centro Socioeconômico' },
   { id: 'ccj', label: 'CCJ', shortName: 'CCJ', name: 'Centro de Ciências Jurídicas' },
   { id: 'cfh', label: 'CFH', shortName: 'CFH', name: 'Centro de Filosofia e Ciências Humanas' },
+  { id: 'cfm', label: 'CFM', shortName: 'CFM', name: 'CFM — Química, Física e Matemática' },
+  { id: 'eqa_tunel', label: 'Túnel EQA', shortName: 'Túnel EQA', name: 'Túnel do EQA' },
+  { id: 'cds', label: 'CDS', shortName: 'CDS', name: 'Centro de Desportos' },
+  { id: 'dce', label: 'DCE', shortName: 'DCE', name: 'DCE Luiz Travassos' },
+  { id: 'elase', label: 'Elase', shortName: 'Elase', name: 'Saída pela Elase' },
   { id: 'cultura', label: 'Cultura', shortName: 'Cultura', name: 'Centro de Cultura e Eventos' },
   { id: 'certi', label: 'CERTI', shortName: 'CERTI', name: 'Fundação CERTI' },
   { id: 'hu', label: 'HU', shortName: 'HU', name: 'Hospital Universitário' },
@@ -164,12 +176,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
   // Step 4 state
   const [name, setName] = useState('');
+  const [ufscEmail, setUfscEmail] = useState('');
   const [affiliation, setAffiliation] = useState('');
   const [cpf, setCpf] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [errorShakeKey, setErrorShakeKey] = useState(0);
   const [isVerifying, setIsVerifying] = useState(false);
   const [checklistStep, setChecklistStep] = useState(0);
+  const [otpChallenge, setOtpChallenge] = useState<OtpChallenge | null>(null);
   const [pendingSession, setPendingSession] = useState<GovBrSession | null>(null);
 
   const timersRef = useRef<number[]>([]);
@@ -274,22 +288,37 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           ? `Trajeto pronto • ${corridorLabel}`
           : `Desbloquear ${corridorLabel}`;
 
-  // Demo Gov.br autofill
+  // Demo Gov.br + @ufsc.br autofill
   const handleAutofillDemo = () => {
     setName('Mariana Silva');
+    setUfscEmail(DEMO_UFSC_EMAIL);
     setCpf('529.982.247-25');
     setAffiliation('Ciência da Computação • 6ª fase UFSC');
     setError(null);
   };
 
-  // Submit Gov.br form
+  // Submit Gov.br form & dispatch institutional @ufsc.br OTP challenge
   const handleGovBrSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setError(null);
 
-    const validation = GovBrAuthSchema.safeParse({ name, cpf, affiliation });
+    const validation = GovBrAuthSchema.safeParse({
+      name,
+      cpf,
+      affiliation,
+    });
     if (!validation.success) {
       setError(validation.error.errors[0]?.message ?? 'Dados inválidos');
+      setErrorShakeKey((k) => k + 1);
+      return;
+    }
+
+    const emailValidation = UfscEmailSchema.safeParse(ufscEmail);
+    if (!emailValidation.success) {
+      setError(
+        emailValidation.error.errors[0]?.message ??
+          'Use seu e-mail institucional UFSC (@grad.ufsc.br, @posgrad.ufsc.br ou @ufsc.br)'
+      );
       setErrorShakeKey((k) => k + 1);
       return;
     }
@@ -298,19 +327,33 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     setIsVerifying(true);
     setChecklistStep(1);
 
+    const challengePromise = sendUfscOtpCode(emailValidation.data);
     const t1 = window.setTimeout(() => setChecklistStep(2), 100);
     const t2 = window.setTimeout(() => setChecklistStep(3), 220);
     const t3 = window.setTimeout(() => {
-      setPendingSession({
-        name: validation.data.name,
-        cpfMasked: maskCpf(validation.data.cpf),
-        affiliation: validation.data.affiliation,
-        verifiedAt: new Date().toISOString(),
-      });
-      setIsVerifying(false);
-      setDirection(1);
-      setStep(5);
-    }, 450);
+      void challengePromise
+        .then((challenge) => {
+          setPendingSession({
+            name: validation.data.name,
+            cpfMasked: maskCpf(validation.data.cpf),
+            affiliation: validation.data.affiliation,
+            ufscEmail: challenge.email,
+            verifiedAt: new Date().toISOString(),
+          });
+          setIsVerifying(false);
+          setOtpChallenge(challenge);
+        })
+        .catch((err: unknown) => {
+          setIsVerifying(false);
+          setChecklistStep(0);
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Não foi possível enviar o código para o seu e-mail UFSC.'
+          );
+          setErrorShakeKey((k) => k + 1);
+        });
+    }, 360);
 
     timersRef.current.push(t1, t2, t3);
   };
@@ -1072,40 +1115,65 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </StepSlide>
             )}
 
-            {/* STEP 4: INTERACTIVE WELCOMEBACK TRIO + GOV.BR TRUST GATE */}
+            {/* STEP 4: INTERACTIVE WELCOMEBACK TRIO + GOV.BR + @UFSC.BR OTP */}
             {step === 4 && (
               <StepSlide
-                key="step-4"
+                key={otpChallenge ? 'step-4-otp' : 'step-4'}
                 direction={direction}
                 variants={stepVariants}
                 transition={stepTransition}
               >
-                <InteractiveCrewSignUp
-                  name={name}
-                  onNameChange={(val) => {
-                    setName(val);
-                    if (error) setError(null);
-                  }}
-                  affiliation={affiliation}
-                  onAffiliationChange={(val) => {
-                    setAffiliation(val);
-                    if (error) setError(null);
-                  }}
-                  cpf={cpf}
-                  onCpfChange={(val) => {
-                    setCpf(val);
-                    if (error) setError(null);
-                  }}
-                  error={error}
-                  errorShakeKey={errorShakeKey}
-                  isVerifying={isVerifying}
-                  checklistStep={checklistStep}
-                  corridorLabel={corridorLabel}
-                  darkMode={darkMode}
-                  onAutofillDemo={handleAutofillDemo}
-                  onSubmit={handleGovBrSubmit}
-                  onBack={() => goToStep(3)}
-                />
+                {otpChallenge ? (
+                  <VerificationCodeOtp
+                    challenge={otpChallenge}
+                    onVerifyCode={async (code) => {
+                      await verifyUfscOtpCode(otpChallenge.email, code);
+                    }}
+                    onResendCode={async () => {
+                      const refreshed = await sendUfscOtpCode(otpChallenge.email);
+                      setOtpChallenge(refreshed);
+                      return refreshed;
+                    }}
+                    onBack={() => setOtpChallenge(null)}
+                    onVerified={() => {
+                      setOtpChallenge(null);
+                      setDirection(1);
+                      setStep(5);
+                    }}
+                  />
+                ) : (
+                  <InteractiveCrewSignUp
+                    name={name}
+                    onNameChange={(val) => {
+                      setName(val);
+                      if (error) setError(null);
+                    }}
+                    ufscEmail={ufscEmail}
+                    onUfscEmailChange={(val) => {
+                      setUfscEmail(val);
+                      if (error) setError(null);
+                    }}
+                    affiliation={affiliation}
+                    onAffiliationChange={(val) => {
+                      setAffiliation(val);
+                      if (error) setError(null);
+                    }}
+                    cpf={cpf}
+                    onCpfChange={(val) => {
+                      setCpf(val);
+                      if (error) setError(null);
+                    }}
+                    error={error}
+                    errorShakeKey={errorShakeKey}
+                    isVerifying={isVerifying}
+                    checklistStep={checklistStep}
+                    corridorLabel={corridorLabel}
+                    darkMode={darkMode}
+                    onAutofillDemo={handleAutofillDemo}
+                    onSubmit={handleGovBrSubmit}
+                    onBack={() => goToStep(3)}
+                  />
+                )}
               </StepSlide>
             )}
 

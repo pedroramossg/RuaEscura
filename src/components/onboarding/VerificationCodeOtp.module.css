@@ -1,0 +1,121 @@
+.stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 30px;
+  background-color: #0F0F12;
+  color: #ECECED;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.46);
+  font-family: "Instrument Sans", "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.backdropGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 72% 48% at 50% 24%,
+    rgba(176, 174, 214, 0.16) 0%,
+    rgba(176, 174, 214, 0.05) 48%,
+    rgba(15, 15, 18, 0) 76%
+  );
+}
+
+.envelopeRig {
+  position: relative;
+  width: 172px;
+  height: 166px;
+  margin: 0 auto;
+  transform-origin: 86% 78%;
+  will-change: transform;
+  user-select: none;
+}
+
+.pillRow {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 312px;
+  margin: 0 auto;
+}
+
+.pill {
+  position: relative;
+  height: 82px;
+  border-radius: 30px;
+  background: #1F1E25;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: #ECECED;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 120ms ease-out;
+  cursor: text;
+  user-select: none;
+}
+
+.pillActive {
+  background: radial-gradient(
+    ellipse 86% 86% at 50% 50%,
+    #15161B 0%,
+    #252731 68%,
+    rgba(196, 210, 220, 0.34) 100%
+  );
+  border-color: rgba(196, 210, 220, 0.42);
+  box-shadow:
+    inset 0 0 18px rgba(196, 210, 220, 0.25),
+    0 0 22px rgba(196, 210, 220, 0.14);
+}
+
+.pillError {
+  border-color: rgba(255, 105, 97, 0.72);
+  box-shadow: 0 0 16px rgba(255, 105, 97, 0.22);
+}
+
+.pillVerified {
+  border-color: rgba(121, 255, 181, 0.52);
+  color: #B4FFE0;
+}
+
+.caret {
+  width: 1.5px;
+  height: 30px;
+  border-radius: 999px;
+  background: #ECECED;
+}
+
+.hiddenOtpInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: text;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 16px;
+}
+
+.checkCircle {
+  background: radial-gradient(circle at 32% 28%, #255E3E 0%, #12331F 100%);
+  border: 1px solid rgba(138, 255, 180, 0.42);
+  box-shadow: 0 10px 30px rgba(18, 51, 31, 0.65), 0 0 24px rgba(121, 255, 181, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .envelopeRig {
+    transform: none !important;
+  }
+}
+
