@@ -146,3 +146,4 @@ export function isMemberEligibleForWomenOnly(member: {
 }): boolean {
   return classifyIdentityGender(member.ufscEmail, member.name).gender === 'female';
 }
+

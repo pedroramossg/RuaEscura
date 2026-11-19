@@ -146,3 +146,4 @@ Dentro do aplicativo, acesse **Perfil → Instalar app no celular (PWA)** (ou **
 ## Licença & Uso Acadêmico
 
 Projeto acadêmico voltado à segurança e mobilidade noturna na **UFSC — Campus Trindade**. Em situações reais de emergência no campus, acione sempre a **Segurança Institucional UFSC `(48) 3721-9555`** ou a **Polícia Militar `190`**.
+

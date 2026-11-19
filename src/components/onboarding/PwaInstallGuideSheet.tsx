@@ -362,3 +362,4 @@ export const PwaInstallGuideSheet: React.FC<PwaInstallGuideSheetProps> = ({
     </ArcBottomSheet>
   );
 };
+
