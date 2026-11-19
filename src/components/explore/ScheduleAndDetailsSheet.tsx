@@ -12,6 +12,7 @@ import { ArcBottomSheet } from '../ui/ArcBottomSheet';
 import { Scrub, formatMinutesToHHMM } from '../ui/TimeScrubber';
 import { SlideConfirm } from '../ui/SlideToConfirm';
 import { PillButton } from '../ui/PillButton';
+import { SfIcon } from '../ui/SfIcon';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { TrioCharacterAvatar, TrioMascotStack, pickTrioVariant } from '../mascot/TrioMascotBadge';
 import type { CompanionMatch, EdgeRatingSummary, RouteResult } from '../../types/campus';
@@ -293,8 +294,9 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
                       </p>
                     </div>
                     {summary && (
-                      <span className="text-xs font-semibold text-[var(--label-primary)] tabular-nums shrink-0">
-                        ★ {summary.averageRating.toFixed(1)}
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--label-primary)] tabular-nums shrink-0">
+                        <SfIcon name="star" filled size={12} className="text-[#D97706] shrink-0" />
+                        <span>{summary.averageRating.toFixed(1)}</span>
                       </span>
                     )}
                   </div>

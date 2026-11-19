@@ -9,11 +9,12 @@ import {
   Users,
   Lightbulb,
   ChevronLeft,
-  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 import { useCampusStore } from '../../hooks/useCampusStore';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { PillButton } from '../ui/PillButton';
+import { SfIcon } from '../ui/SfIcon';
 import { DropletMascot } from '../mascot/DropletMascot';
 import { TrioCharacterAvatar } from '../mascot/TrioMascotBadge';
 import type { StateId } from '../../mascot/bloub/states';
@@ -467,7 +468,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </nav>
 
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white border border-[#E5EAF4] text-[#2563EB] font-semibold shadow-2xs">
-                <Sparkles className="w-3 h-3 text-[#F59E0B]" aria-hidden="true" />
+                <SfIcon name="star" filled size={12} className="text-[#F59E0B]" />
                 <span>{xpEarned} XP</span>
               </span>
             </div>
@@ -502,7 +503,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 <div className="-mx-5 -mt-5 sm:-mx-8 sm:-mt-8 px-5 pt-6 pb-8 sm:px-8 bg-gradient-to-b from-[#0044CC] via-[#2274FA] via-75% to-white text-white">
                   <div className="flex items-center justify-between gap-2 mb-5">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/18 backdrop-blur-md text-white border border-white/25">
-                      <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                      <ShieldCheck className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                       <span>UFSC Campus Trindade</span>
                     </span>
                     {renderContextPill('bg-white/18 backdrop-blur-md text-white border border-white/25')}
@@ -612,10 +613,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   <PillButton
                     variant="lime"
                     size="compact"
-                    className="w-full h-14 shadow-md font-semibold text-base"
+                    className="w-full h-14 shadow-md font-semibold text-base gap-2"
                     onClick={() => goToStep(2)}
                   >
-                    Começar meu trajeto →
+                    <span>Começar meu trajeto</span>
+                    <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
                   </PillButton>
 
                   <button
@@ -842,10 +844,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   <PillButton
                     variant="lime"
                     size="compact"
-                    className="w-full font-semibold"
+                    className="w-full font-semibold gap-2"
                     onClick={() => goToStep(3)}
                   >
-                    Ver meu trajeto seguro →
+                    <span>Ver meu trajeto seguro</span>
+                    <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
                   </PillButton>
                 </div>
               </StepSlide>
@@ -1018,10 +1021,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   <PillButton
                     variant="lime"
                     size="compact"
-                    className="w-full font-semibold !text-sm !px-4 whitespace-nowrap"
+                    className="w-full font-semibold !text-sm !px-4 whitespace-nowrap gap-2"
                     onClick={() => goToStep(4)}
                   >
-                    Validar acesso Gov.br →
+                    <span>Validar acesso Gov.br</span>
+                    <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
                   </PillButton>
                 </div>
               </StepSlide>

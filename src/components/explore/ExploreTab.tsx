@@ -738,11 +738,12 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             <div className="flex items-center justify-between text-[11px] text-[var(--label-secondary)]">
               <span>0% Escuro</span>
               <span
-                className={`font-semibold ${
+                className={`inline-flex items-center gap-1.5 font-semibold ${
                   routeMood.tone === 'danger' ? 'text-[#EA580C]' : 'text-[#10B981]'
                 }`}
               >
-                ● {routeMood.tone === 'danger' ? 'Trecho com alerta' : 'Caminho seguro'}
+                <span aria-hidden="true" className="inline-block w-1.5 h-1.5 rounded-full bg-current" />
+                <span>{routeMood.tone === 'danger' ? 'Trecho com alerta' : 'Caminho seguro'}</span>
               </span>
               <span>100% Claro</span>
             </div>

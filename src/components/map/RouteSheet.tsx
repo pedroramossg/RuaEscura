@@ -6,12 +6,12 @@ import {
   MessageCircle,
   Plus,
   Route as RouteIcon,
-  Sparkles,
   Users,
   X,
   Zap,
 } from 'lucide-react';
 import { BottomSheet, SheetDetent } from '../ui/BottomSheet';
+import { SfIcon } from '../ui/SfIcon';
 import { CompanionChatView } from './CompanionChatView';
 import { DropletMascot } from '../mascot/DropletMascot';
 import {
@@ -300,7 +300,7 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
             >
               <div className="flex items-center justify-between gap-1">
                 <span className="inline-flex items-center gap-1 text-xs font-semibold">
-                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                  <SfIcon name="sun" filled={routeMode === 'brightest'} size={14} />
                   <span>Mais Iluminada</span>
                 </span>
                 {brightestRoute.hasDarkWarning && (

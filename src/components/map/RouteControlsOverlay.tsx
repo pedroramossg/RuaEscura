@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeftRight, Users, Lightbulb, AlertTriangle, ShieldAlert, Satellite, Map as MapIcon } from 'lucide-react';
 import { LiquidGlassSurface } from '../ui/LiquidGlassSurface';
+import { SfIcon } from '../ui/SfIcon';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import type { MapLayerFilters, MapStyle } from './CampusMap';
 
@@ -162,7 +163,8 @@ export const RouteControlsOverlay: React.FC<RouteControlsOverlayProps> = ({
                 : 'bg-[#0F172A] text-white border-[#0F172A] shadow-[0_2px_8px_rgba(15,23,42,0.18)]'
             }`}
           >
-            <span>{isNightMap ? '☀ Mapa Claro' : '☾ Luz Noturna'}</span>
+            <SfIcon name={isNightMap ? 'sun' : 'moon'} filled={isNightMap} size={14} />
+            <span>{isNightMap ? 'Mapa Claro' : 'Luz Noturna'}</span>
           </button>
 
           {onToggleMapStyle && (

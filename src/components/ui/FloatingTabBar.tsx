@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { Compass, Map, Lightbulb, ShieldAlert } from 'lucide-react';
+import { SfIcon, type SfIconName } from './SfIcon';
 import { LiquidGlassSurface } from './LiquidGlassSurface';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
@@ -9,21 +9,14 @@ export type TabId = 'explorar' | 'mapa' | 'postes' | 'denuncias';
 export interface TabItem {
   id: TabId;
   label: string;
-  icon: React.ComponentType<{
-    className?: string;
-    size?: number;
-    strokeWidth?: number;
-    fill?: string;
-    fillOpacity?: number;
-    'aria-hidden'?: boolean;
-  }>;
+  icon: SfIconName;
 }
 
 export const TABS: TabItem[] = [
-  { id: 'explorar', label: 'Explorar', icon: Compass },
-  { id: 'mapa', label: 'Mapa', icon: Map },
-  { id: 'postes', label: 'Postes', icon: Lightbulb },
-  { id: 'denuncias', label: 'Denúncias', icon: ShieldAlert },
+  { id: 'explorar', label: 'Explorar', icon: 'compass' },
+  { id: 'mapa', label: 'Mapa', icon: 'map' },
+  { id: 'postes', label: 'Postes', icon: 'lightbulb' },
+  { id: 'denuncias', label: 'Denúncias', icon: 'shield' },
 ];
 
 export interface FloatingTabBarProps {
@@ -100,7 +93,6 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
       >
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
-          const Icon = tab.icon;
 
           const activePillClass = dark
             ? 'bg-[#60A5FA]/18 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]'
@@ -148,13 +140,10 @@ export const FloatingTabBar: React.FC<FloatingTabBarProps> = ({
 
               <span className="relative z-10 inline-flex flex-col items-center justify-center gap-0.5">
                 <span className="relative inline-flex items-center justify-center">
-                  <Icon
+                  <SfIcon
+                    name={tab.icon}
+                    filled={isActive}
                     size={minimized ? 20 : 18}
-                    strokeWidth={isActive ? 2.25 : 1.75}
-                    fill={isActive ? 'currentColor' : 'none'}
-                    fillOpacity={isActive ? 0.18 : 0}
-                    aria-hidden={true}
-                    className="shrink-0"
                   />
 
                   {tab.id === 'denuncias' && alertCount > 0 && (
