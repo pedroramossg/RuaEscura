@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Building2,
   Clock,
@@ -56,7 +56,10 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
     resetAllDemoData,
   } = useCampusStore();
 
+  const [confirmReset, setConfirmReset] = useState(false);
+
   const handleClose = useCallback(() => {
+    setConfirmReset(false);
     onClose();
     window.requestAnimationFrame(() => {
       returnFocusRef?.current?.focus();
@@ -76,12 +79,14 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
   const perf = getPerfSnapshot();
 
   const handleResetSessionOnly = () => {
+    setConfirmReset(false);
     resetSessionOnly();
     onNotify?.('Sessão Gov.br encerrada. Registros do campus mantidos.');
     onClose();
   };
 
   const handleResetAllDemo = () => {
+    setConfirmReset(false);
     resetAllDemoData();
     onNotify?.('Dados de demonstração restaurados ao padrão inicial.');
     onClose();
@@ -249,14 +254,39 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
             <span>Encerrar sessão Gov.br</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleResetAllDemo}
-            className="w-full min-h-[48px] px-4 py-3 text-sm font-medium text-[#EF4444] hover:bg-[#EF4444]/8 active:bg-[#EF4444]/14 inline-flex items-center justify-start gap-2.5 text-left transition-colors cursor-pointer"
-          >
-            <RotateCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>Resetar dados demo</span>
-          </button>
+          {!confirmReset ? (
+            <button
+              type="button"
+              onClick={() => setConfirmReset(true)}
+              className="w-full min-h-[48px] px-4 py-3 text-sm font-medium text-[#EF4444] hover:bg-[#EF4444]/8 active:bg-[#EF4444]/14 inline-flex items-center justify-start gap-2.5 text-left transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>Resetar dados demo</span>
+            </button>
+          ) : (
+            <div className="px-4 py-3.5 space-y-2.5 bg-[#EF4444]/6">
+              <p className="text-xs font-medium text-[var(--label-primary)] leading-snug">
+                Restaurar postes, rotas e denúncias ao estado inicial?
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleResetAllDemo}
+                  className="flex-1 min-h-[44px] px-3.5 py-2 rounded-full bg-[#EF4444] text-white text-xs sm:text-sm font-semibold hover:bg-[#DC2626] active:scale-[0.98] inline-flex items-center justify-center gap-1.5 transition-[transform,background-color] duration-150 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <span>Confirmar restauração</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmReset(false)}
+                  className="min-h-[44px] px-4 py-2 rounded-full bg-[var(--bg-fill-secondary)] text-[var(--label-primary)] text-xs sm:text-sm font-medium hover:bg-[var(--bg-fill-secondary)]/80 active:scale-[0.98] inline-flex items-center justify-center transition-[transform,background-color] duration-150 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </ArcBottomSheet>

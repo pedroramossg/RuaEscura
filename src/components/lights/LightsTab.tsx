@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
+  CheckCircle2,
   Flame,
   QrCode,
   Search,
@@ -79,6 +80,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
   const [qrInput, setQrInput] = useState('');
   const [qrError, setQrError] = useState<string | null>(null);
   const [statusFeedback, setStatusFeedback] = useState<string | null>(null);
+  const [didRecalculate, setDidRecalculate] = useState(false);
   const [directoryFilter, setDirectoryFilter] = useState<DirectoryFilter>('all');
   const [directorySearch, setDirectorySearch] = useState('');
   const debouncedDirectorySearch = useDebounce(directorySearch, 180);
@@ -127,6 +129,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
     setSelectedPostId(postId);
     setQrError(null);
     setStatusFeedback(null);
+    setDidRecalculate(false);
   };
 
   const handleQrScanSubmit = (e: React.FormEvent) => {
@@ -148,6 +151,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
     setSelectedPostId(matched.id);
     setQrInput('');
     setStatusFeedback(`Poste ${matched.id} selecionado via QR Code.`);
+    setDidRecalculate(false);
     onNotify?.(`Poste ${matched.id} localizado via QR Code.`);
   };
 
@@ -157,6 +161,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
     const label = STATUS_META[nextStatus].label;
     const msg = `${selectedPost.id} atualizado para ${label}. Rotas do campus recalculadas.`;
     setStatusFeedback(msg);
+    setDidRecalculate(true);
     onNotify?.(msg);
   };
 
@@ -290,7 +295,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
           {/* Quick-Select Seeded QR Pills */}
           <div className="space-y-2">
             <span className="block text-xs font-medium text-[var(--label-secondary)]">
-              Simular leitura rápida no campus
+              Etiquetas QR recentes no campus
             </span>
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
               {posts.map((post) => {
@@ -396,11 +401,23 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
           )}
 
           {/* Optimistic Route Recalculation Banner + Single Prominent CTA */}
-          <div className="rounded-2xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="min-w-0 space-y-0.5">
-              <p className="text-xs font-semibold text-[var(--label-primary)]">
-                {statusFeedback ?? `Corredor ${originShort} → ${destShort}`}
-              </p>
+          <div
+            role="status"
+            aria-live="polite"
+            className="rounded-2xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          >
+            <div className="min-w-0 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-xs font-semibold text-[var(--label-primary)]">
+                  {statusFeedback ?? `Corredor ${originShort} → ${destShort}`}
+                </p>
+                {didRecalculate && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                    <CheckCircle2 className="w-3 h-3 shrink-0" aria-hidden="true" />
+                    <span>Mapa recalibrado</span>
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-[var(--label-secondary)]">
                 Rota iluminada atual: {brightestRoute.illuminationPercentage}% •{' '}
                 {brightestRoute.hasDarkWarning

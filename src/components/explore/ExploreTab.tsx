@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowRight,
+  CheckCircle2,
   Clock,
   Lightbulb,
   MapPin,
@@ -880,6 +881,17 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                       : 'Sem avaliações ainda'}
                   </span>
                 </div>
+
+                {lastRatedScore !== null && !ratingError && (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                    <span>Nota {lastRatedScore}/5 salva no grafo</span>
+                  </div>
+                )}
 
                 {ratingError && (
                   <div

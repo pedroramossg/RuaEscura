@@ -352,6 +352,7 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       );
 
       fireEvent.click(screen.getByRole('button', { name: /Resetar dados demo/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Confirmar restauração/i }));
       stored = JSON.parse(localStorage.getItem(CAMPUS_STORAGE_KEY) || '{}');
       expect(stored.onboardingCompleted).toBe(false);
       expect(stored.reports.length).toBe(getSeedCampusState().reports.length);

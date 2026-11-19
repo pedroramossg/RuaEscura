@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { CampusStoreProvider, useCampusStore } from './hooks/useCampusStore';
 import { useHaptics } from './hooks/useHaptics';
 import { usePrefersReducedMotion } from './hooks/usePrefersReducedMotion';
@@ -157,20 +157,52 @@ export function AppShell() {
       }`}
     >
 
-      {/* Global Polite Toast Announcer positioned above FloatingTabBar so top headings are never obscured */}
+      {/* Global Polite Liquid Glass Status Pill */}
       <div
         aria-live="polite"
         aria-atomic="true"
-        className="fixed bottom-24 inset-x-4 z-[55] pointer-events-none flex justify-center"
+        className="fixed inset-x-4 z-[55] pointer-events-none flex justify-center"
+        style={{ top: 'max(1rem, env(safe-area-inset-top))' }}
       >
-        {toastMessage && (
-          <div
-            role="status"
-            className="t-toast is-open max-w-md w-fit px-4 py-2.5 rounded-full bg-[#111827] text-white text-xs sm:text-sm font-medium shadow-lg border border-white/15"
-          >
-            {toastMessage}
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {toastMessage && (
+            <motion.div
+              key={toastMessage}
+              role="status"
+              initial={
+                prefersReducedMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, y: -14, scale: 0.94 }
+              }
+              animate={
+                prefersReducedMotion
+                  ? { opacity: 1 }
+                  : { opacity: 1, y: 0, scale: 1 }
+              }
+              exit={
+                prefersReducedMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, y: -10, scale: 0.96 }
+              }
+              transition={
+                prefersReducedMotion
+                  ? { duration: 0.12 }
+                  : { type: 'spring', stiffness: 420, damping: 32, mass: 0.85 }
+              }
+              className={`max-w-md w-fit px-4 py-2.5 rounded-full inline-flex items-center gap-2 text-xs sm:text-sm font-medium tracking-[-0.01em] ${
+                isMapTab && isNightMap
+                  ? 'liquid-glass-dark text-[#F8FAFC]'
+                  : 'liquid-glass text-[var(--label-primary)]'
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className="w-2 h-2 rounded-full bg-[#10B981] shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.55)]"
+              />
+              <span className="leading-snug">{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Active Tab Content (MapTab is unmounted on other tabs to preserve single-sheet rule) */}
