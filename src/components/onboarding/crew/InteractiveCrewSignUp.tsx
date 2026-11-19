@@ -4,32 +4,26 @@ import {
   Check,
   CheckCircle2,
   ChevronLeft,
-  LockOpen,
-  ShieldCheck,
 } from 'lucide-react';
 import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion';
 import { isValidCpf, maskCpf } from '../../../security/schemas';
 import ufscLogo from '../../../assets/ufsc-logo.webp';
 import {
   CREW,
-  EYE_WHITE,
   HEART_PATH,
   INK,
   SPRINGS,
   STARS,
-  SWEAT_PATH,
   TONGUE,
   blushPath,
   browPath,
   clamp,
-  eio,
   happyPath,
   heartAt,
   lerp,
   spring,
   starPath,
   step,
-  sweatAt,
   type CrewId,
   type CrewMember,
   type Spring,
@@ -46,7 +40,8 @@ export interface InteractiveCrewSignUpProps {
   errorShakeKey: number;
   isVerifying: boolean;
   checklistStep: number;
-  corridorLabel: string;
+  corridorLabel?: string;
+  darkMode?: boolean;
   onAutofillDemo: () => void;
   onSubmit: (e?: React.FormEvent) => void;
   onBack: () => void;
@@ -89,18 +84,34 @@ function resolveErrorField(error: string | null): FieldName | null {
   return 'cpf';
 }
 
+function getInputClassName(
+  isFieldError: boolean,
+  isFieldValid: boolean,
+  darkMode: boolean,
+  extraPadding = 'px-3.5'
+): string {
+  const base = darkMode
+    ? `w-full min-h-[46px] ${extraPadding} py-2.5 rounded-2xl bg-[#0E1319] text-sm text-[#E5E4E2] placeholder:text-[#6C8193] shadow-[0_2px_10px_rgba(0,0,0,0.28)] transition-all focus-visible:outline-2 focus-visible:outline-[#5EC2F3]`
+    : `w-full min-h-[46px] ${extraPadding} py-2.5 rounded-2xl bg-white/95 text-sm text-[#0F172A] placeholder:text-[#94A3B8] shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all focus-visible:outline-2 focus-visible:outline-[#2563EB]`;
+
+  if (isFieldError) {
+    return `${base} ring-2 ring-[#EF4444]/80 ${darkMode ? 'bg-[#2B1215]/70' : 'bg-red-50/50'}`;
+  }
+  if (isFieldValid) {
+    return `${base} ring-2 ring-[#22C55E]/70 ${darkMode ? 'bg-[#0F2418]/70' : 'bg-[#F0FDF4]/70'}`;
+  }
+  return `${base} border ${darkMode ? 'border-white/12' : 'border-white'}`;
+}
+
 interface MemberRefs {
   root: SVGGElement | null;
   face: SVGGElement | null;
   eyeGroups: Array<SVGGElement | null>;
-  pupils: Array<SVGGElement | null>;
-  lids: Array<SVGRectElement | null>;
   happyEyes: Array<SVGPathElement | null>;
   brows: Array<SVGPathElement | null>;
   mouthClosed: SVGPathElement | null;
   mouthOpen: SVGGElement | null;
   blush: SVGGElement | null;
-  sweat: SVGPathElement | null;
   heart: SVGPathElement | null;
 }
 
@@ -114,8 +125,8 @@ interface MemberPhysics {
   squash: Spring;
   turnX: Spring;
   turnY: Spring;
-  pupilX: Spring[];
-  pupilY: Spring[];
+  eyeX: Spring[];
+  eyeY: Spring[];
   hopBeatsFired: number;
 }
 
@@ -130,8 +141,8 @@ function createMemberPhysics(member: CrewMember): MemberPhysics {
     squash: spring(...SPRINGS.squash),
     turnX: spring(...SPRINGS.turn),
     turnY: spring(...SPRINGS.turn),
-    pupilX: member.eyes.map(() => spring(...SPRINGS.pupil)),
-    pupilY: member.eyes.map(() => spring(...SPRINGS.pupil)),
+    eyeX: member.eyes.map(() => spring(...SPRINGS.eye)),
+    eyeY: member.eyes.map(() => spring(...SPRINGS.eye)),
     hopBeatsFired: 0,
   };
 }
@@ -165,7 +176,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
   errorShakeKey,
   isVerifying,
   checklistStep,
-  corridorLabel,
+  darkMode = false,
   onAutofillDemo,
   onSubmit,
   onBack,
@@ -186,9 +197,9 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
   });
 
   const memberRefs = useRef<Record<CrewId, MemberRefs>>({
-    blue: { root: null, face: null, eyeGroups: [], pupils: [], lids: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, sweat: null, heart: null },
-    gold: { root: null, face: null, eyeGroups: [], pupils: [], lids: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, sweat: null, heart: null },
-    pink: { root: null, face: null, eyeGroups: [], pupils: [], lids: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, sweat: null, heart: null },
+    blue: { root: null, face: null, eyeGroups: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, heart: null },
+    gold: { root: null, face: null, eyeGroups: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, heart: null },
+    pink: { root: null, face: null, eyeGroups: [], happyEyes: [], brows: [], mouthClosed: null, mouthOpen: null, blush: null, heart: null },
   });
 
   const starRefs = useRef<Array<SVGPathElement | null>>([]);
@@ -253,27 +264,24 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
 
       m.eyes.forEach((eye, i) => {
         const eg = dom.eyeGroups[i];
-        const pup = dom.pupils[i];
-        const lid = dom.lids[i];
         const hap = dom.happyEyes[i];
         const brow = dom.brows[i];
 
         if (eg) {
+          const squintY = worry > 0.2 ? 0.56 : 1;
           eg.setAttribute('opacity', joy > 0.5 ? '0' : '1');
-          eg.setAttribute('transform', `translate(${eye.ox},${eye.oy}) scale(1)`);
+          eg.setAttribute('transform', `translate(${eye.ox},${eye.oy}) scale(1,${squintY})`);
         }
-        if (pup) pup.setAttribute('transform', 'translate(0,0) scale(1)');
-        if (lid) lid.setAttribute('y', String(worry > 0.2 ? -eye.r - eye.r * 1.4 : -eye.r * 3.1));
         if (hap) hap.setAttribute('opacity', joy > 0.5 ? '1' : '0');
         if (brow) {
           const side: -1 | 1 = m.eyes.length === 1 ? -1 : i === 0 ? -1 : 1;
           brow.setAttribute('d', browPath(eye.ox, eye.oy, eye.r, side, worry));
-          brow.setAttribute('opacity', worry > 0.2 ? '0.95' : '0');
+          brow.setAttribute('opacity', worry > 0.2 ? '0.9' : '0');
         }
       });
 
       if (dom.mouthClosed) {
-        const curve = worry > 0.2 ? -4.5 : relief > 0.2 ? 6.2 : 3.6;
+        const curve = worry > 0.2 ? -4.0 : relief > 0.2 ? 6.2 : 3.6;
         dom.mouthClosed.setAttribute('d', buildClosedMouthPath(m.mouth.ox, m.mouth.oy, m.mouth.w, curve));
         dom.mouthClosed.setAttribute('opacity', joy > 0.5 ? '0' : '1');
       }
@@ -282,10 +290,6 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
       }
       if (dom.blush) {
         dom.blush.setAttribute('opacity', joy > 0.5 ? '0.9' : relief > 0.2 ? '0.45' : '0');
-      }
-      if (dom.sweat) {
-        dom.sweat.setAttribute('opacity', worry > 0.2 ? '0.9' : '0');
-        dom.sweat.setAttribute('transform', sweatAt(m.sweatOffset.ox, m.sweatOffset.oy, 0.88));
       }
       if (dom.heart) {
         dom.heart.setAttribute('opacity', joy > 0.5 ? '0.95' : '0');
@@ -461,26 +465,24 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           );
         }
 
-        const eyeWiden = 1 + worry * 0.1;
-        const pupilShrink = lerp(1, 0.72, clamp(worry, 0, 1));
+        const squintY = lerp(1, 0.48, clamp(worry, 0, 1));
+        const reliefScale = 1 + clamp(relief, 0, 1) * 0.06;
         const showHappy = joy > 0.48;
 
         m.eyes.forEach((eye, i) => {
-          const maxTravel = Math.max(1.5, eye.r - eye.pr - 1.4);
+          const maxTravel = 3.8;
           const dist = Math.hypot(dx, dy) || 1;
           const clampedMag = Math.min(1, dist);
-          const pTargetX = (dx / dist) * clampedMag * maxTravel;
-          const pTargetY = (dy / dist) * clampedMag * maxTravel;
+          const eTargetX = (dx / dist) * clampedMag * maxTravel;
+          const eTargetY = (dy / dist) * clampedMag * maxTravel;
 
-          const px = step(p.pupilX[i]!, pTargetX, dt);
-          const py = step(p.pupilY[i]!, pTargetY, dt);
-          const pDist = Math.hypot(px, py);
-          const fpx = pDist > maxTravel ? (px / pDist) * maxTravel : px;
-          const fpy = pDist > maxTravel ? (py / pDist) * maxTravel : py;
+          const ex = step(p.eyeX[i]!, eTargetX, dt);
+          const ey = step(p.eyeY[i]!, eTargetY, dt);
+          const eDist = Math.hypot(ex, ey);
+          const fex = eDist > maxTravel ? (ex / eDist) * maxTravel : ex;
+          const fey = eDist > maxTravel ? (ey / eDist) * maxTravel : ey;
 
           const eg = dom.eyeGroups[i];
-          const pup = dom.pupils[i];
-          const lid = dom.lids[i];
           const hap = dom.happyEyes[i];
           const brow = dom.brows[i];
 
@@ -488,22 +490,8 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             eg.setAttribute('opacity', showHappy ? '0' : '1');
             eg.setAttribute(
               'transform',
-              `translate(${eye.ox.toFixed(2)},${eye.oy.toFixed(2)}) scale(${eyeWiden.toFixed(3)})`
+              `translate(${(eye.ox + fex).toFixed(2)},${(eye.oy + fey).toFixed(2)}) scale(${reliefScale.toFixed(3)},${(squintY * reliefScale).toFixed(3)})`
             );
-          }
-
-          if (pup) {
-            pup.setAttribute(
-              'transform',
-              `translate(${fpx.toFixed(2)},${fpy.toFixed(2)}) scale(${pupilShrink.toFixed(3)})`
-            );
-          }
-
-          if (lid) {
-            const drop = clamp(worry, 0, 1) * (eye.r * 0.62);
-            const lidHeight = eye.r * 2.1;
-            const lidY = -eye.r - lidHeight + drop;
-            lid.setAttribute('y', lidY.toFixed(2));
           }
 
           if (hap) {
@@ -513,12 +501,12 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           if (brow) {
             const side: -1 | 1 = m.eyes.length === 1 ? (dx >= 0 ? -1 : 1) : i === 0 ? -1 : 1;
             brow.setAttribute('d', browPath(eye.ox, eye.oy, eye.r, side, clamp(worry, 0, 1)));
-            brow.setAttribute('opacity', clamp(worry * 1.15, 0, 1).toFixed(3));
+            brow.setAttribute('opacity', clamp(worry * 1.1, 0, 0.92).toFixed(3));
           }
         });
 
         if (dom.mouthClosed) {
-          const baseCurve = 3.8 + relief * 3.4 - worry * 9.5;
+          const baseCurve = 3.8 + relief * 3.0 - worry * 7.8;
           dom.mouthClosed.setAttribute(
             'd',
             buildClosedMouthPath(m.mouth.ox, m.mouth.oy, m.mouth.w, baseCurve)
@@ -533,16 +521,6 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
         if (dom.blush) {
           const blushOp = clamp(joy * 0.9 + relief * 0.42, 0, 0.95);
           dom.blush.setAttribute('opacity', blushOp.toFixed(3));
-        }
-
-        if (dom.sweat) {
-          const wOp = clamp(worry * 1.1, 0, 0.95);
-          const slide = eio((elapsed * 0.95 + m.bobPhase) % 1) * 9.5;
-          dom.sweat.setAttribute('opacity', wOp.toFixed(3));
-          dom.sweat.setAttribute(
-            'transform',
-            sweatAt(m.sweatOffset.ox, m.sweatOffset.oy + slide, 0.72 + worry * 0.22)
-          );
         }
 
         if (dom.heart) {
@@ -603,16 +581,11 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             <stop offset="100%" stopColor={m.color} />
           </radialGradient>
           <filter id={blurId} x="-18%" y="-18%" width="136%" height="136%">
-            <feGaussianBlur stdDeviation="4.2" />
+            <feGaussianBlur stdDeviation="4.5" />
           </filter>
           <filter id={haloBlurId} x="-35%" y="-35%" width="170%" height="170%">
             <feGaussianBlur stdDeviation="11" />
           </filter>
-          {m.eyes.map((eye, idx) => (
-            <clipPath key={idx} id={`${uid}-eyeclip-${m.id}-${idx}`}>
-              <circle cx="0" cy="0" r={eye.r} />
-            </clipPath>
-          ))}
         </defs>
 
         {/* Soft luminous pastel aura behind each mascot */}
@@ -632,7 +605,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           filter={`url(#${blurId})`}
         />
 
-        {/* Crisp expressive face group with 3D turn slide */}
+        {/* Warm expressive WelcomeBack face group with 3D turn slide (zero white sclera eyeballs) */}
         <g
           ref={(el) => {
             memberRefs.current[m.id].face = el;
@@ -650,7 +623,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             />
           ))}
 
-          {/* Open tracking eyes */}
+          {/* Friendly dark capsule/slanted eyes + 4-point white star sparkles */}
           {m.eyes.map((eye, idx) => (
             <g
               key={`eye-${idx}`}
@@ -659,53 +632,13 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
               }}
               transform={`translate(${eye.ox},${eye.oy})`}
             >
-              <circle
-                cx="0"
-                cy="0"
-                r={eye.r}
-                fill={EYE_WHITE}
-                stroke={INK}
-                strokeWidth="1.5"
+              <path d={eye.path} fill={INK} />
+              <path
+                d={starPath(eye.sparkle.ox, eye.sparkle.oy, eye.sparkle.r)}
+                fill="#FFFFFF"
+                opacity="0.95"
               />
-              <g clipPath={`url(#${uid}-eyeclip-${m.id}-${idx})`}>
-                <g
-                  ref={(el) => {
-                    memberRefs.current[m.id].pupils[idx] = el;
-                  }}
-                >
-                  <circle cx="0" cy="0" r={eye.pr} fill={INK} />
-                  <circle
-                    cx={-eye.pr * 0.34}
-                    cy={-eye.pr * 0.34}
-                    r={Math.max(1.4, eye.pr * 0.32)}
-                    fill={EYE_WHITE}
-                  />
-                </g>
-                {/* Eyelid dropping over eye on worry */}
-                <rect
-                  ref={(el) => {
-                    memberRefs.current[m.id].lids[idx] = el;
-                  }}
-                  x={-eye.r - 2}
-                  y={-eye.r * 3.1}
-                  width={eye.r * 2 + 4}
-                  height={eye.r * 2.1}
-                  fill={m.color}
-                  stroke={INK}
-                  strokeWidth="1.4"
-                />
-              </g>
             </g>
-          ))}
-
-          {/* Blue's signature 4-point white star sparkles */}
-          {m.sparkles?.map((sp, idx) => (
-            <path
-              key={`sparkle-${idx}`}
-              d={starPath(sp.ox, sp.oy, sp.r)}
-              fill="#FFFFFF"
-              opacity="0.95"
-            />
           ))}
 
           {/* Happy ^ ^ celebration eye arcs */}
@@ -724,7 +657,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             />
           ))}
 
-          {/* Worried inward-tilted brows */}
+          {/* Subtle worried brows on invalid input */}
           {m.eyes.map((eye, idx) => (
             <path
               key={`brow-${idx}`}
@@ -759,7 +692,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             ))}
           </g>
 
-          {/* Closed expressive mouth (neutral / relief / worried frown) */}
+          {/* Closed expressive mouth (neutral / relief / gentle frown) */}
           <path
             ref={(el) => {
               memberRefs.current[m.id].mouthClosed = el;
@@ -783,19 +716,6 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           </g>
         </g>
 
-        {/* Worry sweat drop */}
-        <path
-          ref={(el) => {
-            memberRefs.current[m.id].sweat = el;
-          }}
-          d={SWEAT_PATH}
-          fill="#60A5FA"
-          stroke={INK}
-          strokeWidth="1.2"
-          opacity="0"
-          transform={sweatAt(m.sweatOffset.ox, m.sweatOffset.oy, 0.8)}
-        />
-
         {/* Joy celebration floating heart */}
         <path
           ref={(el) => {
@@ -812,38 +732,47 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
 
   return (
     <div
-      className="-mx-5 -my-5 sm:-mx-8 sm:-my-8 px-4 pt-4 pb-6 sm:px-6 sm:pt-5 sm:pb-7 font-sans relative overflow-hidden"
+      className={`-mx-5 -my-5 sm:-mx-8 sm:-my-8 px-4 pt-4 pb-6 sm:px-6 sm:pt-5 sm:pb-7 font-sans relative overflow-hidden transition-colors duration-300 ${
+        darkMode ? 'text-[#E5E4E2]' : 'text-[#0F172A]'
+      }`}
       style={{
         fontFamily: "'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-        background:
-          'linear-gradient(180deg, #D9EEFF 0%, #EAF5FF 36%, #F4F9FF 72%, #FFFFFF 100%)',
+        background: darkMode
+          ? 'linear-gradient(180deg, #0F1A26 0%, #0C1219 42%, #0A0A0A 100%)'
+          : 'linear-gradient(180deg, #D9EEFF 0%, #EAF5FF 36%, #F4F9FF 72%, #FFFFFF 100%)',
       }}
     >
-      {/* Luminous Recenter atmospheric sky-mint & periwinkle pastel glow aura */}
+      {/* Subtle atmospheric pastel glow aura */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-20 -left-16 w-64 h-64 rounded-full bg-[#5EC2F3]/28 blur-3xl"
+        className={`pointer-events-none absolute -top-20 -left-16 w-64 h-64 rounded-full blur-3xl ${
+          darkMode ? 'bg-[#5EC2F3]/14' : 'bg-[#5EC2F3]/26'
+        }`}
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-12 -right-14 w-60 h-60 rounded-full bg-[#EE86BF]/22 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-10 left-1/2 -translate-x-1/2 w-80 h-56 rounded-full bg-[#A7F3D0]/22 blur-3xl"
+        className={`pointer-events-none absolute -top-12 -right-14 w-60 h-60 rounded-full blur-3xl ${
+          darkMode ? 'bg-[#EE86BF]/12' : 'bg-[#EE86BF]/20'
+        }`}
       />
 
-      {/* Top Navigation Row: Frosted Voltar Pill + Black UFSC Emblem + Gov.br Badge */}
-      <div className="flex items-center justify-between gap-2 mb-1 relative z-20">
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={isVerifying}
-          className="min-h-[44px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-[#0F172A] bg-white/75 backdrop-blur-xl border border-white shadow-[0_4px_14px_rgba(15,23,42,0.06)] hover:bg-white active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
-        >
-          <ChevronLeft className="w-4 h-4 text-[#0F172A]" aria-hidden="true" />
-          <span>Voltar</span>
-        </button>
+      {/* Clean Top Bar: Voltar + Centered UFSC Crest */}
+      <div className="flex items-center justify-between gap-2 mb-2 relative z-20">
+        <div className="w-[84px] flex items-center justify-start">
+          <button
+            type="button"
+            onClick={onBack}
+            disabled={isVerifying}
+            className={`min-h-[44px] inline-flex items-center gap-1 px-3 py-2 rounded-full text-xs font-semibold backdrop-blur-xl active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] ${
+              darkMode
+                ? 'text-[#E5E4E2] bg-white/10 border border-white/15 hover:bg-white/15'
+                : 'text-[#0F172A] bg-white/80 border border-white shadow-[0_4px_14px_rgba(15,23,42,0.06)] hover:bg-white'
+            }`}
+          >
+            <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span>Voltar</span>
+          </button>
+        </div>
 
         <img
           src={ufscLogo}
@@ -851,38 +780,21 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
           width={119}
           height={160}
           decoding="async"
-          className="h-9 w-auto object-contain select-none pointer-events-none"
+          className={`h-9 w-auto object-contain select-none pointer-events-none ${
+            darkMode ? 'brightness-0 invert opacity-90' : ''
+          }`}
         />
 
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/75 backdrop-blur-xl text-[#0F172A] border border-white shadow-[0_4px_14px_rgba(15,23,42,0.06)] shrink-0">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" aria-hidden="true" />
-          <span>Gov.br</span>
-        </span>
+        <div className="w-[84px]" aria-hidden="true" />
       </div>
 
-      {/* Interactive WelcomeBack Trio Stage + Translucent Frosted Card */}
+      {/* Interactive WelcomeBack Trio Stage + Clean Frosted Card */}
       <div
         ref={cardRef}
         onPointerMove={handleCardPointerMove}
         onPointerLeave={handleCardPointerLeave}
         className="relative mt-1"
       >
-        {/* Floating Liquid Glass micro-pills flanking the Trio stage */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none relative z-20 flex items-center justify-between px-1 -mb-4"
-        >
-          <span className="px-2.5 py-1 rounded-full bg-white/75 backdrop-blur-md border border-white shadow-[0_6px_16px_rgba(37,99,235,0.08)] text-[10px] font-semibold tracking-tight text-[#334155]">
-            Rotas claras
-          </span>
-          <span className="px-2.5 py-1 rounded-full bg-white/75 backdrop-blur-md border border-white shadow-[0_6px_16px_rgba(37,99,235,0.08)] text-[10px] font-semibold tracking-tight text-[#334155] -translate-y-2">
-            Em grupo
-          </span>
-          <span className="px-2.5 py-1 rounded-full bg-white/75 backdrop-blur-md border border-white shadow-[0_6px_16px_rgba(37,99,235,0.08)] text-[10px] font-semibold tracking-tight text-[#334155]">
-            UFSC Trindade
-          </span>
-        </div>
-
         {/* WELCOMEBACK TRIO SVG STAGE */}
         <div className="relative z-0 -mb-6 pointer-events-none select-none" aria-hidden="true">
           <svg
@@ -898,28 +810,27 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                 }}
                 d={starPath(st.x, st.y, st.r)}
                 fill={st.color}
-                opacity="0.78"
+                opacity="0.72"
               />
             ))}
             {STAGE_CREW_ORDER.map(renderCrewMember)}
           </svg>
         </div>
 
-        {/* LUMINOUS FROSTED TRANSLUCENT CARD */}
-        <div className="relative z-10 rounded-[28px] bg-white/78 backdrop-blur-2xl border border-white shadow-[0_24px_60px_rgba(37,99,235,0.10)] px-4 pt-5 pb-6 sm:px-6 sm:pt-6 sm:pb-7">
+        {/* CLEAN FROSTED CARD */}
+        <div className="relative z-10 rounded-[28px] bg-[var(--bg-elevated)] backdrop-blur-2xl border border-[var(--separator)] shadow-[0_24px_60px_rgba(15,23,42,0.10)] px-4 pt-5 pb-6 sm:px-6 sm:pt-6 sm:pb-7 transition-colors duration-300">
           {/* Header & Dynamic Crew Subtitle */}
           <div className="text-center mb-4">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/85 border border-white shadow-2xs text-[11px] font-semibold text-[#1D4ED8] mb-2">
-              <LockOpen className="w-3 h-3 text-[#10B981]" aria-hidden="true" />
-              <span>Trajeto {corridorLabel}</span>
-            </div>
-
-            <h2 className="text-[22px] sm:text-2xl font-semibold tracking-[-0.02em] text-[#0F172A] leading-tight">
+            <h2 className="text-[22px] sm:text-2xl font-semibold tracking-[-0.02em] text-[var(--label-primary)] leading-tight">
               Validação única Gov.br
             </h2>
             <p
               className={`text-xs sm:text-[13px] mt-1 transition-colors ${
-                error ? 'text-[#D70015] font-medium' : 'text-[#475569]'
+                error
+                  ? darkMode
+                    ? 'text-[#FF6961] font-medium'
+                    : 'text-[#D70015] font-medium'
+                  : 'text-[var(--label-secondary)]'
               }`}
             >
               {error
@@ -939,7 +850,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
               <div className="flex items-center justify-between gap-2">
                 <label
                   htmlFor="govbr-name"
-                  className="block text-[11px] font-semibold text-[#475569] uppercase tracking-wider"
+                  className="block text-[11px] font-semibold text-[var(--label-secondary)] uppercase tracking-wider"
                 >
                   Nome completo
                 </label>
@@ -947,7 +858,11 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                   type="button"
                   onClick={onAutofillDemo}
                   disabled={isVerifying}
-                  className="min-h-[44px] inline-flex items-center px-2 text-xs text-[#2563EB] font-semibold hover:underline cursor-pointer rounded-full disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+                  className={`min-h-[44px] inline-flex items-center px-2 text-xs font-semibold hover:underline cursor-pointer rounded-full disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                    darkMode
+                      ? 'text-[#5EC2F3] focus-visible:outline-[#5EC2F3]'
+                      : 'text-[#2563EB] focus-visible:outline-[#2563EB]'
+                  }`}
                 >
                   Preencher demo Gov.br
                 </button>
@@ -971,11 +886,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                 }}
                 placeholder="Ex: Mariana Silva"
                 disabled={isVerifying}
-                className={`w-full min-h-[46px] px-3.5 py-2.5 rounded-2xl bg-white/95 text-sm text-[#0F172A] shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all focus-visible:outline-2 focus-visible:outline-[#2563EB] ${
-                  error && errorField === 'name'
-                    ? 'ring-2 ring-[#EF4444]/80 bg-red-50/50'
-                    : 'border border-white'
-                }`}
+                className={getInputClassName(Boolean(error && errorField === 'name'), false, darkMode)}
               />
             </div>
 
@@ -987,7 +898,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             >
               <label
                 htmlFor="govbr-affiliation"
-                className="block text-[11px] font-semibold text-[#475569] uppercase tracking-wider mb-1"
+                className="block text-[11px] font-semibold text-[var(--label-secondary)] uppercase tracking-wider mb-1"
               >
                 Vínculo UFSC
               </label>
@@ -1009,11 +920,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                 }}
                 placeholder="Ex: Ciência da Computação • 6ª fase"
                 disabled={isVerifying}
-                className={`w-full min-h-[46px] px-3.5 py-2.5 rounded-2xl bg-white/95 text-sm text-[#0F172A] shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all focus-visible:outline-2 focus-visible:outline-[#2563EB] ${
-                  error && errorField === 'affiliation'
-                    ? 'ring-2 ring-[#EF4444]/80 bg-red-50/50'
-                    : 'border border-white'
-                }`}
+                className={getInputClassName(Boolean(error && errorField === 'affiliation'), false, darkMode)}
               />
             </div>
 
@@ -1026,12 +933,12 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
               <div className="flex items-center justify-between mb-1">
                 <label
                   htmlFor="govbr-cpf"
-                  className="block text-[11px] font-semibold text-[#475569] uppercase tracking-wider"
+                  className="block text-[11px] font-semibold text-[var(--label-secondary)] uppercase tracking-wider"
                 >
                   CPF
                 </label>
                 {maskedPreview && (
-                  <span className="text-[11px] font-medium text-[#059669]">
+                  <span className={`text-[11px] font-medium ${darkMode ? 'text-[#34D399]' : 'text-[#059669]'}`}>
                     Salvo como {maskedPreview}
                   </span>
                 )}
@@ -1057,13 +964,7 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                   }}
                   placeholder="000.000.000-00"
                   disabled={isVerifying}
-                  className={`w-full min-h-[46px] pl-3.5 pr-11 py-2.5 rounded-2xl bg-white/95 text-sm text-[#0F172A] shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all focus-visible:outline-2 focus-visible:outline-[#2563EB] ${
-                    error && errorField === 'cpf'
-                      ? 'ring-2 ring-[#EF4444]/80 bg-red-50/50'
-                      : isCpfValid
-                        ? 'ring-2 ring-[#22C55E]/70 bg-[#F0FDF4]/70'
-                        : 'border border-white'
-                  }`}
+                  className={getInputClassName(Boolean(error && errorField === 'cpf'), isCpfValid, darkMode, 'pl-3.5 pr-11')}
                 />
                 {isCpfValid && (
                   <span
@@ -1080,7 +981,11 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
             {error && (
               <div
                 role="alert"
-                className="t-error-msg p-3 rounded-2xl bg-red-50/90 border border-red-200/80 text-xs text-[#D70015] font-medium"
+                className={`t-error-msg p-3 rounded-2xl border text-xs font-medium ${
+                  darkMode
+                    ? 'bg-[#2B1215]/90 border-[#EF4444]/35 text-[#FF6961]'
+                    : 'bg-red-50/90 border-red-200/80 text-[#D70015]'
+                }`}
               >
                 {error}
               </div>
@@ -1088,7 +993,13 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
 
             {/* 3-Stage Verification Checklist */}
             {isVerifying && (
-              <div className="p-3.5 rounded-2xl bg-white/90 border border-[#DBEAFE] space-y-2 shadow-2xs">
+              <div
+                className={`p-3.5 rounded-2xl border space-y-2 shadow-2xs ${
+                  darkMode
+                    ? 'bg-[#0E1319]/90 border-white/10'
+                    : 'bg-white/90 border-[#DBEAFE]'
+                }`}
+              >
                 {VERIFICATION_STEPS.map((item) => {
                   const isDone = checklistStep >= item.threshold;
                   return (
@@ -1102,8 +1013,8 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
                       <span
                         className={
                           isDone
-                            ? `text-[#0F172A] ${item.strong ? 'font-semibold' : 'font-medium'}`
-                            : 'text-[#475569]'
+                            ? `text-[var(--label-primary)] ${item.strong ? 'font-semibold' : 'font-medium'}`
+                            : 'text-[var(--label-secondary)]'
                         }
                       >
                         {item.label}
@@ -1119,10 +1030,12 @@ export const InteractiveCrewSignUp: React.FC<InteractiveCrewSignUpProps> = ({
               <button
                 type="submit"
                 disabled={isVerifying}
-                className={`w-full min-h-[50px] px-5 py-3 rounded-full text-sm font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2 cursor-pointer disabled:cursor-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F172A] ${
+                className={`w-full min-h-[50px] px-5 py-3 rounded-full text-sm font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2 cursor-pointer disabled:cursor-default focus-visible:outline-2 focus-visible:outline-offset-2 ${
                   isSuccess
-                    ? 'bg-[#22C55E] text-white shadow-[0_10px_24px_rgba(34,197,94,0.35)]'
-                    : 'bg-[#0F172A] hover:bg-[#1E293B] active:scale-[0.98] text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)]'
+                    ? 'bg-[#22C55E] text-white shadow-[0_10px_24px_rgba(34,197,94,0.35)] focus-visible:outline-[#22C55E]'
+                    : darkMode
+                      ? 'bg-white hover:bg-white/92 active:scale-[0.98] text-[#0A0A0A] shadow-[0_10px_28px_rgba(255,255,255,0.14)] focus-visible:outline-white'
+                      : 'bg-[#111827] hover:bg-[#1F2937] active:scale-[0.98] text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] focus-visible:outline-[#111827]'
                 }`}
               >
                 {isSuccess ? (

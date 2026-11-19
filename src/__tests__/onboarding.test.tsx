@@ -8,6 +8,7 @@ import { CAMPUS_STORAGE_KEY } from '../security/storage';
 describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', () => {
   beforeEach(() => {
     localStorage.clear();
+    document.documentElement.dataset.theme = 'light';
     vi.restoreAllMocks();
   });
 
@@ -300,7 +301,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       expect(screen.getByLabelText(/CPF/i)).toBeInTheDocument();
     });
 
-    it('Step 1: renders outcome promise and shortcut button jumping directly to Step 4', () => {
+    it('Step 1: renders minimalist outcome promise without clutter and jumps directly to Step 4', () => {
       render(
         <CampusStoreProvider>
           <OnboardingFlow initialStage="wizard" />
@@ -313,6 +314,11 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
           name: /Caminhe pela UFSC no claro\. E acompanhado\./i,
         })
       ).toBeInTheDocument();
+
+      // Clutter removed
+      expect(screen.queryByText(/UFSC Campus Trindade/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Toque na gotinha para interagir/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/\+1\.240 caminhadas monitoradas na Trindade/i)).not.toBeInTheDocument();
 
       // Primary CTA
       const startBtn = screen.getByRole('button', { name: /Começar meu trajeto/i });
@@ -329,7 +335,7 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       expect(screen.getByLabelText(/CPF/i)).toBeInTheDocument();
     });
 
-    it('Step 2: selects multiple UFSC buildings, time slot, and "Sempre Noturno" mode', () => {
+    it('Step 2: selects multiple UFSC centers including CTC / EPS, time slot, and switches live to "Modo Escuro"', () => {
       render(
         <CampusStoreProvider>
           <OnboardingFlow initialStage="wizard" />
@@ -342,18 +348,22 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       // Step 2 headline
       expect(screen.getByText(/Seus trajetos e horários frequentes/i)).toBeInTheDocument();
 
-      // Building chips toggle
+      // Building chips toggle including CTC / EPS
+      const chipCTC = screen.getByRole('button', { name: /CTC \/ EPS/i });
       const chipRU = screen.getByRole('button', { name: /RU/i });
       const chipBU = screen.getByRole('button', { name: /BU/i });
       const chipCCE = screen.getByRole('button', { name: /CCE/i });
       const chipCSE = screen.getByRole('button', { name: /CSE/i });
 
+      expect(chipCTC).toBeInTheDocument();
       expect(chipRU).toBeInTheDocument();
       expect(chipBU).toBeInTheDocument();
       expect(chipCCE).toBeInTheDocument();
       expect(chipCSE).toBeInTheDocument();
 
-      // Toggle CSE
+      // Toggle CTC / EPS and CSE
+      fireEvent.click(chipCTC);
+      expect(chipCTC).toHaveAttribute('aria-pressed', 'true');
       fireEvent.click(chipCSE);
 
       // Time slot selection
@@ -361,10 +371,14 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       expect(timeSlotBtn).toBeInTheDocument();
       fireEvent.click(timeSlotBtn);
 
-      // Map style mode: Sempre Noturno
-      const nightModeBtn = screen.getByRole('button', { name: /Sempre Noturno/i });
-      expect(nightModeBtn).toBeInTheDocument();
-      fireEvent.click(nightModeBtn);
+      // Live App Appearance Switch: Modo Escuro
+      expect(document.documentElement.dataset.theme).toBe('light');
+      const darkModeBtn = screen.getByRole('button', { name: /Modo Escuro/i });
+      expect(darkModeBtn).toBeInTheDocument();
+      fireEvent.click(darkModeBtn);
+
+      expect(darkModeBtn).toHaveAttribute('aria-pressed', 'true');
+      expect(document.documentElement.dataset.theme).toBe('dark');
 
       // Advance to Step 3
       const step2Next = screen.getByRole('button', { name: /Ver meu trajeto seguro/i });
@@ -412,11 +426,18 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
       // Jump directly to Step 4 via shortcut
       fireEvent.click(screen.getByRole('button', { name: /Já tenho conta Gov\.br/i }));
 
-      // 1. All 3 WelcomeBack Trio animated SVG characters render in Step 4
+      // 1. All 3 WelcomeBack Trio animated SVG characters render in Step 4 without white sclera eyeballs
       for (const id of ['blue', 'gold', 'pink']) {
-        expect(container.querySelector(`[data-member="${id}"]`)).toBeInTheDocument();
+        const memberEl = container.querySelector(`[data-member="${id}"]`);
+        expect(memberEl).toBeInTheDocument();
+        expect(memberEl?.querySelectorAll('circle[fill="#FFFFFF"]')).toHaveLength(0);
       }
       expect(container.querySelectorAll('[data-member]')).toHaveLength(3);
+
+      // Verify floating micro-bubbles and extra pills were removed from Login
+      expect(screen.queryByText(/^Rotas claras$/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/^Em grupo$/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/^UFSC Trindade$/i)).not.toBeInTheDocument();
 
       // Verify "Localização no campus" / "Continuar para localização" were completely removed from Login
       expect(screen.queryByRole('button', { name: /Continuar para localização/i })).not.toBeInTheDocument();
