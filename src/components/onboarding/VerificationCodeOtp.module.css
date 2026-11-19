@@ -2,22 +2,45 @@
   position: relative;
   overflow: hidden;
   border-radius: 30px;
+  font-family: "Instrument Sans", "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: background-color 240ms ease, color 240ms ease, border-color 240ms ease;
+}
+
+.stageDark {
   background-color: #0F0F12;
   color: #ECECED;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 28px 64px rgba(0, 0, 0, 0.46);
-  font-family: "Instrument Sans", "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.stageLight {
+  background-color: #FFFFFF;
+  color: #0F172A;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.10);
 }
 
 .backdropGlow {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+.backdropGlowDark {
   background: radial-gradient(
     ellipse 72% 48% at 50% 24%,
     rgba(176, 174, 214, 0.16) 0%,
     rgba(176, 174, 214, 0.05) 48%,
     rgba(15, 15, 18, 0) 76%
+  );
+}
+
+.backdropGlowLight {
+  background: radial-gradient(
+    ellipse 74% 50% at 50% 24%,
+    rgba(94, 194, 243, 0.18) 0%,
+    rgba(167, 139, 250, 0.10) 46%,
+    rgba(255, 255, 255, 0) 76%
   );
 }
 
@@ -44,15 +67,12 @@
   position: relative;
   height: 82px;
   border-radius: 30px;
-  background: #1F1E25;
-  border: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: #ECECED;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -63,7 +83,19 @@
   user-select: none;
 }
 
-.pillActive {
+.pillDark {
+  background: #1F1E25;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #ECECED;
+}
+
+.pillLight {
+  background: #EFF3F8;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #0F172A;
+}
+
+.pillActiveDark {
   background: radial-gradient(
     ellipse 86% 86% at 50% 50%,
     #15161B 0%,
@@ -76,21 +108,47 @@
     0 0 22px rgba(196, 210, 220, 0.14);
 }
 
-.pillError {
-  border-color: rgba(255, 105, 97, 0.72);
-  box-shadow: 0 0 16px rgba(255, 105, 97, 0.22);
+.pillActiveLight {
+  background: radial-gradient(
+    ellipse 88% 88% at 50% 50%,
+    #FFFFFF 0%,
+    #EEF4FC 68%,
+    rgba(37, 99, 235, 0.20) 100%
+  );
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow:
+    inset 0 0 14px rgba(94, 194, 243, 0.24),
+    0 0 18px rgba(37, 99, 235, 0.12);
 }
 
-.pillVerified {
+.pillError {
+  border-color: rgba(239, 68, 68, 0.72);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.22);
+}
+
+.pillVerifiedDark {
   border-color: rgba(121, 255, 181, 0.52);
   color: #B4FFE0;
+}
+
+.pillVerifiedLight {
+  border-color: rgba(16, 185, 129, 0.55);
+  background: #ECFDF5;
+  color: #065F46;
 }
 
 .caret {
   width: 1.5px;
   height: 30px;
   border-radius: 999px;
+}
+
+.caretDark {
   background: #ECECED;
+}
+
+.caretLight {
+  background: #1E293B;
 }
 
 .hiddenOtpInput {
@@ -107,10 +165,16 @@
   font-size: 16px;
 }
 
-.checkCircle {
+.checkCircleDark {
   background: radial-gradient(circle at 32% 28%, #255E3E 0%, #12331F 100%);
   border: 1px solid rgba(138, 255, 180, 0.42);
   box-shadow: 0 10px 30px rgba(18, 51, 31, 0.65), 0 0 24px rgba(121, 255, 181, 0.28);
+}
+
+.checkCircleLight {
+  background: radial-gradient(circle at 32% 28%, #34D399 0%, #059669 100%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 12px 28px rgba(16, 185, 129, 0.34), 0 0 20px rgba(52, 211, 153, 0.30);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -118,4 +182,3 @@
     transform: none !important;
   }
 }
-

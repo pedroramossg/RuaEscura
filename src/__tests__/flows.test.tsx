@@ -485,6 +485,41 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       expect(screen.getByRole('button', { name: /CDS Noturno/i })).toBeInTheDocument();
     });
 
+    it('dynamically anchors safe route suggestions to activeOriginId and navigates interactive PWA install guide in ProfileSheet', async () => {
+      const state = createVerifiedState();
+      state.activeOriginId = 'eps';
+      state.activeDestinationId = 'bu';
+
+      render(
+        <CampusStoreProvider initialState={state}>
+          <ExploreTab
+            onOpenMap={vi.fn()}
+            onOpenLights={vi.fn()}
+            onOpenReports={vi.fn()}
+            onOpenProfile={vi.fn()}
+          />
+          <ProfileSheet isOpen={true} onClose={vi.fn()} />
+        </CampusStoreProvider>
+      );
+
+      // ExploreTab suggests genuinely safe routes departing from CTC / EPS (the first point of planned route)
+      expect(screen.getAllByText(/Saindo de CTC \/ EPS/i).length).toBeGreaterThan(0);
+      expect(screen.getByText(/^CTC \/ EPS → CSE$/i)).toBeInTheDocument();
+
+      // Open interactive PWA tutorial inside ProfileSheet and step through iOS & Android guides
+      fireEvent.click(screen.getByRole('button', { name: /Instalar app no celular \(PWA\)/i }));
+      expect(screen.getByTestId('pwa-install-tutorial')).toBeInTheDocument();
+      expect(screen.getByText(/Abra no Safari e toque em Compartilhar/i)).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /Próximo passo/i }));
+      expect(
+        await screen.findByText(/Escolha "Adicionar à Tela de Início"/i)
+      ).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /Android \(Chrome\)/i }));
+      expect(await screen.findByText(/Abra o menu do Chrome/i)).toBeInTheDocument();
+    });
+
     it('renders light-only sunburst and dark-only glow layers across ExploreTab, LightsTab, and ReportsTab', () => {
       const state = createVerifiedState();
 

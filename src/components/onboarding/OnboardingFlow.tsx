@@ -1126,6 +1126,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 {otpChallenge ? (
                   <VerificationCodeOtp
                     challenge={otpChallenge}
+                    darkMode={darkMode}
                     onVerifyCode={async (code) => {
                       await verifyUfscOtpCode(otpChallenge.email, code);
                     }}

@@ -25,6 +25,7 @@ import { TrioCharacterAvatar, TrioMascotStack, pickTrioVariant } from '../mascot
 import { getRouteMascotMood } from '../../mascot/moods';
 import { RouteStatusCard } from './RouteStatusCard';
 import type { ExploreSheetMode } from './ScheduleAndDetailsSheet';
+import { PwaInstallGuideSheet } from '../onboarding/PwaInstallGuideSheet';
 
 const ScheduleAndDetailsSheet = lazy(() =>
   import('./ScheduleAndDetailsSheet').then((m) => ({ default: m.ScheduleAndDetailsSheet }))
@@ -181,6 +182,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
   const [lastRatedScore, setLastRatedScore] = useState<number | null>(null);
   const [ratingError, setRatingError] = useState<string | null>(null);
   const [sheetMode, setSheetMode] = useState<ExploreSheetMode>(null);
+  const [isPwaGuideOpen, setIsPwaGuideOpen] = useState(false);
 
   const landmarkMap = useMemo(
     () => new Map(UFSC_LANDMARKS.map((n) => [n.id, n])),
@@ -230,19 +232,80 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
     ).slice(0, 5);
   }, [debouncedSearchQuery]);
 
+  // Context-aware routes anchored to the user's selected origin (first stop of the planned route)
   const quickRoutes = useMemo(() => {
-    return QUICK_ROUTE_PRESETS.map((preset) => ({
-      ...preset,
-      route: findRoute(
-        preset.originId,
-        preset.destId,
-        'brightest',
-        posts,
-        edgeRatings,
-        reports
-      ),
-    }));
-  }, [posts, edgeRatings, reports]);
+    const seenPairs = new Set<string>();
+    const ordered: QuickRoutePreset[] = [];
+
+    const pushPreset = (preset: QuickRoutePreset) => {
+      if (preset.originId === preset.destId) return;
+      const key = `${preset.originId}->${preset.destId}`;
+      if (seenPairs.has(key)) return;
+      seenPairs.add(key);
+      ordered.push(preset);
+    };
+
+    // 1. Direct campus corridors starting from or directly connected to activeOriginId
+    for (const preset of QUICK_ROUTE_PRESETS) {
+      if (preset.originId === activeOriginId) {
+        pushPreset(preset);
+      } else if (preset.destId === activeOriginId) {
+        const fromShort = landmarkMap.get(activeOriginId)?.shortName ?? activeOriginId;
+        const toShort = landmarkMap.get(preset.originId)?.shortName ?? preset.originId;
+        pushPreset({
+          originId: activeOriginId,
+          destId: preset.originId,
+          title: `${fromShort} → ${toShort}`,
+          subtitle: `Saindo de ${fromShort} • ${preset.subtitle}`,
+        });
+      }
+    }
+
+    // 2. Neighboring hubs connected directly via UFSC_EDGES from activeOriginId
+    for (const edge of UFSC_EDGES) {
+      const neighborId =
+        edge.from === activeOriginId
+          ? edge.to
+          : edge.to === activeOriginId
+            ? edge.from
+            : null;
+      if (!neighborId) continue;
+      const fromShort = landmarkMap.get(activeOriginId)?.shortName ?? activeOriginId;
+      const toShort = landmarkMap.get(neighborId)?.shortName ?? neighborId;
+      pushPreset({
+        originId: activeOriginId,
+        destId: neighborId,
+        title: `${fromShort} → ${toShort}`,
+        subtitle: `Trecho próximo saindo de ${fromShort}`,
+      });
+    }
+
+    // 3. Remaining popular UFSC corridors as secondary fallback
+    for (const preset of QUICK_ROUTE_PRESETS) {
+      pushPreset(preset);
+    }
+
+    return ordered
+      .map((preset) => ({
+        ...preset,
+        route: findRoute(
+          preset.originId,
+          preset.destId,
+          'brightest',
+          posts,
+          edgeRatings,
+          reports
+        ),
+      }))
+      .sort((a, b) => {
+        const aFromOrigin = a.originId === activeOriginId ? 2 : 0;
+        const bFromOrigin = b.originId === activeOriginId ? 2 : 0;
+        const aSafe = !a.route.hasDarkWarning && a.route.illuminationPercentage >= 65 ? 4 : 0;
+        const bSafe = !b.route.hasDarkWarning && b.route.illuminationPercentage >= 65 ? 4 : 0;
+        return bFromOrigin + bSafe - (aFromOrigin + aSafe);
+      })
+      .slice(0, 6);
+  }, [activeOriginId, landmarkMap, posts, edgeRatings, reports]);
 
   const rateableEdges = useMemo(() => {
     return RATEABLE_EDGE_IDS.map((edgeId) => {
@@ -860,7 +923,9 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                 >
                   Rotas seguras perto de você
                 </h2>
-                <span className="text-xs text-[var(--label-secondary)]">Toque para traçar</span>
+                <span className="text-xs text-[var(--label-secondary)]">
+                  Saindo de {originShort}
+                </span>
               </div>
 
               <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -872,7 +937,13 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                     className="min-w-[232px] max-w-[248px] shrink-0 min-h-[44px] bg-[var(--bg-elevated)] rounded-[22px] p-4 text-left transition-[transform,box-shadow] duration-150 enabled:active:scale-[0.96] cursor-pointer flex flex-col justify-between gap-3 shadow-[0_1px_2px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.65)] hover:shadow-[0_6px_18px_rgba(37,99,235,0.10),inset_0_1px_0_rgba(255,255,255,0.85)]"
                   >
                     <div>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          item.route.hasDarkWarning || item.route.illuminationPercentage < 65
+                            ? 'bg-[#F59E0B]/15 text-[#D97706] border-[#F59E0B]/30'
+                            : 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30'
+                        }`}
+                      >
                         <Zap className="w-3 h-3" aria-hidden="true" />
                         <span>{item.route.illuminationPercentage}% iluminada</span>
                       </span>
@@ -1113,13 +1184,35 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                     </p>
                   </div>
                 </div>
+
+                {/* Row 4: Animated PWA Install Onboarding Guide */}
+                <div className="py-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-semibold text-[var(--label-primary)]">
+                      Instalar no celular (PWA)
+                    </h3>
+                    <p className="text-xs sm:text-sm text-[var(--label-secondary)] mt-0.5">
+                      Use o RuaEscura em tela cheia como aplicativo no iPhone ou Android.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSheetMode(null);
+                      setIsPwaGuideOpen(true);
+                    }}
+                    className="min-h-[44px] px-3.5 rounded-full text-xs font-semibold bg-[#111827] text-white hover:bg-[#1F2937] shrink-0 enabled:active:scale-[0.96] transition-all cursor-pointer"
+                  >
+                    Ver passo a passo
+                  </button>
+                </div>
               </div>
             </motion.section>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Single-Sheet Schedule Departure & Route Details UIArc Bottom Sheet */}
+      {/* Single-Sheet Schedule Departure, Route Details & PWA Tutorial UIArc Bottom Sheets */}
       {sheetMode !== null && (
         <Suspense fallback={null}>
           <ScheduleAndDetailsSheet
@@ -1141,6 +1234,15 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
             onOpenMap={openMapClean}
           />
         </Suspense>
+      )}
+
+      {sheetMode === null && isPwaGuideOpen && (
+        <PwaInstallGuideSheet
+          open={isPwaGuideOpen}
+          onClose={() => setIsPwaGuideOpen(false)}
+          dark={darkMode}
+          onNotify={onNotify}
+        />
       )}
     </section>
   );

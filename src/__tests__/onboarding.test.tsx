@@ -163,8 +163,19 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
     });
 
     it('toggles companion joining and appends validated chat messages', () => {
+      const verifiedFemaleState = {
+        ...getSeedCampusState(),
+        userSession: {
+          name: 'Mariana Silva',
+          cpfMasked: '***.982.247-**',
+          affiliation: 'Ciência da Computação • 6ª fase UFSC',
+          ufscEmail: 'mariana.silva@grad.ufsc.br',
+          verifiedAt: '2026-11-16T20:00:00Z',
+        },
+      };
+
       render(
-        <CampusStoreProvider>
+        <CampusStoreProvider initialState={verifiedFemaleState}>
           <TestConsumer />
         </CampusStoreProvider>
       );
@@ -484,11 +495,13 @@ describe('Task 3: Reactive Campus Store & 4-Step Gov.br Conversion Onboarding', 
         expect(screen.getByText(/Enviando código @ufsc\.br/i)).toBeInTheDocument();
       });
 
-      // Verification Code OTP motion screen renders cleanly with institutional email
+      // Verification Code OTP motion screen renders cleanly in Light mode by default with institutional email
       await waitFor(
         () => {
           expect(screen.getByRole('heading', { name: /Código de verificação/i })).toBeInTheDocument();
           expect(screen.getByText(/mariana\.silva@grad\.ufsc\.br/i)).toBeInTheDocument();
+          const otpSection = screen.getByLabelText(/Verificação de código institucional UFSC/i);
+          expect(otpSection).toHaveAttribute('data-theme-mode', 'light');
         },
         { timeout: 2500 }
       );

@@ -51,7 +51,6 @@ export interface CampusMapProps {
 
 const TILE_URLS = {
   osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-  osmNight: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
   satellite:
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
 } as const;
@@ -719,7 +718,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
     };
   }, []);
 
-  // Switch tile layer cleanly between OSM Standard, CartoDB Dark Matter, and Esri World Imagery
+  // Switch tile layer cleanly between OSM vector tiles (day/night styled via CSS pane) and Esri World Imagery
   useEffect(() => {
     const map = leafletMapRef.current;
     if (!map) return;
@@ -736,18 +735,12 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
 
     setTilesOffline(false);
 
-    const isCartoDark = mapStyle === 'osm' && isNightMap;
-    const tileUrl =
-      mapStyle === 'satellite'
-        ? TILE_URLS.satellite
-        : isCartoDark
-          ? TILE_URLS.osmNight
-          : TILE_URLS.osm;
+    const tileUrl = mapStyle === 'satellite' ? TILE_URLS.satellite : TILE_URLS.osm;
 
     try {
       const layer = L.tileLayer(tileUrl, {
         maxZoom: 19,
-        subdomains: isCartoDark ? 'abcd' : 'abc',
+        subdomains: 'abc',
         crossOrigin: 'anonymous',
       });
 
@@ -770,7 +763,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
         tileLayerRef.current = null;
       }
     };
-  }, [mapStyle, isNightMap]);
+  }, [mapStyle]);
 
   // Sync local GeoJSON footprint, walkways, routes, dark zones, and active pole halos inside Leaflet
   useEffect(() => {
@@ -981,7 +974,7 @@ const CampusMapComponent: React.FC<CampusMapProps> = ({
         ? 'bg-[#0A0A0A] brightness-75 contrast-110'
         : 'bg-[#0A0A0A]'
       : isNightMap
-        ? 'bg-[#0A0A0A]'
+        ? 'bg-[#0A0A0A] rua-escura-night-tiles'
         : 'bg-[#EEF3F9] rua-escura-day-tiles';
 
   return (

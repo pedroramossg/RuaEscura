@@ -254,9 +254,62 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
                 }`}
               >
                 {beat.id === 0 && (
-                  <div>
+                  <div className="relative">
+                    {isActive && (
+                      <motion.div
+                        aria-hidden="true"
+                        initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.72 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={
+                          prefersReducedMotion
+                            ? { duration: 0.01 }
+                            : { duration: 0.75, ease: APPLE_EASE }
+                        }
+                        className="pointer-events-none -z-10 absolute -top-16 -left-10 w-64 h-64 rounded-full blur-2xl"
+                        style={{
+                          background: darkMode
+                            ? 'radial-gradient(circle, rgba(94, 194, 243, 0.22) 0%, rgba(129, 168, 248, 0.08) 48%, transparent 74%)'
+                            : 'radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(94, 194, 243, 0.09) 48%, transparent 74%)',
+                        }}
+                      />
+                    )}
+
+                    {isActive && (
+                      <motion.div
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={
+                          prefersReducedMotion
+                            ? { duration: 0.01 }
+                            : { duration: 0.45, ease: APPLE_EASE }
+                        }
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-4 border ${
+                          darkMode
+                            ? 'bg-white/10 border-white/15 text-[#87D7FA]'
+                            : 'bg-[#EFF6FF] border-[#DBEAFE] text-[#2563EB]'
+                        }`}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="w-2 h-2 rounded-full bg-[#10B981] motion-safe:animate-pulse"
+                        />
+                        <span>UFSC • Campus Trindade</span>
+                      </motion.div>
+                    )}
+
                     {isActive ? (
-                      <h1
+                      <motion.h1
+                        initial={
+                          prefersReducedMotion
+                            ? false
+                            : { opacity: 0, y: 20, filter: 'blur(6px)' }
+                        }
+                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                        transition={
+                          prefersReducedMotion
+                            ? { duration: 0.01 }
+                            : { duration: 0.52, delay: 0.08, ease: APPLE_EASE }
+                        }
                         className={`text-[34px] sm:text-[40px] leading-[1.1] font-bold tracking-[-0.03em] ${luminousTextClass}`}
                         style={
                           darkMode
@@ -265,16 +318,31 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
                         }
                       >
                         {beat.kicker}
-                      </h1>
+                      </motion.h1>
                     ) : (
                       <p className={`text-[28px] sm:text-[32px] leading-[1.12] font-bold tracking-[-0.03em] ${luminousTextClass}`}>
                         {beat.kicker}
                       </p>
                     )}
                     {beat.body && (
-                      <p className={`mt-3.5 text-[19px] sm:text-[21px] leading-[1.42] font-normal tracking-[-0.014em] max-w-[34ch] ${bodyClass}`}>
+                      <motion.p
+                        initial={
+                          prefersReducedMotion
+                            ? false
+                            : isActive
+                              ? { opacity: 0, y: 16 }
+                              : false
+                        }
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={
+                          prefersReducedMotion
+                            ? { duration: 0.01 }
+                            : { duration: 0.5, delay: 0.18, ease: APPLE_EASE }
+                        }
+                        className={`mt-3.5 text-[19px] sm:text-[21px] leading-[1.42] font-normal tracking-[-0.014em] max-w-[34ch] ${bodyClass}`}
+                      >
                         {beat.body}
-                      </p>
+                      </motion.p>
                     )}
                   </div>
                 )}
@@ -374,10 +442,14 @@ export const FocusFlightIntro: React.FC<FocusFlightIntroProps> = ({
           {beatIndex === 0 && (
             <motion.div
               key="cta-0"
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 12 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-              transition={ctaTransition}
+              transition={
+                prefersReducedMotion
+                  ? { duration: 0.01 }
+                  : { duration: 0.48, delay: 0.24, ease: APPLE_EASE }
+              }
               className="flex flex-col items-center gap-2.5"
             >
               <button type="button" onClick={advanceBeat} className={primaryCtaClass}>

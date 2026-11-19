@@ -15,6 +15,7 @@ import styles from './VerificationCodeOtp.module.css';
 
 export interface VerificationCodeOtpProps {
   challenge: OtpChallenge;
+  darkMode?: boolean;
   onVerifyCode: (code: string) => Promise<void>;
   onResendCode: () => Promise<OtpChallenge | null>;
   onBack: () => void;
@@ -29,6 +30,7 @@ const INITIAL_SPARKLES: SparkleFrame[] = SPARKLE_SPECS.map((spec) =>
 
 export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
   challenge,
+  darkMode = false,
   onVerifyCode,
   onResendCode,
   onBack,
@@ -186,9 +188,13 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
   return (
     <section
       aria-label="Verificação de código institucional UFSC"
-      className={`${styles.stage} px-5 pt-5 pb-6 sm:px-7 sm:pt-6 sm:pb-7`}
+      data-theme-mode={darkMode ? 'dark' : 'light'}
+      className={`${styles.stage} ${darkMode ? styles.stageDark : styles.stageLight} px-5 pt-5 pb-6 sm:px-7 sm:pt-6 sm:pb-7`}
     >
-      <div className={styles.backdropGlow} aria-hidden="true" />
+      <div
+        className={`${styles.backdropGlow} ${darkMode ? styles.backdropGlowDark : styles.backdropGlowLight}`}
+        aria-hidden="true"
+      />
 
       {/* Top minimal navigation */}
       <div className="relative z-10 flex items-center justify-between gap-2 mb-3">
@@ -196,14 +202,27 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
           type="button"
           onClick={onBack}
           disabled={isSubmitting || isVerified}
-          className="min-h-[44px] inline-flex items-center gap-1 pl-2 pr-3.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/12 text-xs font-medium text-[#ECECED] transition-colors cursor-pointer disabled:opacity-45"
+          className={`min-h-[44px] inline-flex items-center gap-1 pl-2 pr-3.5 rounded-full border text-xs font-medium transition-colors cursor-pointer disabled:opacity-45 ${
+            darkMode
+              ? 'bg-white/10 hover:bg-white/15 border-white/12 text-[#ECECED]'
+              : 'bg-[#EFF3F8] hover:bg-[#E2E8F0] border-[#D5E0EE] text-[#0F172A]'
+          }`}
         >
           <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
           <span>Alterar e-mail</span>
         </button>
 
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/8 border border-white/10 text-[11px] font-medium text-[#C8C7CE]">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#79FFB5]" aria-hidden="true" />
+        <span
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-medium ${
+            darkMode
+              ? 'bg-white/8 border-white/10 text-[#C8C7CE]'
+              : 'bg-[#ECFDF5] border-[#A7F3D0] text-[#065F46]'
+          }`}
+        >
+          <ShieldCheck
+            className={`w-3.5 h-3.5 ${darkMode ? 'text-[#79FFB5]' : 'text-[#10B981]'}`}
+            aria-hidden="true"
+          />
           <span>UFSC Verificada</span>
         </span>
       </div>
@@ -224,11 +243,13 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
           >
             {sparkles.map((frame, idx) => {
               const spec = SPARKLE_SPECS[idx]!;
+              const sparkleFill =
+                !darkMode && spec.color === '#FFFFFF' ? '#2563EB' : !darkMode && spec.color === '#E7DDF8' ? '#818CF8' : spec.color;
               return (
                 <path
                   key={spec.id}
                   d={fourPointStarPath(0, 0, spec.size / 2)}
-                  fill={spec.color}
+                  fill={sparkleFill}
                   opacity={isVerified ? 0 : frame.opacity}
                   transform={`translate(${frame.x.toFixed(2)}, ${frame.y.toFixed(2)}) scale(${frame.scale.toFixed(3)}) rotate(${frame.rotationDeg.toFixed(1)})`}
                 />
@@ -244,11 +265,13 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
               height={452}
               onError={() => setImageFailed(true)}
               className={`w-full h-full object-contain select-none transition-all duration-300 ${
+                darkMode ? '' : 'drop-shadow-[0_12px_20px_rgba(15,23,42,0.18)]'
+              } ${
                 isVerified ? 'scale-90 opacity-35 blur-[1px]' : 'scale-100 opacity-100'
               }`}
             />
           ) : (
-            /* Crisp inline dark vector envelope + white star card fallback */
+            /* Crisp inline vector envelope + star card fallback */
             <svg
               viewBox="0 0 180 172"
               className={`w-full h-full transition-all duration-300 ${
@@ -257,30 +280,38 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
             >
               <defs>
                 <linearGradient id="envBody" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#26262C" />
-                  <stop offset="100%" stopColor="#141418" />
+                  <stop offset="0%" stopColor={darkMode ? '#26262C' : '#E2E8F0'} />
+                  <stop offset="100%" stopColor={darkMode ? '#141418' : '#CBD5E1'} />
                 </linearGradient>
               </defs>
               <path
                 d="M16 58 L90 12 L164 58 L164 146 Q164 158 152 158 L28 158 Q16 158 16 146 Z"
-                fill="#1A1A20"
-                stroke="rgba(255,255,255,0.14)"
+                fill={darkMode ? '#1A1A20' : '#F1F5F9'}
+                stroke={darkMode ? 'rgba(255,255,255,0.14)' : 'rgba(15,23,42,0.12)'}
                 strokeWidth="1.5"
               />
               <g transform="translate(90 76) rotate(-9)">
-                <rect x="-36" y="-44" width="72" height="72" rx="18" fill="#F2F2F5" />
+                <rect
+                  x="-36"
+                  y="-44"
+                  width="72"
+                  height="72"
+                  rx="18"
+                  fill={darkMode ? '#F2F2F5' : '#FFFFFF'}
+                  stroke={darkMode ? 'none' : 'rgba(15,23,42,0.1)'}
+                />
                 <path d={fourPointStarPath(0, -10, 17)} fill="#0F0F12" />
               </g>
               <path
                 d="M16 62 L90 108 L164 62 L164 146 Q164 158 152 158 L28 158 Q16 158 16 146 Z"
                 fill="url(#envBody)"
-                stroke="rgba(255,255,255,0.12)"
+                stroke={darkMode ? 'rgba(255,255,255,0.12)' : 'rgba(15,23,42,0.12)'}
                 strokeWidth="1.5"
               />
               <path
                 d="M22 154 L90 104 L158 154"
                 fill="none"
-                stroke="rgba(255,255,255,0.18)"
+                stroke={darkMode ? 'rgba(255,255,255,0.18)' : 'rgba(15,23,42,0.15)'}
                 strokeWidth="1.5"
               />
             </svg>
@@ -290,13 +321,13 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
           {isVerified && (
             <div className="absolute inset-0 flex items-center justify-center z-30">
               <div
-                className={`${styles.checkCircle} w-[76px] h-[76px] rounded-full flex items-center justify-center`}
+                className={`${darkMode ? styles.checkCircleDark : styles.checkCircleLight} w-[76px] h-[76px] rounded-full flex items-center justify-center`}
               >
                 <svg viewBox="0 0 36 36" className="w-10 h-10">
                   <path
                     d="M9.5 18.5 L15.5 24.5 L27 12.5"
                     fill="none"
-                    stroke="#8AFFB4"
+                    stroke={darkMode ? '#8AFFB4' : '#FFFFFF'}
                     strokeWidth="3.6"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -310,19 +341,30 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
         </div>
 
         {/* Title & 2-line Subtitle */}
-        <h2 className="text-[26px] sm:text-[28px] font-semibold tracking-[-0.025em] text-[#ECECED] text-center leading-tight mt-1">
+        <h2
+          className={`text-[26px] sm:text-[28px] font-semibold tracking-[-0.025em] text-center leading-tight mt-1 ${
+            darkMode ? 'text-[#ECECED]' : 'text-[#0F172A]'
+          }`}
+        >
           {isVerified ? 'E-mail verificado!' : 'Código de verificação'}
         </h2>
-        <p className="text-[13px] sm:text-sm text-[#8C8B91] text-center leading-snug mt-1.5 max-w-[290px]">
+        <p
+          className={`text-[13px] sm:text-sm text-center leading-snug mt-1.5 max-w-[290px] ${
+            darkMode ? 'text-[#8C8B91]' : 'text-[#64748B]'
+          }`}
+        >
           {isVerified ? (
-            <span className="text-[#8AFFB4] font-medium">
+            <span className={`font-medium ${darkMode ? 'text-[#8AFFB4]' : 'text-[#059669]'}`}>
               Acesso institucional UFSC liberado
             </span>
           ) : (
             <>
               Enviamos um código de 4 dígitos
               <br />
-              para <span className="text-[#ECECED] font-medium">{challenge.email}</span>
+              para{' '}
+              <span className={`font-medium ${darkMode ? 'text-[#ECECED]' : 'text-[#0F172A]'}`}>
+                {challenge.email}
+              </span>
             </>
           )}
         </p>
@@ -360,9 +402,10 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
                 aria-hidden="true"
                 className={[
                   styles.pill,
-                  isActive ? styles.pillActive : '',
+                  darkMode ? styles.pillDark : styles.pillLight,
+                  isActive ? (darkMode ? styles.pillActiveDark : styles.pillActiveLight) : '',
                   error ? styles.pillError : '',
-                  isVerified ? styles.pillVerified : '',
+                  isVerified ? (darkMode ? styles.pillVerifiedDark : styles.pillVerifiedLight) : '',
                 ]
                   .filter(Boolean)
                   .join(' ')}
@@ -370,8 +413,12 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
                   wave > 0.01
                     ? {
                         transform: `translateY(${offsetY.toFixed(2)}px)`,
-                        boxShadow: `0 0 ${Math.round(18 + 20 * wave)}px rgba(121, 255, 181, ${(0.22 + 0.42 * wave).toFixed(3)})`,
-                        borderColor: `rgba(121, 255, 181, ${(0.35 + 0.55 * wave).toFixed(3)})`,
+                        boxShadow: darkMode
+                          ? `0 0 ${Math.round(18 + 20 * wave)}px rgba(121, 255, 181, ${(0.22 + 0.42 * wave).toFixed(3)})`
+                          : `0 0 ${Math.round(16 + 18 * wave)}px rgba(16, 185, 129, ${(0.20 + 0.36 * wave).toFixed(3)})`,
+                        borderColor: darkMode
+                          ? `rgba(121, 255, 181, ${(0.35 + 0.55 * wave).toFixed(3)})`
+                          : `rgba(16, 185, 129, ${(0.40 + 0.55 * wave).toFixed(3)})`,
                       }
                     : undefined
                 }
@@ -380,7 +427,7 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
                   <span>{digit}</span>
                 ) : isActive ? (
                   <span
-                    className={styles.caret}
+                    className={`${styles.caret} ${darkMode ? styles.caretDark : styles.caretLight}`}
                     style={{ opacity: caretAlpha }}
                   />
                 ) : null}
@@ -395,13 +442,20 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
         {error && (
           <p
             role="alert"
-            className="text-xs font-medium text-[#FF6961] bg-[#2B1215]/90 border border-[#EF4444]/35 px-3.5 py-2 rounded-2xl max-w-full"
+            className={`text-xs font-medium px-3.5 py-2 rounded-2xl max-w-full border ${
+              darkMode
+                ? 'text-[#FF6961] bg-[#2B1215]/90 border-[#EF4444]/35'
+                : 'text-[#D70015] bg-red-50 border-red-200'
+            }`}
           >
             {error}
           </p>
         )}
         {!error && resendInfo && (
-          <p role="status" className="text-xs font-medium text-[#79FFB5]">
+          <p
+            role="status"
+            className={`text-xs font-medium ${darkMode ? 'text-[#79FFB5]' : 'text-[#059669]'}`}
+          >
             {resendInfo}
           </p>
         )}
@@ -415,7 +469,11 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
               type="button"
               onClick={handleQuickFillDemo}
               disabled={isSubmitting}
-              className="min-h-[44px] px-4 rounded-full bg-white text-[#0F0F12] hover:bg-white/92 active:scale-[0.97] text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
+              className={`min-h-[44px] px-4 rounded-full text-xs font-semibold transition-all active:scale-[0.97] cursor-pointer disabled:opacity-50 ${
+                darkMode
+                  ? 'bg-white text-[#0F0F12] hover:bg-white/92'
+                  : 'bg-[#111827] text-white hover:bg-[#1F2937]'
+              }`}
             >
               Preencher código {challenge.devCodeHint}
             </button>
@@ -425,7 +483,11 @@ export const VerificationCodeOtp: React.FC<VerificationCodeOtpProps> = ({
             type="button"
             onClick={() => void handleResend()}
             disabled={isResending || isSubmitting}
-            className="min-h-[44px] px-4 rounded-full bg-white/8 hover:bg-white/14 border border-white/12 text-xs font-medium text-[#C8C7CE] hover:text-white inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+            className={`min-h-[44px] px-4 rounded-full border text-xs font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 ${
+              darkMode
+                ? 'bg-white/8 hover:bg-white/14 border-white/12 text-[#C8C7CE] hover:text-white'
+                : 'bg-[#EFF3F8] hover:bg-[#E2E8F0] border-[#D5E0EE] text-[#0F172A]'
+            }`}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} aria-hidden="true" />
             <span>{isResending ? 'Enviando...' : 'Reenviar código'}</span>

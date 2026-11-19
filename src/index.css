@@ -281,8 +281,8 @@ h1, h2, h3 {
 }
 
 .rua-escura-night-tiles .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(180deg) brightness(0.62) contrast(1.15) saturate(0.3);
-  opacity: 0.92;
+  filter: invert(96%) hue-rotate(192deg) brightness(0.76) contrast(1.12) saturate(0.45);
+  opacity: 0.94;
 }
 
 /* ==========================================================================
