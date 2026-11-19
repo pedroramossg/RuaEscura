@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   Camera,
@@ -12,7 +12,6 @@ import {
   ShieldAlert,
   Trash2,
   Wrench,
-  X,
 } from 'lucide-react';
 import { useCampusStore } from '../../hooks/useCampusStore';
 import { useHaptics } from '../../hooks/useHaptics';
@@ -21,6 +20,7 @@ import { validateEvidenceImage } from '../../security/fileValidation';
 import type { ReportCategory, ReportStatus } from '../../types/campus';
 import { PillButton } from '../ui/PillButton';
 import { IosNavHeader } from '../ui/IosNavHeader';
+import { ArcBottomSheet } from '../ui/ArcBottomSheet';
 import { VirtualizedList } from '../ui/VirtualizedList';
 import { DropletMascot, DROPLET_ALL_STATES } from '../mascot/DropletMascot';
 import { TrioCharacterAvatar, TrioMascotStack } from '../mascot/TrioMascotBadge';
@@ -147,17 +147,6 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
       emergencyTriggerRef.current?.focus();
     });
   }, []);
-
-  useEffect(() => {
-    if (!isEmergencyDialogOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleCloseEmergencyDialog();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isEmergencyDialogOpen, handleCloseEmergencyDialog]);
 
   const sortedFilteredReports = useMemo(() => {
     return [...reports]
@@ -730,44 +719,35 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
         </section>
       </div>
 
-      {/* Explicit Emergency Confirmation Dialog */}
+      {/* Explicit Emergency Confirmation Sheet (Radix-powered ArcBottomSheet) */}
       {isEmergencyDialogOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="emergency-dialog-title"
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0F172A]/65 backdrop-blur-xs"
+        <ArcBottomSheet
+          open={true}
+          onOpenChange={(next) => {
+            if (!next) handleCloseEmergencyDialog();
+          }}
+          detents={[0.58, 0.78]}
+          initialDetent={0}
+          title="Confirmar acionamento de emergência"
+          description="Canais oficiais de segurança no Campus Trindade • Acionamento assistido"
+          closeLabel="Fechar diálogo de emergência"
         >
-          <div className="w-full max-w-md bg-[var(--bg-elevated)] text-[var(--label-primary)] rounded-3xl p-6 border border-[var(--separator)] shadow-2xl space-y-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-full bg-[#D70015]/12 text-[#D70015] flex items-center justify-center shrink-0">
-                  <ShieldAlert className="w-5 h-5" aria-hidden="true" />
-                </div>
-                <h2
-                  id="emergency-dialog-title"
-                  className="text-lg font-semibold text-[var(--label-primary)]"
-                >
-                  Confirmar acionamento de emergência
-                </h2>
+          <div className="space-y-5 pt-1 pb-2">
+            <div className="flex items-center gap-3 rounded-2xl bg-[#D70015]/8 border border-[#D70015]/20 px-4 py-3">
+              <div className="w-10 h-10 rounded-full bg-[#D70015]/12 text-[#D70015] flex items-center justify-center shrink-0">
+                <ShieldAlert className="w-5 h-5" aria-hidden="true" />
               </div>
-
-              <button
-                type="button"
-                aria-label="Fechar diálogo de emergência"
-                onClick={handleCloseEmergencyDialog}
-                className="min-w-[44px] min-h-[44px] -mt-1 -mr-1 rounded-full inline-flex items-center justify-center text-[var(--label-secondary)] hover:bg-[var(--bg-fill-secondary)] active:scale-[0.97] transition-all cursor-pointer"
-              >
-                <X className="w-5 h-5" aria-hidden="true" />
-              </button>
+              <p className="text-xs text-[var(--label-secondary)] leading-relaxed">
+                Confirme abaixo para registrar um alerta assistido com os canais de proteção do campus.
+              </p>
             </div>
 
-            <div className="space-y-2.5 rounded-2xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)] p-4">
-              <div className="flex items-center justify-between text-sm">
+            <div className="ios-grouped-section ios-grouped-divider">
+              <div className="px-4 py-3.5 flex items-center justify-between text-sm">
                 <span className="font-medium text-[var(--label-primary)]">Segurança UFSC (24h)</span>
                 <span className="font-semibold text-[#EF4444]">(48) 3721-9555</span>
               </div>
-              <div className="flex items-center justify-between text-sm pt-2 border-t border-[var(--separator)]">
+              <div className="px-4 py-3.5 flex items-center justify-between text-sm">
                 <span className="font-medium text-[var(--label-primary)]">Polícia Militar</span>
                 <span className="font-semibold text-[#EF4444]">190</span>
               </div>
@@ -794,7 +774,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
               </button>
             </div>
           </div>
-        </div>
+        </ArcBottomSheet>
       )}
     </section>
   );

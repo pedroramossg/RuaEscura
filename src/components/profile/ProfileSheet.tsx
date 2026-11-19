@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Building2,
   Clock,
@@ -7,13 +7,12 @@ import {
   RotateCcw,
   ShieldCheck,
   Smartphone,
-  X,
 } from 'lucide-react';
 import { useCampusStore } from '../../hooks/useCampusStore';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { maskCpf } from '../../security/schemas';
 import { getPerfSnapshot } from '../../utils/perfMonitor';
-import { BottomSheet, SheetDetent } from '../ui/BottomSheet';
+import { ArcBottomSheet } from '../ui/ArcBottomSheet';
 import { DropletMascot } from '../mascot/DropletMascot';
 
 export interface ProfileSheetProps {
@@ -34,9 +33,9 @@ function toSafeMaskedCpf(raw?: string | null): string {
 
 /**
  * Profile & Privacy Sheet (Single-Sheet compliant):
- * Only renders its BottomSheet when opened. Exposes Gov.br identity with strictly masked CPF,
- * frequent UFSC buildings & time slot, Night Map & Haptics toggles,
- * and distinct "Encerrar sessão Gov.br" vs "Resetar dados demo" controls.
+ * Uses Radix-powered ArcBottomSheet with native detents, scrim, swipe-down, Escape & focus trap.
+ * Exposes Gov.br identity with strictly masked CPF, frequent UFSC buildings & time slot,
+ * Night Map & Haptics toggles, and distinct "Encerrar sessão Gov.br" vs "Resetar dados demo" controls.
  */
 export const ProfileSheet: React.FC<ProfileSheetProps> = ({
   isOpen,
@@ -57,25 +56,12 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
     resetAllDemoData,
   } = useCampusStore();
 
-  const [detent, setDetent] = useState<SheetDetent>('expanded');
-
   const handleClose = useCallback(() => {
     onClose();
     window.requestAnimationFrame(() => {
       returnFocusRef?.current?.focus();
     });
   }, [onClose, returnFocusRef]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, handleClose]);
 
   const buildingLabels = useMemo(() => {
     const landmarkMap = new Map(UFSC_LANDMARKS.map((n) => [n.id, n.shortName]));
@@ -102,18 +88,21 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
   };
 
   return (
-    <BottomSheet
-      detent={detent}
-      onDetentChange={setDetent}
-      dark={isNightMap}
-      isModal={true}
-      grabberLabel="Perfil e Privacidade"
-      className="bg-[var(--bg-elevated)]! text-[var(--label-primary)]! border-[var(--separator)]!"
+    <ArcBottomSheet
+      open={isOpen}
+      onOpenChange={(next) => {
+        if (!next) handleClose();
+      }}
+      detents={[0.82, 0.94]}
+      initialDetent={0}
+      title="Perfil & Privacidade"
+      description="Conta verificada UFSC Trindade"
+      closeLabel="Fechar perfil"
     >
-      <div className="space-y-5 pb-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
+      <div className="space-y-5 pt-1 pb-4">
+        {/* Identity Card (Mascot + Gov.br Badge + Masked CPF Only) */}
+        <div className="ios-grouped-section ios-grouped-divider">
+          <div className="px-4 py-3.5 flex items-center gap-3">
             <DropletMascot
               state={isNightMap ? 'sleep' : 'play'}
               expression={isNightMap ? 'somnolent' : 'heureux'}
@@ -124,36 +113,18 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
               interactive
               ariaLabel="Mascote do perfil"
             />
-            <div>
+            <div className="min-w-0">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-fill-secondary)] text-[var(--accent-primary)] border border-[var(--separator)]">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" aria-hidden="true" />
                 <span>Gov.br verificado</span>
               </span>
-              <h2 className="text-xl font-semibold text-[var(--label-primary)] mt-1.5">
-                Perfil & Privacidade
-              </h2>
+              <p className="text-base font-semibold text-[var(--label-primary)] mt-1.5 truncate">
+                {userSession?.name ?? 'Estudante UFSC'}
+              </p>
+              <p className="text-sm text-[var(--label-secondary)] truncate">
+                {userSession?.affiliation ?? 'UFSC Campus Trindade'}
+              </p>
             </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label="Fechar perfil"
-            className="min-w-[44px] min-h-[44px] rounded-full inline-flex items-center justify-center border border-[var(--separator)] text-[var(--label-primary)] hover:bg-[var(--bg-fill-secondary)] active:scale-[0.97] transition-all cursor-pointer shrink-0"
-          >
-            <X className="w-4 h-4" aria-hidden="true" />
-          </button>
-        </div>
-
-        {/* Identity Card (Masked CPF Only) */}
-        <div className="ios-grouped-section ios-grouped-divider">
-          <div className="px-4 py-3.5">
-            <p className="text-base font-semibold text-[var(--label-primary)]">
-              {userSession?.name ?? 'Estudante UFSC'}
-            </p>
-            <p className="text-sm text-[var(--label-secondary)]">
-              {userSession?.affiliation ?? 'UFSC Campus Trindade'}
-            </p>
           </div>
 
           <div className="px-4 py-3 flex items-center justify-between text-xs">
@@ -288,6 +259,6 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
           </button>
         </div>
       </div>
-    </BottomSheet>
+    </ArcBottomSheet>
   );
 };

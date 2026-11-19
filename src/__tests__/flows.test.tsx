@@ -385,11 +385,13 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       expect(await screen.findByText(/Mariana/i)).toBeInTheDocument();
       expect(screen.queryAllByTestId('bottom-sheet')).toHaveLength(0);
 
-      // Open ProfileSheet from Explorar -> strictly 1 BottomSheet
+      // Open ProfileSheet from Explorar -> strictly 1 modal BottomSheet, then dismiss via close button
       fireEvent.click(screen.getByRole('button', { name: /Abrir perfil/i }));
       expect(await screen.findAllByTestId('bottom-sheet', {}, { timeout: 10000 })).toHaveLength(1);
+      fireEvent.click(screen.getByRole('button', { name: /Fechar perfil/i }));
+      expect(screen.queryAllByTestId('bottom-sheet')).toHaveLength(0);
 
-      // Switch to Mapa -> ProfileSheet closes cleanly and MapTab renders its own single RouteSheet
+      // Switch to Mapa -> MapTab renders its own single non-modal RouteSheet
       fireEvent.click(screen.getByRole('tab', { name: /Mapa/i }));
       expect(await screen.findByTestId('campus-map')).toBeInTheDocument();
       expect(screen.getAllByTestId('bottom-sheet')).toHaveLength(1);
