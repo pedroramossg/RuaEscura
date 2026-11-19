@@ -293,7 +293,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
 
       <div className="relative z-10 max-w-2xl mx-auto space-y-5">
         {/* Crisp Header Card + Trio Safety Tip */}
-        <header className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] space-y-3.5">
+        <header className="ios-grouped-section p-5 space-y-3.5">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1 min-w-0">
               <div className="flex items-center gap-2">
@@ -340,7 +340,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
         {/* Emergency Safety Card (Explicit Dialog Confirmation Required — Zero Accidental Dialing) */}
         <section
           aria-labelledby="reports-emergency-heading"
-          className="bg-[var(--bg-elevated)] border border-[#D70015]/30 rounded-[24px] p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+          className="ios-grouped-section ring-1 ring-inset ring-[#D70015]/18 p-5 space-y-4"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-start gap-3.5 min-w-0 flex-1">
@@ -387,7 +387,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
         {/* Section 1: Validated Incident Report Form */}
         <section
           aria-labelledby="reports-form-heading"
-          className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] p-5 space-y-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+          className="ios-grouped-section p-5 space-y-5"
         >
           <div className="flex items-start gap-3.5">
             <TrioCharacterAvatar variant="blue" size={38} className="mt-0.5" />
@@ -656,10 +656,10 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
             pageSize={5}
             getItemKey={(report) => report.id}
             ariaLabel="Feed comunitário de denúncias"
-            listClassName="space-y-3"
+            listClassName="ios-grouped-section ios-grouped-divider"
             loadMoreLabel="Carregar mais denúncias"
             emptyState={
-              <div className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] p-5 text-sm text-[var(--label-secondary)] shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
+              <div className="ios-grouped-section p-5 text-sm text-[var(--label-secondary)]">
                 Nenhuma denúncia registrada para esta categoria.
               </div>
             }
@@ -675,7 +675,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 );
 
               return (
-                <article className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-2xl p-4 space-y-2.5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
+                <article className="px-4 py-3.5 space-y-2.5">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span

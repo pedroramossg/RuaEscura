@@ -188,7 +188,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
 
       <div className="relative z-10 max-w-2xl mx-auto space-y-5">
         {/* Crisp Header Card with Trio Identity */}
-        <header className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] p-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] space-y-3">
+        <header className="ios-grouped-section p-5 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1 min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent-primary)]">
@@ -223,7 +223,7 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
         {/* Section 1: Interactive QR Code Scanner Simulator */}
         <section
           aria-labelledby="lights-scanner-heading"
-          className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] p-5 space-y-5 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+          className="ios-grouped-section p-5 space-y-5"
         >
           <div className="flex items-start gap-3.5">
             <TrioCharacterAvatar variant="blue" size={38} className="mt-0.5" />
@@ -430,68 +430,70 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
         {/* Section 2: Filterable UFSC Lamp Post Directory */}
         <section
           aria-labelledby="lights-directory-heading"
-          className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+          className="ios-grouped-section"
         >
-          <div className="flex items-start gap-3.5">
-            <TrioCharacterAvatar variant="gold" size={38} className="mt-0.5" />
-            <div className="min-w-0 flex-1">
-              <h2 id="lights-directory-heading" className="text-lg font-semibold text-[var(--label-primary)]">
-                Diretório de postes UFSC
-              </h2>
-              <p className="text-sm text-[var(--label-secondary)] mt-0.5">
-                Toque em qualquer poste para selecionar e atualizar sua situação.
-              </p>
-            </div>
-          </div>
-
-          {/* Search & Status Filter Chips */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 bg-[var(--bg-fill-secondary)] border border-[var(--separator)] rounded-full px-3.5">
-              <Search className="w-4 h-4 text-[var(--label-tertiary)] shrink-0" aria-hidden="true" />
-              <label htmlFor="lights-directory-search" className="sr-only">
-                Filtrar postes no diretório
-              </label>
-              <input
-                id="lights-directory-search"
-                type="text"
-                aria-label="Filtrar postes no diretório"
-                value={directorySearch}
-                onChange={(e) => setDirectorySearch(e.target.value)}
-                placeholder="Buscar por código ou local (ex: BU, Bosque)"
-                className="flex-1 min-h-[44px] bg-transparent text-sm text-[var(--label-primary)] placeholder:text-[var(--label-tertiary)] focus:outline-none"
-              />
+          <div className="p-5 pb-4 space-y-4">
+            <div className="flex items-start gap-3.5">
+              <TrioCharacterAvatar variant="gold" size={38} className="mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <h2 id="lights-directory-heading" className="text-lg font-semibold text-[var(--label-primary)]">
+                  Diretório de postes UFSC
+                </h2>
+                <p className="text-sm text-[var(--label-secondary)] mt-0.5">
+                  Toque em qualquer poste para selecionar e atualizar sua situação.
+                </p>
+              </div>
             </div>
 
-            <div
-              className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)]"
-              role="group"
-              aria-label="Filtrar por status"
-            >
-              {(
-                [
-                  { id: 'all', label: `Todos (${posts.length})` },
-                  { id: 'aceso', label: `Acesos (${counts.aceso})` },
-                  { id: 'oscilando', label: `Em oscilação (${counts.oscilando})` },
-                  { id: 'queimado', label: `Queimados (${counts.queimado})` },
-                ] as Array<{ id: DirectoryFilter; label: string }>
-              ).map((chip) => {
-                const active = directoryFilter === chip.id;
-                return (
-                  <button
-                    key={chip.id}
-                    type="button"
-                    onClick={() => setDirectoryFilter(chip.id)}
-                    aria-pressed={active}
-                    className={`min-h-[40px] px-3.5 rounded-xl text-xs font-semibold border transition-all active:scale-[0.97] cursor-pointer ${
-                      active
-                        ? 'bg-[var(--bg-elevated)] text-[var(--label-primary)] border-[var(--separator)] shadow-[0_2px_6px_rgba(15,23,42,0.08)]'
-                        : 'bg-transparent text-[var(--label-secondary)] border-transparent hover:text-[var(--label-primary)]'
-                    }`}
-                  >
-                    {chip.label}
-                  </button>
-                );
-              })}
+            {/* Search & Status Filter Chips */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 bg-[var(--bg-fill-secondary)] border border-[var(--separator)] rounded-full px-3.5">
+                <Search className="w-4 h-4 text-[var(--label-tertiary)] shrink-0" aria-hidden="true" />
+                <label htmlFor="lights-directory-search" className="sr-only">
+                  Filtrar postes no diretório
+                </label>
+                <input
+                  id="lights-directory-search"
+                  type="text"
+                  aria-label="Filtrar postes no diretório"
+                  value={directorySearch}
+                  onChange={(e) => setDirectorySearch(e.target.value)}
+                  placeholder="Buscar por código ou local (ex: BU, Bosque)"
+                  className="flex-1 min-h-[44px] bg-transparent text-sm text-[var(--label-primary)] placeholder:text-[var(--label-tertiary)] focus:outline-none"
+                />
+              </div>
+
+              <div
+                className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)]"
+                role="group"
+                aria-label="Filtrar por status"
+              >
+                {(
+                  [
+                    { id: 'all', label: `Todos (${posts.length})` },
+                    { id: 'aceso', label: `Acesos (${counts.aceso})` },
+                    { id: 'oscilando', label: `Em oscilação (${counts.oscilando})` },
+                    { id: 'queimado', label: `Queimados (${counts.queimado})` },
+                  ] as Array<{ id: DirectoryFilter; label: string }>
+                ).map((chip) => {
+                  const active = directoryFilter === chip.id;
+                  return (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      onClick={() => setDirectoryFilter(chip.id)}
+                      aria-pressed={active}
+                      className={`min-h-[40px] px-3.5 rounded-xl text-xs font-semibold border transition-all active:scale-[0.97] cursor-pointer ${
+                        active
+                          ? 'bg-[var(--bg-elevated)] text-[var(--label-primary)] border-[var(--separator)] shadow-[0_2px_6px_rgba(15,23,42,0.08)]'
+                          : 'bg-transparent text-[var(--label-secondary)] border-transparent hover:text-[var(--label-primary)]'
+                      }`}
+                    >
+                      {chip.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -501,10 +503,11 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
             pageSize={6}
             getItemKey={(post) => post.id}
             ariaLabel="Lista de postes da UFSC"
-            listClassName="divide-y divide-[var(--separator)] border-t border-[var(--separator)]"
+            listClassName="ios-grouped-divider border-t border-[var(--separator)]"
+            className="pb-2"
             loadMoreLabel="Mostrar mais postes"
             emptyState={
-              <p className="text-sm text-[var(--label-secondary)] py-4 border-t border-[var(--separator)]">
+              <p className="text-sm text-[var(--label-secondary)] px-5 py-4 border-t border-[var(--separator)]">
                 Nenhum poste encontrado para este filtro.
               </p>
             }
@@ -514,34 +517,32 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
               const isSelected = selectedPost?.id === post.id;
 
               return (
-                <div className="py-2">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectQuickQr(post.id)}
-                    aria-label={`Selecionar ${post.id} — ${post.name} (${meta.label})`}
-                    className={`w-full min-h-[44px] px-3 py-2.5 rounded-2xl text-left flex items-center justify-between gap-3 transition-all active:scale-[0.98] cursor-pointer ${
-                      isSelected
-                        ? 'bg-[var(--bg-fill-secondary)] border border-[var(--accent-primary)]/45'
-                        : 'hover:bg-[var(--bg-fill-secondary)]/70'
-                    }`}
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-[var(--label-primary)] truncate">
-                        {post.name}
-                      </p>
-                      <p className="text-xs text-[var(--label-secondary)] mt-0.5">
-                        {post.id} • Atualizado às {formatPostTime(post.lastUpdated)}
-                      </p>
-                    </div>
+                <button
+                  type="button"
+                  onClick={() => handleSelectQuickQr(post.id)}
+                  aria-label={`Selecionar ${post.id} — ${post.name} (${meta.label})`}
+                  className={`w-full min-h-[56px] px-5 py-3 text-left flex items-center justify-between gap-3 transition-colors active:bg-[var(--bg-fill-secondary)] cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#2563EB]/8'
+                      : 'hover:bg-[var(--bg-fill-secondary)]/60'
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[var(--label-primary)] truncate">
+                      {post.name}
+                    </p>
+                    <p className="text-xs text-[var(--label-secondary)] mt-0.5">
+                      {post.id} • Atualizado às {formatPostTime(post.lastUpdated)}
+                    </p>
+                  </div>
 
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border shrink-0 ${meta.badgeClass}`}
-                    >
-                      <StatusIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                      <span>{meta.label}</span>
-                    </span>
-                  </button>
-                </div>
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border shrink-0 ${meta.badgeClass}`}
+                  >
+                    <StatusIcon className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>{meta.label}</span>
+                  </span>
+                </button>
               );
             }}
           />

@@ -134,9 +134,6 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
   }, [activeRoute.path, landmarkShortMap]);
 
   const mutedTextClass = isNightMap ? 'text-[#94A3B8]' : 'text-[#475569]';
-  const cardBgClass = isNightMap
-    ? 'bg-[#111C34] border-[#1E293B]'
-    : 'bg-[#FFFFFF] border-[#D5E0EE]';
   const inputClass = isNightMap
     ? 'bg-[#0B1120] text-[#F8FAFC] border-[#1E293B] placeholder:text-[#64748B] focus:border-[#5EC2F3]'
     : 'bg-[#FFFFFF] text-[#0F172A] border-[#D5E0EE] placeholder:text-[#94A3B8] focus:border-[#2563EB]';
@@ -622,7 +619,13 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
               </form>
             )}
 
-            <ul className="space-y-2.5">
+            <ul
+              className={`rounded-2xl overflow-hidden divide-y ${
+                isNightMap
+                  ? 'bg-[#111C34] divide-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                  : 'bg-[#F8FAFC] divide-[var(--separator)] shadow-[0_1px_2px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.65)]'
+              }`}
+            >
               {sortedCompanions.map((comp) => {
                 const onCorridor =
                   pathSet.has(comp.originId) || pathSet.has(comp.destinationId);
@@ -635,7 +638,7 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                 return (
                   <li
                     key={comp.id}
-                    className={`rounded-2xl p-3.5 border transition-colors ${cardBgClass}`}
+                    className="p-3.5 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 min-w-0">

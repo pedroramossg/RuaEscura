@@ -274,7 +274,7 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
             <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--label-tertiary)]">
               Segmentos do caminho
             </h3>
-            <div className="space-y-2">
+            <div className="ios-grouped-section ios-grouped-divider">
               {route.edges.map((edge) => {
                 const fromName = landmarkNames.get(edge.from) ?? edge.from.toUpperCase();
                 const toName = landmarkNames.get(edge.to) ?? edge.to.toUpperCase();
@@ -282,7 +282,7 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
                 return (
                   <div
                     key={edge.id}
-                    className="rounded-xl bg-[var(--bg-fill-secondary)] border border-[var(--separator)] px-3.5 py-2.5 flex items-center justify-between gap-2"
+                    className="px-4 py-3 flex items-center justify-between gap-2"
                   >
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-[var(--label-primary)] truncate">
@@ -305,7 +305,7 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
 
           {/* Transitions.dev Accordion for Lamp Posts on Route */}
           <div
-            className="t-acc rounded-2xl border border-[var(--separator)] bg-[var(--bg-elevated)] overflow-hidden"
+            className="t-acc ios-grouped-section"
             data-open={isPostsAccordionOpen ? 'true' : 'false'}
           >
             <button
@@ -324,11 +324,11 @@ export const ScheduleAndDetailsSheet: React.FC<ScheduleAndDetailsSheetProps> = (
             </button>
 
             <div className="t-acc-panel">
-              <div className="t-acc-panel-inner border-t border-[var(--separator)] px-4 py-2.5 space-y-2">
+              <div className="t-acc-panel-inner border-t border-[var(--separator)] ios-grouped-divider px-4 py-1">
                 {route.posts.map((post) => (
                   <div
                     key={post.id}
-                    className="flex items-center justify-between gap-2 text-xs py-1"
+                    className="flex items-center justify-between gap-2 text-xs py-2.5"
                   >
                     <span className="text-[var(--label-secondary)] truncate">{post.name}</span>
                     <span

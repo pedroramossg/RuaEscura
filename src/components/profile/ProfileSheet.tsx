@@ -146,8 +146,8 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
         </div>
 
         {/* Identity Card (Masked CPF Only) */}
-        <div className="rounded-2xl bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] p-4 space-y-3">
-          <div>
+        <div className="ios-grouped-section ios-grouped-divider">
+          <div className="px-4 py-3.5">
             <p className="text-base font-semibold text-[var(--label-primary)]">
               {userSession?.name ?? 'Estudante UFSC'}
             </p>
@@ -156,42 +156,40 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
             </p>
           </div>
 
-          <div className="pt-2.5 border-t border-[var(--separator)] flex items-center justify-between text-xs">
+          <div className="px-4 py-3 flex items-center justify-between text-xs">
             <span className="text-[var(--label-tertiary)]">CPF verificado (mascarado)</span>
             <span className="font-mono font-medium text-[var(--label-primary)]">{safeCpf}</span>
           </div>
 
-          <div className="pt-2.5 border-t border-[var(--separator)] space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="inline-flex items-center gap-1.5 text-[var(--label-tertiary)]">
-                <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Horário habitual</span>
-              </span>
-              <span className="font-medium text-[var(--label-primary)]">{timeSlot}</span>
-            </div>
+          <div className="px-4 py-3 flex items-center justify-between text-xs">
+            <span className="inline-flex items-center gap-1.5 text-[var(--label-tertiary)]">
+              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Horário habitual</span>
+            </span>
+            <span className="font-medium text-[var(--label-primary)]">{timeSlot}</span>
+          </div>
 
-            <div className="flex items-start justify-between gap-2 text-xs">
-              <span className="inline-flex items-center gap-1.5 text-[var(--label-tertiary)] shrink-0 pt-1">
-                <Building2 className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Prédios frequentes</span>
-              </span>
-              <div className="flex flex-wrap justify-end gap-1.5">
-                {buildingLabels.map((label) => (
-                  <span
-                    key={label}
-                    className="px-2.5 py-0.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--separator)] text-xs font-medium text-[var(--label-primary)]"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
+          <div className="px-4 py-3 flex items-start justify-between gap-2 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-[var(--label-tertiary)] shrink-0 pt-1">
+              <Building2 className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Prédios frequentes</span>
+            </span>
+            <div className="flex flex-wrap justify-end gap-1.5">
+              {buildingLabels.map((label) => (
+                <span
+                  key={label}
+                  className="px-2.5 py-0.5 rounded-full bg-[var(--bg-fill-secondary)] text-xs font-medium text-[var(--label-primary)]"
+                >
+                  {label}
+                </span>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Preferences Toggles */}
-        <div className="rounded-2xl bg-[var(--bg-elevated)] border border-[var(--separator)] divide-y divide-[var(--separator)]">
-          <div className="p-3.5 flex items-center justify-between gap-3">
+        <div className="ios-grouped-section ios-grouped-divider">
+          <div className="px-4 py-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <Moon className="w-4 h-4 text-[var(--accent-primary)] shrink-0" aria-hidden="true" />
               <div>
@@ -216,7 +214,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
             </button>
           </div>
 
-          <div className="p-3.5 flex items-center justify-between gap-3">
+          <div className="px-4 py-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <Smartphone className="w-4 h-4 text-[var(--accent-primary)] shrink-0" aria-hidden="true" />
               <div>
@@ -247,7 +245,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
         {/* Local Web Vitals & Span Telemetry (Read-only, zero PII) */}
         <div
           aria-label="Telemetria local de desempenho"
-          className="rounded-2xl bg-[var(--bg-elevated-secondary)] border border-[var(--separator)] px-4 py-3 text-xs text-[var(--label-secondary)] flex items-center justify-between gap-2 flex-wrap"
+          className="ios-grouped-section px-4 py-3 text-xs text-[var(--label-secondary)] flex items-center justify-between gap-2 flex-wrap"
         >
           <span>
             Telemetria RUM:{' '}
@@ -260,12 +258,12 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
         </div>
 
         {/* Distinct Account Reset vs Full Demo Reset */}
-        <div className="space-y-2.5 pt-1">
+        <div className="ios-grouped-section ios-grouped-divider">
           {onOpenWelcomeBack && (
             <button
               type="button"
               onClick={onOpenWelcomeBack}
-              className="w-full min-h-[44px] px-4 rounded-full border border-[var(--separator)] bg-[var(--bg-fill-secondary)] hover:bg-[var(--bg-elevated-secondary)] active:scale-[0.97] text-sm font-medium text-[var(--accent-primary)] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full min-h-[48px] px-4 py-3 text-sm font-medium text-[var(--accent-primary)] hover:bg-[var(--bg-fill-secondary)]/60 active:bg-[var(--bg-fill-secondary)] inline-flex items-center justify-start gap-2.5 text-left transition-colors cursor-pointer"
             >
               <span>Abrir tela de boas-vindas</span>
             </button>
@@ -274,18 +272,18 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({
           <button
             type="button"
             onClick={handleResetSessionOnly}
-            className="w-full min-h-[44px] px-4 rounded-full border border-[var(--separator)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-fill-secondary)] active:scale-[0.97] text-sm font-medium text-[var(--label-primary)] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+            className="w-full min-h-[48px] px-4 py-3 text-sm font-medium text-[var(--label-primary)] hover:bg-[var(--bg-fill-secondary)]/60 active:bg-[var(--bg-fill-secondary)] inline-flex items-center justify-start gap-2.5 text-left transition-colors cursor-pointer"
           >
-            <LogOut className="w-4 h-4" aria-hidden="true" />
+            <LogOut className="w-4 h-4 text-[var(--label-secondary)] shrink-0" aria-hidden="true" />
             <span>Encerrar sessão Gov.br</span>
           </button>
 
           <button
             type="button"
             onClick={handleResetAllDemo}
-            className="w-full min-h-[44px] px-4 rounded-full border border-[#EF4444]/30 bg-[#EF4444]/10 hover:bg-[#EF4444]/16 active:scale-[0.97] text-sm font-medium text-[#EF4444] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+            className="w-full min-h-[48px] px-4 py-3 text-sm font-medium text-[#EF4444] hover:bg-[#EF4444]/8 active:bg-[#EF4444]/14 inline-flex items-center justify-start gap-2.5 text-left transition-colors cursor-pointer"
           >
-            <RotateCcw className="w-4 h-4" aria-hidden="true" />
+            <RotateCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>Resetar dados demo</span>
           </button>
         </div>

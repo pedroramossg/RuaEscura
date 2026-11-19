@@ -538,7 +538,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
         {/* Campus em Grupo Companion Strip (Unified Trio Identity) */}
         <article
           aria-label="Campus em Grupo"
-          className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-3xl p-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          className="ios-grouped-section p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
         >
           <div className="flex items-center gap-3 min-w-0">
             <TrioMascotStack size={28} className="shrink-0" />
@@ -636,7 +636,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
         {/* Continuous Safety Gradient Card + Subtle Mascot */}
         <article
           aria-label="Seu corredor agora"
-          className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-3xl p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+          className="ios-grouped-section p-5 space-y-4"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -724,7 +724,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                     key={`${item.originId}-${item.destId}`}
                     type="button"
                     onClick={() => handleSelectQuickRoute(item.originId, item.destId, item.title)}
-                    className="min-w-[232px] max-w-[248px] shrink-0 min-h-[44px] bg-[var(--bg-elevated)] border border-[var(--separator)] hover:border-[var(--accent-primary)] rounded-2xl p-4 text-left transition-[transform,border-color] duration-150 enabled:active:scale-[0.96] cursor-pointer flex flex-col justify-between gap-3 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+                    className="min-w-[232px] max-w-[248px] shrink-0 min-h-[44px] bg-[var(--bg-elevated)] rounded-[22px] p-4 text-left transition-[transform,box-shadow] duration-150 enabled:active:scale-[0.96] cursor-pointer flex flex-col justify-between gap-3 shadow-[0_1px_2px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.65)] hover:shadow-[0_6px_18px_rgba(37,99,235,0.10),inset_0_1px_0_rgba(255,255,255,0.85)]"
                   >
                     <div>
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
@@ -756,7 +756,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
               transition={{ duration: 0.2, ease: EASE_OUT }}
-              className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] p-5 space-y-4 shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]"
+              className="ios-grouped-section p-5 space-y-4"
             >
               <div className="flex items-start gap-3.5">
                 <TrioCharacterAvatar variant="gold" size={38} className="mt-0.5" />
@@ -854,7 +854,7 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                 Destaques do campus agora
               </h2>
 
-              <div className="bg-[var(--bg-elevated)] border border-[var(--separator)] rounded-[24px] px-5 divide-y divide-[var(--separator)] shadow-[0_4px_16px_rgba(15,23,42,0.06),0_1px_3px_rgba(15,23,42,0.04)]">
+              <div className="ios-grouped-section ios-grouped-divider px-5">
                 {/* Row 1: Lamp Posts */}
                 <div className="py-4 flex items-start gap-3.5">
                   <TrioCharacterAvatar variant="blue" size={36} className="mt-0.5" />
