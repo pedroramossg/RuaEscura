@@ -72,6 +72,9 @@ export interface CreateWalkingGroupInput {
   destinationId: string;
   departureTime: string;
   memberIds: string[];
+  meetingPoint?: string;
+  womenOnly?: boolean;
+  maxSeats?: number;
 }
 
 export interface CampusStoreContextType {
@@ -111,7 +114,11 @@ export interface CampusStoreContextType {
     isNightMap: boolean;
     session: GovBrSession;
   }) => void;
-  updateLampPostStatus: (postId: string, status: LampPostStatus) => void;
+  updateLampPostStatus: (
+    postId: string,
+    status: LampPostStatus,
+    burnReason?: LampPost['burnReason']
+  ) => void;
   rateEdgeLighting: (edgeId: string, rating: number) => { success: boolean; error?: string };
   submitReport: (input: {
     category: ReportCategory;
@@ -126,6 +133,7 @@ export interface CampusStoreContextType {
   ) => { success: boolean; error?: string; group?: CompanionMatch };
   sendChatMessage: (companionId: string, text: string) => { success: boolean; error?: string };
   reactToChatMessage: (channelId: string, messageId: string, emoji: string) => void;
+  sendArrivalCheckIn: (channelId: string) => void;
   setRouteEndpoints: (originId: string, destinationId: string) => void;
   swapEndpoints: () => void;
   setRouteMode: (mode: RouteMode) => void;
@@ -322,14 +330,20 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
   );
 
   const updateLampPostStatus = useCallback(
-    (postId: string, status: LampPostStatus) => {
+    (postId: string, status: LampPostStatus, burnReason?: LampPost['burnReason']) => {
       updateState((prev) => ({
         ...prev,
-        posts: prev.posts.map((post) =>
-          post.id === postId
-            ? { ...post, status, lastUpdated: new Date().toISOString() }
-            : post
-        ),
+        posts: prev.posts.map((post) => {
+          if (post.id !== postId) return post;
+          const nextBurnReason =
+            status === 'queimado' ? burnReason ?? post.burnReason : undefined;
+          return {
+            ...post,
+            status,
+            burnReason: nextBurnReason,
+            lastUpdated: new Date().toISOString(),
+          };
+        }),
       }));
       haptics.trigger('medium');
     },
@@ -460,7 +474,16 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
         };
       }
 
-      const { title, originId, destinationId, departureTime, memberIds } = validation.data;
+      const {
+        title,
+        originId,
+        destinationId,
+        departureTime,
+        memberIds,
+        meetingPoint,
+        womenOnly,
+        maxSeats,
+      } = validation.data;
       const originLabel = LANDMARK_LABEL_BY_ID.get(originId) ?? originId.toUpperCase();
       const destLabel = LANDMARK_LABEL_BY_ID.get(destinationId) ?? destinationId.toUpperCase();
       const routeLabel = `${originLabel} → ${destLabel}`;
@@ -479,6 +502,7 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
 
       const groupId = `grp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
       const currentUserName = stateRef.current.userSession?.name ?? 'Você';
+      const cleanedMeetingPoint = meetingPoint?.trim() || undefined;
       const newGroup: CompanionMatch = {
         id: groupId,
         name: members.map((m) => m.name.split(' ')[0]).join(', ') || currentUserName,
@@ -493,6 +517,9 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
         isGroup: true,
         groupTitle: title,
         members,
+        ...(cleanedMeetingPoint ? { meetingPoint: cleanedMeetingPoint } : {}),
+        ...(womenOnly ? { womenOnly: true } : {}),
+        ...(maxSeats ? { maxSeats } : {}),
       };
 
       const welcomeResponder = members[0];
@@ -690,6 +717,36 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     [updateState, broadcastSync, haptics]
   );
 
+  const sendArrivalCheckIn = useCallback(
+    (channelId: string) => {
+      const senderName = stateRef.current.userSession?.name ?? 'Você';
+      const checkInMsg: ChatMessage = {
+        id: createMessageId(),
+        senderId: 'system',
+        senderName,
+        text: `${senderName}: Cheguei bem ao destino pelo trajeto iluminado ✓`,
+        timestamp: new Date().toISOString(),
+        isSystem: true,
+      };
+
+      updateState((prev) => ({
+        ...prev,
+        chatMessages: {
+          ...prev.chatMessages,
+          [channelId]: [...(prev.chatMessages[channelId] || []), checkInMsg],
+        },
+      }));
+
+      broadcastSync({
+        type: 'chat-message',
+        companionId: channelId,
+        chatMessage: checkInMsg,
+      });
+      haptics.trigger('success');
+    },
+    [updateState, broadcastSync, haptics]
+  );
+
   const setRouteEndpoints = useCallback(
     (originId: string, destinationId: string) => {
       updateState((prev) => ({
@@ -854,6 +911,7 @@ export const CampusStoreProvider: React.FC<CampusStoreProviderProps> = ({
     createWalkingGroup,
     sendChatMessage,
     reactToChatMessage,
+    sendArrivalCheckIn,
     setRouteEndpoints,
     swapEndpoints,
     setRouteMode,

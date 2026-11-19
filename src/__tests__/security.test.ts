@@ -1,14 +1,23 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   isValidCpf,
+  isValidUfscEmail,
   maskCpf,
   GovBrAuthSchema,
+  UfscEmailSchema,
   QrCodeInputSchema,
   LightRatingSchema,
   ReportSubmissionSchema,
   ChatMessageSchema,
   PersistedCampusStateSchema,
 } from '../security/schemas';
+import {
+  clearOtpChallenges,
+  sendUfscOtpCode,
+  verifyUfscOtpCode,
+  DEMO_OTP_CODE,
+  DEMO_UFSC_EMAIL,
+} from '../services/ufscOtpAuth';
 import {
   defaultStripExifCanvas,
   validateEvidenceImage,
@@ -336,7 +345,7 @@ describe('Security & DevSecOps Validation Layer', () => {
       mockStorage.setItem('rua_escura_campus_state_v1', '{invalid-json-data');
       const state = loadCampusState(mockStorage);
       expect(state).toBeDefined();
-      expect(state.posts.length).toBe(8);
+      expect(state.posts.length).toBe(12);
       expect(state.selectedBuildings.length).toBeGreaterThan(0);
     });
 
@@ -347,7 +356,7 @@ describe('Security & DevSecOps Validation Layer', () => {
       );
       const state = loadCampusState(mockStorage);
       expect(state).toBeDefined();
-      expect(state.posts.length).toBe(8);
+      expect(state.posts.length).toBe(12);
     });
 
     it('handles image decoding failures cleanly in validateEvidenceImage', async () => {
@@ -386,12 +395,12 @@ describe('Security & DevSecOps Validation Layer', () => {
       const pollutedState = loadCampusState(mockStorage);
       expect(pollutedState).toBeDefined();
       expect((Object.prototype as Record<string, unknown>).isAdmin).toBeUndefined();
-      expect(pollutedState.posts.length).toBe(8); // Rejected by reviver and falls back safely to seed
+      expect(pollutedState.posts.length).toBe(12); // Rejected by reviver and falls back safely to seed
 
       // 3. Oversized (> 2 MB) localStorage payload fallback
       mockStorage.setItem('rua_escura_campus_state_v1', 'x'.repeat(2 * 1024 * 1024 + 10));
       const oversizedFallback = loadCampusState(mockStorage);
-      expect(oversizedFallback.posts.length).toBe(8);
+      expect(oversizedFallback.posts.length).toBe(12);
     });
 
     it('rejects tampered localStorage containing XSS vectors in reports or chat messages (Hydration XSS Defense)', () => {
@@ -510,6 +519,35 @@ describe('Security & DevSecOps Validation Layer', () => {
         expect(isAllowedFetchUrl(url)).toBe(false);
         expect(() => assertSafeFetchUrl(url)).toThrow();
       }
+    });
+  });
+
+  describe('UFSC Institutional Email Validation & OTP Sandbox Auth', () => {
+    it('accepts @ufsc.br subdomains only and verifies OTP challenges fail-fast', async () => {
+      clearOtpChallenges();
+
+      expect(isValidUfscEmail('mariana.silva@grad.ufsc.br')).toBe(true);
+      expect(isValidUfscEmail('docente@ufsc.br')).toBe(true);
+      expect(isValidUfscEmail('pesquisa@posgrad.ufsc.br')).toBe(true);
+      expect(isValidUfscEmail('aluno@gmail.com')).toBe(false);
+      expect(isValidUfscEmail('<script>@ufsc.br')).toBe(false);
+      expect(UfscEmailSchema.safeParse('externo@hotmail.com').success).toBe(false);
+
+      const challenge = await sendUfscOtpCode(DEMO_UFSC_EMAIL);
+      expect(challenge.mode).toBe('sandbox');
+      expect(challenge.devCodeHint).toBe(DEMO_OTP_CODE);
+
+      await expect(verifyUfscOtpCode(DEMO_UFSC_EMAIL, '0000')).rejects.toThrow(/Código incorreto/i);
+
+      const verified = await verifyUfscOtpCode(DEMO_UFSC_EMAIL, DEMO_OTP_CODE);
+      expect(verified).toEqual({
+        verified: true,
+        mode: 'sandbox',
+        email: DEMO_UFSC_EMAIL,
+      });
+
+      // Consumed challenge cannot be replayed
+      await expect(verifyUfscOtpCode(DEMO_UFSC_EMAIL, DEMO_OTP_CODE)).rejects.toThrow(/expirado/i);
     });
   });
 });

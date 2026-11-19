@@ -63,6 +63,37 @@ export function isSafeText(val: string): boolean {
   return true;
 }
 
+const UFSC_EMAIL_REGEX = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+const UFSC_ALLOWED_EMAIL_DOMAINS = new Set([
+  'ufsc.br',
+  'grad.ufsc.br',
+  'posgrad.ufsc.br',
+  'contato.ufsc.br',
+]);
+const UFSC_EMAIL_ERROR =
+  'Use seu e-mail institucional UFSC (@grad.ufsc.br, @posgrad.ufsc.br ou @ufsc.br)';
+
+/**
+ * Validates institutional UFSC email addresses and rejects unsafe characters.
+ */
+export function isValidUfscEmail(email: string): boolean {
+  if (typeof email !== 'string') return false;
+  const trimmed = email.trim();
+  if (!trimmed || trimmed.length > 120) return false;
+  if (!isSafeText(trimmed) || !UFSC_EMAIL_REGEX.test(trimmed)) return false;
+
+  const domain = trimmed.split('@')[1]?.toLowerCase() ?? '';
+  if (!domain || domain.startsWith('.') || domain.includes('..')) return false;
+
+  return UFSC_ALLOWED_EMAIL_DOMAINS.has(domain) || domain.endsWith('.ufsc.br');
+}
+
+export const UfscEmailSchema = z
+  .string({ required_error: UFSC_EMAIL_ERROR })
+  .trim()
+  .toLowerCase()
+  .refine(isValidUfscEmail, UFSC_EMAIL_ERROR);
+
 export const GovBrAuthSchema = z.object({
   name: z
     .string({ required_error: 'Nome é obrigatório' })
@@ -80,6 +111,7 @@ export const GovBrAuthSchema = z.object({
     .min(2, 'Vínculo deve ter ao menos 2 caracteres')
     .max(100, 'Vínculo excede 100 caracteres')
     .refine(isSafeText, 'Vínculo contém caracteres inválidos'),
+  ufscEmail: UfscEmailSchema.optional(),
 });
 
 const QrCodeRawSchema = z
@@ -162,6 +194,7 @@ const LampPostSchema = z.object({
   name: z.string(),
   coordinates: CoordinatesSchema,
   status: z.enum(['aceso', 'oscilando', 'queimado']),
+  burnReason: z.enum(['depredacao_festa', 'falha_eletrica']).optional(),
   connectedEdgeIds: z.array(z.string()),
   lastUpdated: z.string(),
 });
@@ -204,6 +237,13 @@ export const CompanionMatchSchema = z.object({
   isGroup: z.boolean().optional(),
   groupTitle: z.string().refine(isSafeText, 'Título do grupo contém caracteres inválidos').optional(),
   members: z.array(GroupMemberSchema).optional(),
+  womenOnly: z.boolean().optional(),
+  meetingPoint: z
+    .string()
+    .max(100, 'Ponto de encontro excede 100 caracteres')
+    .refine(isSafeText, 'Ponto de encontro contém caracteres inválidos')
+    .optional(),
+  maxSeats: z.number().int().min(2).max(12).optional(),
 });
 
 export const WalkingGroupCreationSchema = z.object({
@@ -219,6 +259,14 @@ export const WalkingGroupCreationSchema = z.object({
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Horário inválido (use HH:MM)'),
   memberIds: z.array(z.string()).min(1, 'Selecione ao menos 1 colega para o grupo'),
+  meetingPoint: z
+    .string()
+    .trim()
+    .max(80, 'Ponto de encontro excede 80 caracteres')
+    .refine(isSafeText, 'Ponto de encontro contém caracteres inválidos (<, >)')
+    .optional(),
+  womenOnly: z.boolean().optional(),
+  maxSeats: z.number().int().min(2).max(12).optional(),
 });
 
 const GovBrSessionSchema = z.object({
@@ -226,6 +274,7 @@ const GovBrSessionSchema = z.object({
   cpfMasked: z.string().refine(isSafeText, 'CPF contém caracteres inválidos'),
   affiliation: z.string().refine(isSafeText, 'Vínculo contém caracteres inválidos'),
   verifiedAt: z.string(),
+  ufscEmail: z.string().max(120).refine(isSafeText, 'E-mail contém caracteres inválidos').optional(),
 });
 
 export const ScheduledDepartureSchema = z.object({

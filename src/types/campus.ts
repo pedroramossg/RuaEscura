@@ -7,6 +7,7 @@ export interface LampPost {
   name: string;
   coordinates: Coordinates;
   status: LampPostStatus;
+  burnReason?: 'depredacao_festa' | 'falha_eletrica';
   connectedEdgeIds: string[];
   lastUpdated: string;
 }
@@ -87,6 +88,9 @@ export interface CompanionMatch {
   isGroup?: boolean;
   groupTitle?: string;
   members?: GroupMember[];
+  womenOnly?: boolean;
+  meetingPoint?: string;
+  maxSeats?: number;
 }
 
 export interface ChatMessage {
@@ -104,6 +108,7 @@ export interface GovBrSession {
   cpfMasked: string;
   affiliation: string;
   verifiedAt: string;
+  ufscEmail?: string;
 }
 
 export interface PersistedCampusState {

@@ -180,8 +180,8 @@ describe('UFSC Trindade Routing Engine (Dijkstra Lighting Router)', () => {
     expect(route.posts).toEqual([]);
   });
 
-  it('includes all 14 UFSC landmarks and realistic coordinates in data layer', () => {
-    expect(UFSC_LANDMARKS.length).toBe(14);
+  it('includes all 19 UFSC landmarks (including Canvas critical corridors) and realistic coordinates in data layer', () => {
+    expect(UFSC_LANDMARKS.length).toBe(19);
     const landmarkIds = UFSC_LANDMARKS.map((l) => l.id);
     expect(landmarkIds).toEqual(
       expect.arrayContaining([
@@ -199,6 +199,11 @@ describe('UFSC Trindade Routing Engine (Dijkstra Lighting Router)', () => {
         'hu',
         'bosque',
         'santos_dumont',
+        'eqa_tunel',
+        'cds',
+        'elase',
+        'dce',
+        'cfm',
       ])
     );
 
@@ -210,9 +215,9 @@ describe('UFSC Trindade Routing Engine (Dijkstra Lighting Router)', () => {
       expect(landmark.coordinates[1]).toBeGreaterThan(-48.53);
     }
 
-    // Verify 8 QR lamp posts
-    expect(INITIAL_LAMP_POSTS.length).toBe(8);
-    expect(UFSC_EDGES.length).toBeGreaterThan(10);
+    // Verify 12 QR lamp posts
+    expect(INITIAL_LAMP_POSTS.length).toBe(12);
+    expect(UFSC_EDGES.length).toBeGreaterThan(20);
 
     // Verify all edge IDs are unique
     const edgeIds = UFSC_EDGES.map((e) => e.id);
@@ -235,8 +240,20 @@ describe('UFSC Trindade Routing Engine (Dijkstra Lighting Router)', () => {
         'POSTE-VITOR-02',
         'POSTE-CSE-01',
         'POSTE-CFH-02',
+        'POSTE-EQA-01',
+        'POSTE-CDS-01',
+        'POSTE-DCE-01',
+        'POSTE-ELASE-01',
       ])
     );
+
+    // Verify Canvas Bloco 4 corridors compute valid routes
+    const cdsToBu = findRoute('cds', 'bu', 'brightest', INITIAL_LAMP_POSTS, INITIAL_EDGE_RATINGS, INITIAL_REPORTS);
+    expect(cdsToBu.path.length).toBeGreaterThanOrEqual(2);
+    const cfmToElase = findRoute('cfm', 'elase', 'brightest', INITIAL_LAMP_POSTS, INITIAL_EDGE_RATINGS, INITIAL_REPORTS);
+    expect(cfmToElase.path.length).toBeGreaterThanOrEqual(2);
+    const cfhToDce = findRoute('cfh', 'dce', 'brightest', INITIAL_LAMP_POSTS, INITIAL_EDGE_RATINGS, INITIAL_REPORTS);
+    expect(cfhToDce.path).toEqual(['cfh', 'dce']);
   });
 
   it('does not penalize edge-reitoria-ru when an active report has locationName "Rua Des. Vítor Lima" without locationNodeId', () => {
