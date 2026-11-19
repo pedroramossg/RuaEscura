@@ -4,10 +4,13 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  MapPin,
   MessageCircle,
   Navigation,
   Plus,
   Route as RouteIcon,
+  Share2,
+  ShieldCheck,
   Users,
   X,
   Zap,
@@ -51,7 +54,14 @@ export interface RouteSheetProps {
   onOpenChat: (companionId: string) => void;
   onCloseChat: () => void;
   onSendChatMessage: (companionId: string, text: string) => { success: boolean; error?: string };
+  onNotify?: (message: string) => void;
 }
+
+type CompanionWithMeta = CompanionMatch & {
+  womenOnly?: boolean;
+  meetingPoint?: string;
+  maxSeats?: number;
+};
 
 function getVariantForId(id: string): TrioVariant {
   let hash = 0;
@@ -138,6 +148,7 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
   onOpenChat,
   onCloseChat,
   onSendChatMessage,
+  onNotify,
 }) => {
   const { createWalkingGroup } = useCampusStore();
 
@@ -146,12 +157,19 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
     [companionMatches]
   );
 
+  // Companion filter state (Canvas Bloco 9: Todos | Grupo Feminino)
+  const [companionFilter, setCompanionFilter] = useState<'all' | 'womenOnly'>('all');
+  const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
+
   // Inline group creation state (Apple HIG Single-Sheet Rule: no nested modal)
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupTitle, setGroupTitle] = useState('');
   const [groupOriginId, setGroupOriginId] = useState(activeOriginId);
   const [groupDestId, setGroupDestId] = useState(activeDestinationId);
   const [groupTime, setGroupTime] = useState('21:30');
+  const [groupMeetingPoint, setGroupMeetingPoint] = useState('');
+  const [groupMaxSeats, setGroupMaxSeats] = useState<number>(4);
+  const [groupWomenOnly, setGroupWomenOnly] = useState(false);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(() =>
     individualPeers[0] ? [individualPeers[0].id] : []
   );
@@ -185,6 +203,18 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
       return bGroup + bMatch - (aGroup + aMatch);
     });
   }, [companionMatches, pathSet]);
+
+  const womenOnlyCount = useMemo(
+    () => sortedCompanions.filter((c) => Boolean((c as CompanionWithMeta).womenOnly)).length,
+    [sortedCompanions]
+  );
+
+  const visibleCompanions = useMemo(() => {
+    if (companionFilter === 'womenOnly') {
+      return sortedCompanions.filter((c) => Boolean((c as CompanionWithMeta).womenOnly));
+    }
+    return sortedCompanions;
+  }, [companionFilter, sortedCompanions]);
 
   const routeBreadcrumb = useMemo(() => {
     return activeRoute.path.map((id) => landmarkShortMap.get(id) ?? id).join(' → ');
@@ -237,13 +267,19 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
     e.preventDefault();
     setGroupError(null);
 
-    const res = createWalkingGroup({
+    const trimmedMeetingPoint = groupMeetingPoint.trim();
+    const groupPayload = {
       title: groupTitle,
       originId: groupOriginId,
       destinationId: groupDestId,
       departureTime: groupTime,
       memberIds: selectedMemberIds,
-    });
+      ...(trimmedMeetingPoint ? { meetingPoint: trimmedMeetingPoint } : {}),
+      womenOnly: groupWomenOnly,
+      maxSeats: groupMaxSeats,
+    };
+
+    const res = createWalkingGroup(groupPayload);
 
     if (!res.success || !res.group) {
       setGroupError(res.error ?? 'Não foi possível criar o grupo.');
@@ -251,8 +287,19 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
     }
 
     setGroupTitle('');
+    setGroupMeetingPoint('');
+    setGroupMaxSeats(4);
+    setGroupWomenOnly(false);
     setIsCreatingGroup(false);
     onOpenChat(res.group.id);
+  };
+
+  const handleCopyInvite = (compId: string, inviteText: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      void navigator.clipboard.writeText(inviteText).catch(() => {});
+    }
+    setCopiedInviteId(compId);
+    onNotify?.('Convite copiado e pronto para enviar!');
   };
 
   return (
@@ -270,6 +317,7 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
           onBack={onCloseChat}
           onSendMessage={onSendChatMessage}
           onToggleJoin={onToggleJoinCompanion}
+          onNotify={onNotify}
         />
       ) : (
         <div className="space-y-4">
@@ -572,6 +620,72 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
               </button>
             </div>
 
+            {/* Companion Filter Pills: Todos | Grupo Feminino */}
+            <div
+              role="group"
+              aria-label="Filtrar colegas e grupos"
+              className="flex items-center gap-2"
+            >
+              <button
+                type="button"
+                onClick={() => setCompanionFilter('all')}
+                aria-pressed={companionFilter === 'all'}
+                className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
+                  companionFilter === 'all'
+                    ? isNightMap
+                      ? 'bg-[#5EC2F3] text-[#0B1120] border-[#5EC2F3]'
+                      : 'bg-[#0F172A] text-white border-[#0F172A]'
+                    : isNightMap
+                      ? 'bg-[#111C34] text-[#E2E8F0] border-[#1E293B] hover:border-[#5EC2F3]/60'
+                      : 'bg-[#F8FAFC] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]/60'
+                }`}
+              >
+                <span>Todos</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
+                    companionFilter === 'all'
+                      ? isNightMap
+                        ? 'bg-[#0B1120]/15 text-[#0B1120]'
+                        : 'bg-white/20 text-white'
+                      : isNightMap
+                        ? 'bg-white/10 text-[#CBD5E1]'
+                        : 'bg-[#E2E8F0] text-[#334155]'
+                  }`}
+                >
+                  {sortedCompanions.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCompanionFilter('womenOnly')}
+                aria-pressed={companionFilter === 'womenOnly'}
+                className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
+                  companionFilter === 'womenOnly'
+                    ? isNightMap
+                      ? 'bg-[#EC4899] text-white border-[#EC4899]'
+                      : 'bg-[#BE185D] text-white border-[#BE185D]'
+                    : isNightMap
+                      ? 'bg-[#111C34] text-[#FBCFE8] border-[#1E293B] hover:border-[#F472B6]/60'
+                      : 'bg-[#FDF2F8] text-[#9D174D] border-[#FBCFE8] hover:border-[#DB2777]'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <span>Grupo Feminino</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
+                    companionFilter === 'womenOnly'
+                      ? 'bg-white/20 text-white'
+                      : isNightMap
+                        ? 'bg-[#EC4899]/25 text-[#F9A8D4]'
+                        : 'bg-[#FCE7F3] text-[#9D174D]'
+                  }`}
+                >
+                  {womenOnlyCount}
+                </span>
+              </button>
+            </div>
+
             {/* Inline Group Creation Panel (no nested sheet/modal) */}
             {isCreatingGroup && (
               <form
@@ -678,6 +792,94 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
                 </div>
 
                 <div>
+                  <label
+                    htmlFor="group-meeting-point-input"
+                    className={`block text-[11px] font-medium mb-1 ${mutedTextClass}`}
+                  >
+                    Ponto de encontro
+                  </label>
+                  <input
+                    id="group-meeting-point-input"
+                    type="text"
+                    maxLength={80}
+                    value={groupMeetingPoint}
+                    onChange={(e) => {
+                      setGroupMeetingPoint(e.target.value);
+                      if (groupError) setGroupError(null);
+                    }}
+                    placeholder="Ex: Catraca principal da BU"
+                    aria-label="Ponto de encontro"
+                    className={`w-full min-h-[44px] px-3.5 rounded-xl border text-sm outline-none transition-colors ${inputClass}`}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div>
+                    <p className={`text-[11px] font-medium mb-1 ${mutedTextClass}`}>
+                      Vagas no grupo
+                    </p>
+                    <div
+                      role="group"
+                      aria-label="Vagas no grupo"
+                      className="grid grid-cols-4 gap-1.5"
+                    >
+                      {[3, 4, 5, 6].map((seats) => {
+                        const active = groupMaxSeats === seats;
+                        return (
+                          <button
+                            key={seats}
+                            type="button"
+                            onClick={() => setGroupMaxSeats(seats)}
+                            aria-pressed={active}
+                            className={`min-h-[44px] rounded-xl text-xs font-semibold border transition-all active:scale-[0.97] cursor-pointer ${
+                              active
+                                ? 'bg-[#2563EB] text-white border-[#2563EB]'
+                                : isNightMap
+                                  ? 'bg-[#0B1120] text-[#E2E8F0] border-[#1E293B] hover:border-[#5EC2F3]'
+                                  : 'bg-[#FFFFFF] text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
+                            }`}
+                          >
+                            {seats} vagas
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setGroupWomenOnly((prev) => !prev)}
+                    aria-pressed={groupWomenOnly}
+                    className={`w-full min-h-[44px] px-3.5 rounded-xl border text-xs font-semibold inline-flex items-center justify-between gap-2 transition-all active:scale-[0.98] cursor-pointer ${
+                      groupWomenOnly
+                        ? isNightMap
+                          ? 'bg-[#EC4899]/20 text-[#FBCFE8] border-[#EC4899]/60'
+                          : 'bg-[#FDF2F8] text-[#9D174D] border-[#F472B6]'
+                        : isNightMap
+                          ? 'bg-[#0B1120] text-[#E2E8F0] border-[#1E293B] hover:border-[#F472B6]/50'
+                          : 'bg-[#FFFFFF] text-[#0F172A] border-[#D5E0EE] hover:border-[#DB2777]/50'
+                    }`}
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <ShieldCheck
+                        className={`w-4 h-4 shrink-0 ${
+                          groupWomenOnly
+                            ? isNightMap
+                              ? 'text-[#F472B6]'
+                              : 'text-[#BE185D]'
+                            : mutedTextClass
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <span>Grupo feminino verificado</span>
+                    </span>
+                    <span className="text-[11px] font-bold">
+                      {groupWomenOnly ? 'Ativo' : 'Opcional'}
+                    </span>
+                  </button>
+                </div>
+
+                <div>
                   <p className={`text-[11px] font-medium mb-1.5 ${mutedTextClass}`}>
                     Convidar colegas ({selectedMemberIds.length} selecionado
                     {selectedMemberIds.length === 1 ? '' : 's'})
@@ -730,130 +932,207 @@ export const RouteSheet: React.FC<RouteSheetProps> = ({
               </form>
             )}
 
-            <ul
-              className={`rounded-2xl overflow-hidden divide-y ${
-                isNightMap
-                  ? 'bg-[#111C34] divide-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-                  : 'bg-[#F8FAFC] divide-[var(--separator)] shadow-[0_1px_2px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.65)]'
-              }`}
-            >
-              {sortedCompanions.map((comp) => {
-                const onCorridor =
-                  pathSet.has(comp.originId) || pathSet.has(comp.destinationId);
-                const compOrigin = landmarkShortMap.get(comp.originId) ?? comp.originId;
-                const compDest =
-                  landmarkShortMap.get(comp.destinationId) ?? comp.destinationId;
-                const members = comp.isGroup && comp.members ? comp.members : [];
-                const title = comp.groupTitle || comp.name;
+            {visibleCompanions.length === 0 ? (
+              <div
+                className={`rounded-2xl p-4 border text-xs text-center ${
+                  isNightMap
+                    ? 'bg-[#111C34] border-white/10 text-[#94A3B8]'
+                    : 'bg-[#F8FAFC] border-[var(--separator)] text-[#475569]'
+                }`}
+              >
+                Nenhum grupo feminino ativo no momento. Use &ldquo;Criar grupo&rdquo; acima para organizar uma caminhada segura.
+              </div>
+            ) : (
+              <ul
+                className={`rounded-2xl overflow-hidden divide-y ${
+                  isNightMap
+                    ? 'bg-[#111C34] divide-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-[#F8FAFC] divide-[var(--separator)] shadow-[0_1px_2px_rgba(15,23,42,0.04),inset_0_1px_0_rgba(255,255,255,0.65)]'
+                }`}
+              >
+                {visibleCompanions.map((comp) => {
+                  const compMeta = comp as CompanionWithMeta;
+                  const onCorridor =
+                    pathSet.has(comp.originId) || pathSet.has(comp.destinationId);
+                  const compOrigin = landmarkShortMap.get(comp.originId) ?? comp.originId;
+                  const compDest =
+                    landmarkShortMap.get(comp.destinationId) ?? comp.destinationId;
+                  const members = comp.isGroup && comp.members ? comp.members : [];
+                  const title = comp.groupTitle || comp.name;
+                  const occupiedSeats = comp.isGroup
+                    ? members.length + (comp.isUserJoined ? 1 : 0)
+                    : comp.isUserJoined
+                      ? 2
+                      : 1;
+                  const inviteLines = [
+                    `RuaEscura UFSC • ${title}`,
+                    `Trajeto: ${compOrigin} → ${compDest} às ${comp.departureTime}`,
+                    compMeta.meetingPoint ? `Encontro: ${compMeta.meetingPoint}` : null,
+                    compMeta.womenOnly ? 'Grupo feminino verificado' : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' • ');
+                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(inviteLines)}`;
 
-                return (
-                  <li
-                    key={comp.id}
-                    className="p-3.5 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 min-w-0">
-                        {members.length > 0 ? (
-                          <span
-                            className="inline-flex items-center -space-x-2 shrink-0 pt-0.5"
-                            aria-hidden="true"
-                          >
-                            {members.slice(0, 3).map((member, idx) => (
-                              <TrioCharacterAvatar
-                                key={member.id}
-                                variant={member.mascotVariant}
-                                size={30}
-                                className={idx === 1 ? 'z-10' : ''}
-                              />
-                            ))}
-                          </span>
-                        ) : (
-                          <TrioCharacterAvatar
-                            variant={getVariantForId(comp.id)}
-                            size={40}
-                            className="shrink-0"
-                          />
-                        )}
+                  return (
+                    <li
+                      key={comp.id}
+                      className="p-3.5 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0">
+                          {members.length > 0 ? (
+                            <span
+                              className="inline-flex items-center -space-x-2 shrink-0 pt-0.5"
+                              aria-hidden="true"
+                            >
+                              {members.slice(0, 3).map((member, idx) => (
+                                <TrioCharacterAvatar
+                                  key={member.id}
+                                  variant={member.mascotVariant}
+                                  size={30}
+                                  className={idx === 1 ? 'z-10' : ''}
+                                />
+                              ))}
+                            </span>
+                          ) : (
+                            <TrioCharacterAvatar
+                              variant={getVariantForId(comp.id)}
+                              size={40}
+                              className="shrink-0"
+                            />
+                          )}
 
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-sm font-semibold truncate">{title}</span>
-                            {comp.isGroup && (
-                              <span
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                                  isNightMap
-                                    ? 'bg-[#5EC2F3]/15 text-[#5EC2F3]'
-                                    : 'bg-[#EFF6FF] text-[#2563EB]'
-                                }`}
-                              >
-                                <Users className="w-3 h-3" aria-hidden="true" />
-                                <span>{members.length + 1} no grupo</span>
-                              </span>
-                            )}
-                            {onCorridor && (
-                              <span
-                                className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                                  isNightMap
-                                    ? 'bg-white/10 text-[#F8FAFC]'
-                                    : 'bg-[#F8FAFC] text-[#0F172A] border border-[#D5E0EE]'
-                                }`}
-                              >
-                                No seu corredor
-                              </span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-sm font-semibold truncate">{title}</span>
+                              {compMeta.womenOnly && (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                                    isNightMap
+                                      ? 'bg-[#EC4899]/20 text-[#F9A8D4] border border-[#EC4899]/35'
+                                      : 'bg-[#FDF2F8] text-[#BE185D] border border-[#FBCFE8]'
+                                  }`}
+                                >
+                                  <ShieldCheck className="w-3 h-3" aria-hidden="true" />
+                                  <span>Grupo feminino</span>
+                                </span>
+                              )}
+                              {comp.isGroup && (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                                    isNightMap
+                                      ? 'bg-[#5EC2F3]/15 text-[#5EC2F3]'
+                                      : 'bg-[#EFF6FF] text-[#2563EB]'
+                                  }`}
+                                >
+                                  <Users className="w-3 h-3" aria-hidden="true" />
+                                  <span>{members.length + 1} no grupo</span>
+                                </span>
+                              )}
+                              {typeof compMeta.maxSeats === 'number' && (
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium tabular-nums ${
+                                    isNightMap
+                                      ? 'bg-white/10 text-[#E2E8F0]'
+                                      : 'bg-[#E2E8F0]/70 text-[#334155]'
+                                  }`}
+                                >
+                                  {occupiedSeats}/{compMeta.maxSeats} vagas
+                                </span>
+                              )}
+                              {onCorridor && (
+                                <span
+                                  className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                                    isNightMap
+                                      ? 'bg-white/10 text-[#F8FAFC]'
+                                      : 'bg-[#F8FAFC] text-[#0F172A] border border-[#D5E0EE]'
+                                  }`}
+                                >
+                                  No seu corredor
+                                </span>
+                              )}
+                            </div>
+
+                            <p className={`text-xs truncate mt-0.5 ${mutedTextClass}`}>
+                              {comp.isGroup && members.length > 0
+                                ? `Com ${members.map((m) => m.name.split(' ')[0]).join(', ')}`
+                                : comp.ufscAffiliation}
+                            </p>
+
+                            <p className={`text-xs mt-1 font-medium ${mutedTextClass}`}>
+                              {compOrigin} → {compDest} •{' '}
+                              <Clock className="inline w-3 h-3 -mt-0.5" aria-hidden="true" />{' '}
+                              {comp.departureTime}
+                            </p>
+
+                            {compMeta.meetingPoint && (
+                              <p className={`text-xs mt-0.5 truncate ${mutedTextClass}`}>
+                                <MapPin className="inline w-3 h-3 -mt-0.5 mr-1" aria-hidden="true" />
+                                Encontro: {compMeta.meetingPoint}
+                              </p>
                             )}
                           </div>
-
-                          <p className={`text-xs truncate mt-0.5 ${mutedTextClass}`}>
-                            {comp.isGroup && members.length > 0
-                              ? `Com ${members.map((m) => m.name.split(' ')[0]).join(', ')}`
-                              : comp.ufscAffiliation}
-                          </p>
-
-                          <p className={`text-xs mt-1 font-medium ${mutedTextClass}`}>
-                            {compOrigin} → {compDest} •{' '}
-                            <Clock className="inline w-3 h-3 -mt-0.5" aria-hidden="true" />{' '}
-                            {comp.departureTime}
-                          </p>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="mt-3 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onToggleJoinCompanion(comp.id)}
-                        aria-pressed={Boolean(comp.isUserJoined)}
-                        className={`flex-1 min-h-[44px] px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 border transition-all active:scale-[0.97] cursor-pointer ${
-                          comp.isUserJoined
-                            ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                            : isNightMap
-                              ? 'bg-[#0B1120] text-[#F8FAFC] border-[#1E293B] hover:border-[#5EC2F3]'
-                              : 'bg-white text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
-                        }`}
-                      >
-                        {comp.isUserJoined && (
-                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                        )}
-                        <span>{comp.isUserJoined ? 'No grupo' : 'Entrar no grupo'}</span>
-                      </button>
+                      <div className="mt-3 flex items-center flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onToggleJoinCompanion(comp.id)}
+                          aria-pressed={Boolean(comp.isUserJoined)}
+                          className={`flex-1 min-w-[116px] min-h-[44px] px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 border transition-all active:scale-[0.97] cursor-pointer ${
+                            comp.isUserJoined
+                              ? 'bg-[#2563EB] text-white border-[#2563EB]'
+                              : isNightMap
+                                ? 'bg-[#0B1120] text-[#F8FAFC] border-[#1E293B] hover:border-[#5EC2F3]'
+                                : 'bg-white text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
+                          }`}
+                        >
+                          {comp.isUserJoined && (
+                            <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+                          )}
+                          <span>{comp.isUserJoined ? 'No grupo' : 'Entrar no grupo'}</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => onOpenChat(comp.id)}
-                        className={`flex-1 min-h-[44px] px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
-                          isNightMap
-                            ? 'bg-[#F8FAFC] text-[#0B1120] hover:bg-white'
-                            : 'bg-[#0F172A] text-white hover:bg-[#1E293B]'
-                        }`}
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
-                        <span>Combinar trajeto</span>
-                      </button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                        <button
+                          type="button"
+                          onClick={() => onOpenChat(comp.id)}
+                          className={`flex-1 min-w-[126px] min-h-[44px] px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
+                            isNightMap
+                              ? 'bg-[#F8FAFC] text-[#0B1120] hover:bg-white'
+                              : 'bg-[#0F172A] text-white hover:bg-[#1E293B]'
+                          }`}
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
+                          <span>Combinar trajeto</span>
+                        </button>
+
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => handleCopyInvite(comp.id, inviteLines)}
+                          aria-label={`Compartilhar no WhatsApp convite de ${title}`}
+                          className={`min-h-[44px] px-3 rounded-full text-xs font-semibold inline-flex items-center justify-center gap-1.5 border transition-all active:scale-[0.97] shrink-0 ${
+                            copiedInviteId === comp.id
+                              ? isNightMap
+                                ? 'bg-[#10B981]/20 text-[#6EE7B7] border-[#10B981]/45'
+                                : 'bg-[#D1FAE5] text-[#065F46] border-[#10B981]/40'
+                              : isNightMap
+                                ? 'bg-[#0B1120] text-[#E2E8F0] border-[#1E293B] hover:border-[#5EC2F3]'
+                                : 'bg-white text-[#0F172A] border-[#D5E0EE] hover:border-[#2563EB]'
+                          }`}
+                        >
+                          <Share2 className="w-3.5 h-3.5" aria-hidden="true" />
+                          <span>{copiedInviteId === comp.id ? 'Copiado' : 'Convidar'}</span>
+                        </a>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
       )}

@@ -25,6 +25,7 @@ export interface CompanionChatViewProps {
   onSendMessage?: (companionId: string, text: string) => { success: boolean; error?: string };
   onSend?: (text: string) => { success: boolean; error?: string };
   onToggleJoin?: (companionId: string) => void;
+  onNotify?: (message: string) => void;
 }
 
 const QUICK_REPLIES = [
@@ -55,6 +56,7 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
   onSendMessage,
   onSend,
   onToggleJoin,
+  onNotify,
 }) => {
   const store = useCampusStore();
   // Sync with both global app darkMode and map isNightMap (RouteSheet passes isNightMap even when false).
@@ -79,13 +81,15 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
 
   const headerSubtitle = useMemo(() => {
     const routeSummary = `${originLabel} → ${destLabel} • ${companion.departureTime}`;
-    if (groupMembers.length === 0) return routeSummary;
+    const meetingSuffix = companion.meetingPoint ? ` • ${companion.meetingPoint}` : '';
+    const womenPrefix = companion.womenOnly ? 'Grupo feminino • ' : '';
+    if (groupMembers.length === 0) return `${womenPrefix}${routeSummary}${meetingSuffix}`;
     const names = groupMembers
       .slice(0, 3)
       .map((member) => member.name.split(' ')[0])
       .join(', ');
-    return `${names} • ${routeSummary}`;
-  }, [companion.departureTime, destLabel, groupMembers, originLabel]);
+    return `${womenPrefix}${names} • ${routeSummary}${meetingSuffix}`;
+  }, [companion.departureTime, companion.meetingPoint, companion.womenOnly, destLabel, groupMembers, originLabel]);
 
   const avatarVariant = groupMembers[0]?.mascotVariant ?? getVariantForId(companion.id);
 
@@ -306,8 +310,24 @@ export const CompanionChatView: React.FC<CompanionChatViewProps> = ({
         </p>
       )}
 
-      {/* Slim Horizontal Quick-Reply Chips */}
+      {/* Slim Horizontal Quick-Reply Chips + One-Tap Arrival Check-In */}
       <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <button
+          type="button"
+          onClick={() => {
+            store.sendArrivalCheckIn(companion.id);
+            onNotify?.('Check-in de chegada enviado para o grupo!');
+          }}
+          className={`shrink-0 min-h-[44px] px-3.5 rounded-full border text-xs font-semibold inline-flex items-center gap-1 whitespace-nowrap transition-[transform,colors] duration-150 active:scale-[0.96] cursor-pointer ${
+            isDark
+              ? 'bg-[#00A884]/20 border-[#00A884]/45 text-[#6EE7B7] hover:bg-[#00A884]/30'
+              : 'bg-[#D1FAE5] border-[#10B981]/35 text-[#065F46] hover:bg-[#A7F3D0]'
+          }`}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+          <span>Cheguei bem ✓</span>
+        </button>
+
         {QUICK_REPLIES.map((chip) => (
           <button
             key={chip}

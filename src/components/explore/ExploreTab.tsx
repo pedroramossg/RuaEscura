@@ -57,24 +57,67 @@ const QUICK_ROUTE_PRESETS: QuickRoutePreset[] = [
     subtitle: 'Corredor principal para pontos de ônibus',
   },
   {
+    originId: 'cfh',
+    destId: 'dce',
+    title: 'CFH ↔ DCE',
+    subtitle: 'Corredor crítico monitorado pela Reitoria',
+  },
+  {
+    originId: 'cds',
+    destId: 'bu',
+    title: 'CDS → BU Central',
+    subtitle: 'Saída noturna de atividades esportivas',
+  },
+  {
+    originId: 'eps',
+    destId: 'eqa_tunel',
+    title: 'CTC / EPS → Túnel EQA',
+    subtitle: 'Desvio iluminado em trechos de manutenção',
+  },
+  {
+    originId: 'cfm',
+    destId: 'elase',
+    title: 'CFM → Saída Elase',
+    subtitle: 'Conexão sul pelo Pantanal com apoio CDS',
+  },
+  {
     originId: 'ru',
     destId: 'cce',
     title: 'RU → CCE',
     subtitle: 'Via Praça da Cidadania iluminada',
   },
-  {
-    originId: 'cse',
-    destId: 'eps',
-    title: 'CSE → EPS / CTC',
-    subtitle: 'Passagem Des. Vítor Lima',
-  },
-  {
-    originId: 'cfh',
-    destId: 'ru',
-    title: 'CFH → RU Trindade',
-    subtitle: 'Acesso pelo Centro de Eventos',
-  },
 ];
+
+const NIGHT_CAMPUS_SPACES = [
+  {
+    id: 'bu-24h',
+    label: 'BU 24h',
+    hours: 'Até 23h+',
+    originId: 'ru',
+    destId: 'bu',
+  },
+  {
+    id: 'ru-jantar',
+    label: 'RU Jantar',
+    hours: '17h–20h',
+    originId: 'bu',
+    destId: 'ru',
+  },
+  {
+    id: 'cultura-eventos',
+    label: 'Cultura & Eventos',
+    hours: '19h–22h30',
+    originId: 'bu',
+    destId: 'cultura',
+  },
+  {
+    id: 'cds-noturno',
+    label: 'CDS Noturno',
+    hours: '18h–22h',
+    originId: 'cds',
+    destId: 'bu',
+  },
+] as const;
 
 const RATEABLE_EDGE_IDS = [
   'edge-bu-reitoria',
@@ -846,6 +889,33 @@ export const ExploreTab: React.FC<ExploreTabProps> = ({
                     </div>
                   </button>
                 ))}
+              </div>
+
+              {/* Campus à noite (Canvas Bloco 6): aproveitamento dos espaços noturnos com segurança */}
+              <div className="pt-1 space-y-2">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[var(--label-secondary)]">
+                    Campus à noite
+                  </span>
+                  <span className="text-[11px] text-[var(--label-secondary)]">
+                    Aproveite a UFSC no claro
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+                  {NIGHT_CAMPUS_SPACES.map((space) => (
+                    <button
+                      key={space.id}
+                      type="button"
+                      onClick={() => handleSelectQuickRoute(space.originId, space.destId, space.label)}
+                      className="min-h-[44px] px-3.5 py-2 rounded-full bg-[var(--bg-elevated)] border border-[var(--separator)] hover:border-[var(--accent-primary)] active:scale-[0.97] transition-all cursor-pointer shrink-0 inline-flex items-center gap-2 text-xs font-semibold text-[var(--label-primary)]"
+                    >
+                      <span>{space.label}</span>
+                      <span className="text-[11px] font-normal text-[var(--label-secondary)]">
+                        {space.hours}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </motion.section>
           )}

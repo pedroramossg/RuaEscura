@@ -455,6 +455,36 @@ describe('Task 5: Explore, Lights QR Reporter, Reports, ProfileSheet & App Shell
       expect(document.documentElement.dataset.theme).toBe('light');
     });
 
+    it('supports tagging burned lamp post as depredacao_festa in LightsTab and displays Campus a noite presets in ExploreTab', () => {
+      const state = createVerifiedState();
+      render(
+        <CampusStoreProvider initialState={state}>
+          <LightsTab onOpenMap={vi.fn()} />
+        </CampusStoreProvider>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /Depredado \(pós-festa\)/i }));
+      const storedAfterVandalism = JSON.parse(localStorage.getItem(CAMPUS_STORAGE_KEY) || '{}');
+      expect(storedAfterVandalism.posts[0].status).toBe('queimado');
+      expect(storedAfterVandalism.posts[0].burnReason).toBe('depredacao_festa');
+      expect(screen.getAllByText(/Depredação pós-festa/i).length).toBeGreaterThan(0);
+
+      render(
+        <CampusStoreProvider initialState={state}>
+          <ExploreTab
+            onOpenMap={vi.fn()}
+            onOpenLights={vi.fn()}
+            onOpenReports={vi.fn()}
+            onOpenProfile={vi.fn()}
+          />
+        </CampusStoreProvider>
+      );
+
+      expect(screen.getByText(/Campus à noite/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /BU 24h/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /CDS Noturno/i })).toBeInTheDocument();
+    });
+
     it('renders light-only sunburst and dark-only glow layers across ExploreTab, LightsTab, and ReportsTab', () => {
       const state = createVerifiedState();
 

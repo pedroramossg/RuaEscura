@@ -12,7 +12,7 @@ import { useCampusStore } from '../../hooks/useCampusStore';
 import { useDebounce } from '../../hooks/useDebounce';
 import { UFSC_LANDMARKS } from '../../data/ufscTrindade';
 import { QrCodeInputSchema } from '../../security/schemas';
-import type { LampPostStatus } from '../../types/campus';
+import type { LampPost, LampPostStatus } from '../../types/campus';
 import { PillButton } from '../ui/PillButton';
 import { IosNavHeader } from '../ui/IosNavHeader';
 import { VirtualizedList } from '../ui/VirtualizedList';
@@ -155,10 +155,16 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
     onNotify?.(`Poste ${matched.id} localizado via QR Code.`);
   };
 
-  const handleStatusChange = (nextStatus: LampPostStatus) => {
+  const handleStatusChange = (
+    nextStatus: LampPostStatus,
+    burnReason?: LampPost['burnReason']
+  ) => {
     if (!selectedPost) return;
-    updateLampPostStatus(selectedPost.id, nextStatus);
-    const label = STATUS_META[nextStatus].label;
+    updateLampPostStatus(selectedPost.id, nextStatus, burnReason);
+    const label =
+      nextStatus === 'queimado' && burnReason === 'depredacao_festa'
+        ? 'Queimado (Depredação pós-festa)'
+        : STATUS_META[nextStatus].label;
     const msg = `${selectedPost.id} atualizado para ${label}. Rotas do campus recalculadas.`;
     setStatusFeedback(msg);
     setDidRecalculate(true);
@@ -390,7 +396,12 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     <button
                       key={status}
                       type="button"
-                      onClick={() => handleStatusChange(status)}
+                      onClick={() =>
+                        handleStatusChange(
+                          status,
+                          status === 'queimado' ? 'falha_eletrica' : undefined
+                        )
+                      }
                       aria-pressed={isCurrent}
                       className={`min-h-[44px] px-2.5 py-2 rounded-2xl border text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
                         isCurrent
@@ -403,6 +414,30 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     </button>
                   );
                 })}
+              </div>
+
+              {/* Canvas Bloco 8: Depredação pós-festas flag */}
+              <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
+                <span className="text-[11px] font-medium text-[var(--label-secondary)]">
+                  Causa do apagão (opcional):
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleStatusChange('queimado', 'depredacao_festa')}
+                  aria-pressed={
+                    selectedPost.status === 'queimado' &&
+                    selectedPost.burnReason === 'depredacao_festa'
+                  }
+                  className={`min-h-[40px] px-3 rounded-full border text-xs font-semibold inline-flex items-center gap-1.5 transition-all active:scale-[0.97] cursor-pointer ${
+                    selectedPost.status === 'queimado' &&
+                    selectedPost.burnReason === 'depredacao_festa'
+                      ? 'bg-[#DC2626] text-white border-[#DC2626]'
+                      : 'bg-[var(--bg-fill-secondary)] text-[var(--label-primary)] border-[var(--separator)] hover:border-[#DC2626]'
+                  }`}
+                >
+                  <Flame className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <span>Depredado (pós-festa)</span>
+                </button>
               </div>
             </div>
           )}
@@ -552,6 +587,11 @@ export const LightsTab: React.FC<LightsTabProps> = ({ onOpenMap, onNotify }) => 
                     <p className="text-xs text-[var(--label-secondary)] mt-0.5">
                       {post.id} • Atualizado às {formatPostTime(post.lastUpdated)}
                     </p>
+                    {post.status === 'queimado' && post.burnReason === 'depredacao_festa' && (
+                      <span className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
+                        Depredação pós-festa
+                      </span>
+                    )}
                   </div>
 
                   <span

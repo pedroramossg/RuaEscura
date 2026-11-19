@@ -99,7 +99,18 @@ const REPORT_STATUS_META: Record<
   },
 };
 
-const QUICK_LOCATIONS = ['BU', 'RU', 'Bosque', 'CCE', 'Santos Dumont'];
+const QUICK_LOCATIONS = [
+  'Túnel do EQA',
+  'CDS → BU',
+  'Saída pela Elase',
+  'CFH ↔ DCE',
+  'Entorno do CFM',
+  'BU',
+  'RU',
+  'Bosque',
+  'CCE',
+  'Santos Dumont',
+];
 
 function formatReportDate(iso: string): string {
   const date = new Date(iso);
@@ -131,6 +142,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [isConfidential, setIsConfidential] = useState(true);
+  const [isPostPartyVandalism, setIsPostPartyVandalism] = useState(false);
   const [photoThumbnailUrl, setPhotoThumbnailUrl] = useState<string | undefined>(undefined);
   const [isValidatingPhoto, setIsValidatingPhoto] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -221,10 +233,15 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
     e.preventDefault();
     setFormError(null);
 
+    const normalizedDesc =
+      isPostPartyVandalism && !description.toLowerCase().includes('depredação')
+        ? `[Depredação pós-festa] ${description.trim()}`
+        : description;
+
     const payload = {
       category,
       location,
-      description,
+      description: normalizedDesc,
       isConfidential,
       photoThumbnailUrl,
     };
@@ -243,6 +260,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
 
     setLocation('');
     setDescription('');
+    setIsPostPartyVandalism(false);
     setPhotoThumbnailUrl(undefined);
     setFileError(null);
     setMascotMood('notify');
@@ -477,6 +495,21 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({ onNotify }) => {
                 placeholder="Descreva o ponto escuro, poste danificado ou situação observada (10 a 500 caracteres)"
                 className="w-full min-h-[96px] p-3.5 rounded-xl border border-[var(--separator)] bg-[var(--bg-fill-secondary)] text-sm text-[var(--label-primary)] placeholder:text-[var(--label-tertiary)] focus:outline-2 focus:outline-[var(--accent-primary)]"
               />
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPostPartyVandalism((prev) => !prev)}
+                  aria-pressed={isPostPartyVandalism}
+                  className={`min-h-[44px] px-3.5 rounded-full border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    isPostPartyVandalism
+                      ? 'bg-[#D97706]/18 text-[#D97706] border-[#D97706]/45'
+                      : 'bg-[var(--bg-fill-secondary)] text-[var(--label-secondary)] border-[var(--separator)] hover:text-[var(--label-primary)]'
+                  }`}
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <span>Depredação / pós-festa no campus</span>
+                </button>
+              </div>
             </div>
 
             {/* Confidentiality Switch */}

@@ -377,4 +377,39 @@ describe('Task 4: Interactive UFSC Map, Route Comparison, Companions & In-Sheet 
     expect(mapEl).toHaveAttribute('data-night', 'false');
     expect(sheetEl.className).toContain('bg-white');
   });
+
+  it('supports women-only filter, BlaBlaCar meetingPoint group creation, WhatsApp invite link, and arrival check-in in chat', () => {
+    renderMapTab();
+    const sheet = screen.getByTestId('bottom-sheet');
+
+    // Toggle Grupo Feminino filter
+    const womenFilterBtn = within(sheet).getByRole('button', { name: /Grupo Feminino/i });
+    fireEvent.click(womenFilterBtn);
+    expect(womenFilterBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(within(sheet).getByText(/Mariana Silva/i)).toBeInTheDocument();
+    expect(within(sheet).queryByText(/Lucas Becker/i)).not.toBeInTheDocument();
+
+    // Verify WhatsApp invite link carries safe wa.me URL
+    const whatsappInvite = within(sheet).getAllByRole('link', { name: /Compartilhar no WhatsApp/i })[0]!;
+    expect(whatsappInvite.getAttribute('href')).toMatch(/^https:\/\/wa\.me\/\?text=/);
+
+    // Reset filter and create women-only walking group with meetingPoint
+    fireEvent.click(within(sheet).getByRole('button', { name: /^Todos/i }));
+    fireEvent.click(within(sheet).getByRole('button', { name: /Criar grupo/i }));
+
+    fireEvent.change(within(sheet).getByLabelText(/Nome do grupo/i), {
+      target: { value: 'Volta CDS Segura' },
+    });
+    const meetingInput = within(sheet).getByLabelText(/Ponto de encontro/i);
+    fireEvent.change(meetingInput, { target: { value: 'Portaria principal CDS' } });
+    fireEvent.click(within(sheet).getByRole('button', { name: /Grupo feminino verificado/i }));
+    fireEvent.click(within(sheet).getByRole('button', { name: /Criar e abrir chat/i }));
+
+    expect(within(sheet).getByText('Volta CDS Segura')).toBeInTheDocument();
+    expect(within(sheet).getByText(/Portaria principal CDS/i)).toBeInTheDocument();
+
+    // Send 1-tap arrival check-in inside CompanionChatView
+    fireEvent.click(within(sheet).getByRole('button', { name: /Cheguei bem/i }));
+    expect(within(sheet).getByText(/Cheguei bem ao destino pelo trajeto iluminado/i)).toBeInTheDocument();
+  });
 });
